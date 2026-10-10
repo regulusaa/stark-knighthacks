@@ -1,6 +1,7 @@
 {
   "identityMaxAbsErr": {
     "clean_retriever": 2.8115017780550033e-06,
+    "adv_retriever": 1.5118019636162217e-06,
     "ambig_cat": 3.256629085512941e-06,
     "ambig_wolf": 6.884224692527141e-06,
     "clean_sportscar": 4.0678965831375535e-06,
@@ -114,6 +115,33 @@
       "min": 0.9999999956485319,
       "mean": 0.9999999994218048,
       "n": 25
+    },
+    "adv_retriever": {
+      "classes": {
+        "208": {
+          "pearson": 0.9999999967216935,
+          "maxPixelDiff": 1
+        },
+        "207": {
+          "pearson": 0.9999999969994914,
+          "maxPixelDiff": 1
+        },
+        "222": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "852": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "206": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        }
+      },
+      "min": 0.9999999967216935,
+      "mean": 0.9999999987442368,
+      "n": 5
     },
     "ambig_cat": {
       "classes": {

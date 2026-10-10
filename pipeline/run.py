@@ -45,7 +45,8 @@ def main(argv=None):
             if not stage.applies(entry):
                 continue
             tag = f"{entry['id']}:{stage.NAME}"
-            input_path = gallery.input_path(entry)
+            # a stage that creates its entry's input (fgsm) stamps against its own source instead
+            input_path = stage.input_path(entry) if hasattr(stage, "input_path") else gallery.input_path(entry)
             key = stamps.key(stage, entry, input_path)
             if (not args.force and marks.get(tag) == key
                     and all(p.exists() for p in stage.outputs(entry))):

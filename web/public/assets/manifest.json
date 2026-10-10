@@ -16,8 +16,29 @@
         "tree": true,
         "gradcam": true,
         "atlas": false,
-        "stability": false,
+        "stability": true,
         "fgsm": false,
+        "medical": false
+      },
+      "steerable": true
+    },
+    {
+      "id": "adv_retriever",
+      "name": "Golden retriever (adversarial)",
+      "category": "adversarial",
+      "order": 2,
+      "trueClass": {
+        "classId": 207,
+        "label": "golden retriever"
+      },
+      "folder": "assets/adv_retriever/",
+      "files": {
+        "crop": true,
+        "tree": true,
+        "gradcam": true,
+        "atlas": false,
+        "stability": false,
+        "fgsm": true,
         "medical": false
       },
       "steerable": true
@@ -37,7 +58,7 @@
         "tree": true,
         "gradcam": true,
         "atlas": false,
-        "stability": false,
+        "stability": true,
         "fgsm": false,
         "medical": false
       },
@@ -58,7 +79,7 @@
         "tree": true,
         "gradcam": true,
         "atlas": false,
-        "stability": false,
+        "stability": true,
         "fgsm": false,
         "medical": false
       },

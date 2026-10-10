@@ -1,0 +1,247 @@
+{
+  "schema": "stark.stability/1",
+  "imageId": "ambig_wolf",
+  "method": "test-time augmentation",
+  "runs": 30,
+  "seed": 1337,
+  "transforms": {
+    "cropAreaFrac": [
+      0.85,
+      1.0
+    ],
+    "aspectRatio": [
+      0.9,
+      1.1
+    ],
+    "hflipProb": 0.5,
+    "brightnessDelta": 0.15
+  },
+  "perRun": [
+    {
+      "run": 0,
+      "top1ClassId": 269,
+      "top1Score": 0.8530303456233648
+    },
+    {
+      "run": 1,
+      "top1ClassId": 269,
+      "top1Score": 0.879702613862234
+    },
+    {
+      "run": 2,
+      "top1ClassId": 269,
+      "top1Score": 0.8115383912973215
+    },
+    {
+      "run": 3,
+      "top1ClassId": 269,
+      "top1Score": 0.7831505523603549
+    },
+    {
+      "run": 4,
+      "top1ClassId": 269,
+      "top1Score": 0.894476146394621
+    },
+    {
+      "run": 5,
+      "top1ClassId": 269,
+      "top1Score": 0.8831543290213555
+    },
+    {
+      "run": 6,
+      "top1ClassId": 269,
+      "top1Score": 0.8658137918501775
+    },
+    {
+      "run": 7,
+      "top1ClassId": 269,
+      "top1Score": 0.7500397820611447
+    },
+    {
+      "run": 8,
+      "top1ClassId": 269,
+      "top1Score": 0.8093022192005173
+    },
+    {
+      "run": 9,
+      "top1ClassId": 269,
+      "top1Score": 0.6935770125693672
+    },
+    {
+      "run": 10,
+      "top1ClassId": 269,
+      "top1Score": 0.8622028282587321
+    },
+    {
+      "run": 11,
+      "top1ClassId": 269,
+      "top1Score": 0.7875972956424339
+    },
+    {
+      "run": 12,
+      "top1ClassId": 269,
+      "top1Score": 0.6449973406331657
+    },
+    {
+      "run": 13,
+      "top1ClassId": 269,
+      "top1Score": 0.7809177749498992
+    },
+    {
+      "run": 14,
+      "top1ClassId": 269,
+      "top1Score": 0.7944764129136057
+    },
+    {
+      "run": 15,
+      "top1ClassId": 269,
+      "top1Score": 0.7350845054235794
+    },
+    {
+      "run": 16,
+      "top1ClassId": 269,
+      "top1Score": 0.8772438230269974
+    },
+    {
+      "run": 17,
+      "top1ClassId": 269,
+      "top1Score": 0.7560431233969432
+    },
+    {
+      "run": 18,
+      "top1ClassId": 269,
+      "top1Score": 0.7661421927435713
+    },
+    {
+      "run": 19,
+      "top1ClassId": 269,
+      "top1Score": 0.8906613619765846
+    },
+    {
+      "run": 20,
+      "top1ClassId": 269,
+      "top1Score": 0.852739701877904
+    },
+    {
+      "run": 21,
+      "top1ClassId": 269,
+      "top1Score": 0.8129097902351753
+    },
+    {
+      "run": 22,
+      "top1ClassId": 269,
+      "top1Score": 0.7841340027269341
+    },
+    {
+      "run": 23,
+      "top1ClassId": 269,
+      "top1Score": 0.6989193160658453
+    },
+    {
+      "run": 24,
+      "top1ClassId": 269,
+      "top1Score": 0.8688194576893287
+    },
+    {
+      "run": 25,
+      "top1ClassId": 269,
+      "top1Score": 0.8620335477338696
+    },
+    {
+      "run": 26,
+      "top1ClassId": 269,
+      "top1Score": 0.8807298154421903
+    },
+    {
+      "run": 27,
+      "top1ClassId": 269,
+      "top1Score": 0.6987903159674862
+    },
+    {
+      "run": 28,
+      "top1ClassId": 269,
+      "top1Score": 0.8078072725368987
+    },
+    {
+      "run": 29,
+      "top1ClassId": 269,
+      "top1Score": 0.8147758346703075
+    }
+  ],
+  "winners": [
+    {
+      "classId": 269,
+      "label": "timber wolf",
+      "count": 30
+    }
+  ],
+  "distinctWinners": 1,
+  "classes": [
+    {
+      "classId": 269,
+      "label": "timber wolf",
+      "mean": 0.8066936966050636,
+      "std": 0.06615170224476041
+    },
+    {
+      "classId": 270,
+      "label": "white wolf",
+      "mean": 0.10551727538389895,
+      "std": 0.04757978824745476
+    },
+    {
+      "classId": 272,
+      "label": "coyote",
+      "mean": 0.052109896848329736,
+      "std": 0.03223413413665975
+    },
+    {
+      "classId": 279,
+      "label": "Arctic fox",
+      "mean": 0.02522477935043726,
+      "std": 0.02405462789422188
+    },
+    {
+      "classId": 248,
+      "label": "Eskimo dog",
+      "mean": 0.0030907349424789967,
+      "std": 0.0029028441232623464
+    },
+    {
+      "classId": 249,
+      "label": "malamute",
+      "mean": 0.0015537691609382295,
+      "std": 0.0013248547539041033
+    },
+    {
+      "classId": 174,
+      "label": "Norwegian elkhound",
+      "mean": 0.0015326072854241262,
+      "std": 0.0017797507371165703
+    },
+    {
+      "classId": 271,
+      "label": "red wolf",
+      "mean": 0.0011872906633620048,
+      "std": 0.0007537395970467119
+    },
+    {
+      "classId": 250,
+      "label": "Siberian husky",
+      "mean": 0.0008253205737079173,
+      "std": 0.000866290575787873
+    },
+    {
+      "classId": 280,
+      "label": "grey fox",
+      "mean": 0.0008105866575326828,
+      "std": 0.0007452199360832976
+    }
+  ],
+  "cleanTop1": {
+    "classId": 269,
+    "label": "timber wolf",
+    "score": 0.8841640269727516
+  },
+  "matchFraction": 1.0
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "stark.fgsm/1",
+  "sourceImageId": "clean_retriever",
+  "adversarialImageId": "adv_retriever",
+  "epsilon": 0.00784313725490196,
+  "epsilon255": 2,
+  "epsilonsTried255": [
+    1,
+    2
+  ],
+  "pixelSpace": "[0,1] RGB before Keras preprocessing",
+  "method": "untargeted FGSM: x + epsilon * sign(grad of cross-entropy vs the clean top-1), gradient through preprocess_input; the saved uint8 PNG is what was reclassified",
+  "original": {
+    "classId": 207,
+    "label": "golden retriever",
+    "score": 0.9688150766088671
+  },
+  "adversarial": {
+    "classId": 208,
+    "label": "Labrador retriever",
+    "score": 0.21251049749353249
+  },
+  "trueClass": {
+    "classId": 207,
+    "label": "golden retriever",
+    "adversarialScore": 0.10769297308728928
+  },
+  "maxPixelChange": 2,
+  "meanAbsChange": 1.9981996704931972,
+  "psnr": 42.11514731172145,
+  "noiseFile": "noise_x50.png"
+}

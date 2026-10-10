@@ -28,3 +28,34 @@
   - the manifest's `steerable`.
 - I looked at `steer_review.png`. The channel maps sit on the subject: the retriever's face, and the monarch's diagonal wing. The flip results are below.
 - **Note:** editing `resnet.py` made the core stage re-run on every image. All 70 baseline asset files came out byte-identical.
+
+## Part C: stability test and adversarial retriever, DONE
+
+### Stability
+The stage is `pipeline/stages/stability.py`. Each image gets 30 runs with seed 1337:
+- a crop covering 85–100% of the area, with aspect ratio 0.9–1.1;
+- a horizontal flip with probability 0.5;
+- brightness ×U(0.85, 1.15).
+
+Besides the contract fields, mc.json records `cleanTop1` and `matchFraction`.
+
+| Image | Runs matching the clean top-1 | Winners | Top-1 mean ± std |
+|---|---|---|---|
+| ambig_cat | **40%** (tabby 12/30) | tiger cat 18, tabby 12 | tabby 0.377 ± 0.084 (tiger cat 0.420 ± 0.061) |
+| ambig_wolf | 100% | timber wolf 30 | 0.807 ± 0.066 |
+| clean_retriever (the contrast) | 100% | golden retriever 30 | 0.958 ± 0.014 |
+
+**Verdict: `ambig_cat` is the less stable candidate, so it becomes the stability demo image.** Its top-1 flips between tabby and tiger cat; tiger cat actually wins most runs. The wolf never changes its answer.
+
+### FGSM
+The stage is `pipeline/stages/fgsm.py`; it runs before core and creates `adv_retriever`'s input.
+- **Method:** untargeted FGSM, with the gradient taken through `preprocess_input` inside the tape. Each candidate is rounded to uint8, written as PNG, read back and classified again.
+- **Result:**
+  - ε = 1/255 did not flip after rounding.
+  - **ε = 2/255** flips it: golden retriever (0.969) → **Labrador retriever (0.213)**.
+  - Golden retriever drops to 0.108, now rank 2.
+- **Size of the change:**
+  - maxPixelChange 2 levels, meanAbsChange 1.998;
+  - **PSNR 42.1 dB**: the two crops are indistinguishable by eye.
+- `noise_x50.png` is written.
+- `adv_retriever` (gallery order 2, `generated` + `preprocessed: true`) gets the full asset set: crop, tree, Grad-CAM, conv5/steer, atlas. Its steer identity check passes. It isn't one of reference.json's three images, so it has no reference cases.
