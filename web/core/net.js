@@ -1,7 +1,7 @@
 // The display's link to the relay (contract v1 sections 3–5). The only module that touches the network:
 // it registers as the display, publishes display-state and focus-state, and turns controller events
 // into api calls. If the relay is unreachable the display keeps working with mouse and keyboard.
-import { EVENTS, ROLES } from '/contract/contract.js';
+import { EVENTS, ROLES, DEFAULTS } from '/contract/contract.js';
 
 export const NET = {
   sendMinMs: 100,  // ≤ 10 state messages a second per kind (the relay allows 20)
@@ -17,7 +17,10 @@ function gainParam(params, name, fallback) {
   return params.has(name) && Number.isFinite(v) && v > 0 ? v : fallback;
 }
 
-export async function connectRelay(api, { onStatus = () => {} } = {}) {
+/** Minimum gap between two messages of one kind: steer-result may go at STEER_SEND_HZ, the states at 1/sendMinMs. */
+const minGap = (event) => (event === EVENTS.STEER_RESULT ? 1000 / DEFAULTS.STEER_SEND_HZ : NET.sendMinMs);
+
+export async function connectRelay(api, { onStatus = () => {}, steer = null } = {}) {
   let io;
   try {
     ({ io } = await import('/socket.io/socket.io.esm.min.js'));
@@ -41,12 +44,12 @@ export async function connectRelay(api, { onStatus = () => {} } = {}) {
   const timers = {};
   const lastSent = {};   // event → performance.now() of the last emit
   const lastJson = {};   // event → the last payload emitted, serialized (forgotten on reconnect)
-  const sent = { [EVENTS.DISPLAY_STATE]: 0, [EVENTS.FOCUS_STATE]: 0, deduped: 0 }; // counters for tests
+  const sent = { [EVENTS.DISPLAY_STATE]: 0, [EVENTS.FOCUS_STATE]: 0, [EVENTS.STEER_RESULT]: 0, deduped: 0 }; // counters for tests
   function send(event, payload, { force = false } = {}) {
     pending[event] = payload;
     if (force) lastJson[event] = undefined;
     if (timers[event]) return;
-    const wait = Math.max(0, NET.sendMinMs - (performance.now() - (lastSent[event] ?? -Infinity)));
+    const wait = Math.max(0, minGap(event) - (performance.now() - (lastSent[event] ?? -Infinity)));
     timers[event] = setTimeout(() => {
       timers[event] = null;
       if (!socket.connected || !net.room) return;
@@ -63,6 +66,7 @@ export async function connectRelay(api, { onStatus = () => {} } = {}) {
   function publishAll() {
     if (api.state) send(EVENTS.DISPLAY_STATE, withServerFields(api.state), { force: true });
     send(EVENTS.FOCUS_STATE, api.state?.focus ?? null, { force: true });
+    if (steer?.state) send(EVENTS.STEER_RESULT, steer.state, { force: true });
   }
   api.onDisplayState((s) => send(EVENTS.DISPLAY_STATE, withServerFields(s)));
   api.onFocus((f) => send(EVENTS.FOCUS_STATE, f ?? null));
@@ -116,6 +120,10 @@ export async function connectRelay(api, { onStatus = () => {} } = {}) {
     if (speed !== undefined) api.setSpeed(speed);
     if (skipToEnd) api.jumpToEnd(); else api.replay();
   });
+  // Steer: the session drops stale seqs, coalesces to one apply per frame, and answers with steer-result
+  on(EVENTS.STEER_UPDATE, (p) => steer?.update(p));
+  on(EVENTS.STEER_RESET, () => steer?.reset());
+  steer?.on('result', (state) => send(EVENTS.STEER_RESULT, state));
   on(EVENTS.SET_MODE, ({ mode, layerMode }) => {
     // a mode whose capability is false is ignored (the relay can't know; the HUD hides it anyway)
     const caps = api.state?.capabilities ?? {};

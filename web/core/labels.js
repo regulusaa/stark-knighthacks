@@ -74,8 +74,8 @@ export function createLabels({ isHidden = () => false } = {}) {
         const n = t.node;
         const isTop1 = n.onTop1Path;
         const isTrue = n.isTrueLabel;
-        const { tex, aspect } = makeTexture(`${n.label}  ${t.score.toFixed(2)}`,
-          isTop1 ? LABELS.top1Text : isTrue ? LABELS.trueText : LABELS.text);
+        const text = `${n.label}  ${t.score.toFixed(2)}`;
+        const { tex, aspect } = makeTexture(text, isTop1 ? LABELS.top1Text : isTrue ? LABELS.trueText : LABELS.text);
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, depthWrite: false, fog: false, transparent: true }));
         sprite.scale.set(LABELS.worldHeight * aspect, LABELS.worldHeight, 1);
         sprite.center.set(0.5, 0);
@@ -87,7 +87,7 @@ export function createLabels({ isHidden = () => false } = {}) {
         sprite.renderOrder = 10;
         sprite.visible = false;
         group.add(sprite);
-        labels.push({ classId: t.classId, sprite, aspect, tip: t, above, below, flipped: false,
+        labels.push({ classId: t.classId, sprite, aspect, tip: t, above, below, flipped: false, text, isTop1, isTrue,
           baseAlways: isTop1 || isTrue,
           // higher wins an overlap: always-visible first, then by score
           priority: (isTop1 ? 3 : isTrue ? 2 : 0) + t.score });
@@ -97,6 +97,17 @@ export function createLabels({ isHidden = () => false } = {}) {
     },
     dispose,
     setFocused(classId) { focused = classId; sinceCheck = Infinity; },
+    /** Steer moved the answer: that label takes the top-1 colour and is always shown. */
+    setTop1(classId) {
+      for (const l of labels) {
+        const isTop1 = l.classId === classId;
+        if (isTop1 === l.isTop1) continue;
+        l.isTop1 = isTop1;
+        l.baseAlways = isTop1 || l.isTrue;
+        l.text = null; // redraw in the new colour
+      }
+      sinceCheck = Infinity;
+    },
     /**
      * Every frame: keep each label's on-screen height within minPx..maxPx (world height 0.35 otherwise),
      * so a tip right next to the camera doesn't get a giant label. About 10× a second: visibility + overlaps.
@@ -116,6 +127,18 @@ export function createLabels({ isHidden = () => false } = {}) {
       sinceCheck += dtMs;
       if (sinceCheck < LABELS.checkEveryMs) return;
       sinceCheck = 0;
+      // Steer: redraw a label whose score (2 decimals) or colour changed
+      for (const l of labels) {
+        const text = `${l.tip.node.label}  ${l.tip.score.toFixed(2)}`;
+        if (text === l.text) continue;
+        l.text = text;
+        const old = l.sprite.material.map;
+        const { tex, aspect } = makeTexture(text, l.isTop1 ? LABELS.top1Text : l.isTrue ? LABELS.trueText : LABELS.text);
+        l.sprite.material.map = tex;
+        l.aspect = aspect;
+        l.priority = (l.isTop1 ? 3 : l.isTrue ? 2 : 0) + l.tip.score;
+        retireLater([old]);
+      }
       order.length = 0;
       for (const l of labels) order.push(l);
       order.sort((a, b) => (b.classId === focused) - (a.classId === focused) || b.priority - a.priority);
