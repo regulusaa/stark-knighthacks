@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#050208">
+  <title>Stark · Controller</title>
+  <link rel="stylesheet" href="/ui/styles/tokens.css">
+  <link rel="stylesheet" href="/ui/controller.css">
+</head>
+<body>
+  <div id="app" class="controller" data-state="connecting" data-role="guest">
+    <header class="status-bar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">S</span><span>STARK <small>CONTROL</small></span></div>
+      <div class="session"><span class="connection-dot" id="connection-dot"></span><span id="connection-label">Connecting</span><span class="room-pill" id="room-code">—</span></div>
+    </header>
+
+    <main class="main-area">
+      <section id="state-screen" class="state-screen" aria-live="polite">
+        <div class="state-art" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p class="eyebrow" id="state-kicker">CONNECTING</p>
+        <h1 id="state-title">Finding the display</h1>
+        <p class="state-message" id="state-message">This usually takes a moment.</p>
+        <button id="retry-button" class="primary-button" type="button" hidden>Try again</button>
+      </section>
+
+      <section id="workbench" class="workbench" hidden>
+        <div class="trackpad-panel">
+          <div class="panel-heading"><div><p class="eyebrow">CAMERA</p><h2>Move the view</h2></div><span id="driver-label" class="driver-label">Waiting</span></div>
+          <div class="trackpad-frame" id="trackpad-frame">
+            <div id="trackpad" class="trackpad" aria-label="Drag to orbit; pinch to zoom">
+              <div class="trackpad-grid" aria-hidden="true"></div>
+              <div class="trackpad-instructions" aria-hidden="true"><span class="orbit-symbol">◎</span><strong>Drag to orbit</strong><span>Pinch to zoom</span></div>
+            </div>
+            <div id="trackpad-lock" class="trackpad-lock" hidden>
+              <span class="lock-symbol" aria-hidden="true">◈</span>
+              <p id="lock-message">Take the wheel</p>
+              <button id="take-control-center" class="primary-button" type="button">Take control</button>
+            </div>
+          </div>
+          <p class="trackpad-note">Movement goes to the display while you drive.</p>
+        </div>
+
+        <aside id="side-panel" class="side-panel">
+          <div class="current-image"><span class="eyebrow">ON DISPLAY</span><strong id="image-name">Waiting for image</strong><span id="top-answer">Model score will appear here</span></div>
+          <div class="slot"><div><span class="slot-index">01</span><h3>Answers</h3></div><p>The answer list arrives in CX-3.</p></div>
+          <div id="host-slots" class="host-slots" hidden>
+            <div class="slot"><div><span class="slot-index">02</span><h3>Gallery</h3></div><p>Image picker arrives in CX-3.</p></div>
+            <div class="slot"><div><span class="slot-index">03</span><h3>Playback &amp; modes</h3></div><p>Controls arrive in CX-4.</p></div>
+            <button id="host-reset" class="secondary-button" type="button">Reset view</button>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <footer id="bottom-bar" class="bottom-bar" hidden>
+      <button id="take-control-bottom" class="primary-button" type="button">Take control</button>
+      <button id="reset-view" class="secondary-button" type="button">Reset view</button>
+    </footer>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+  </div>
+  <script type="module" src="/ui/controller.js"></script>
+</body>
+</html>
