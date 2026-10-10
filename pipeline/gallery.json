@@ -21,6 +21,13 @@
       "trueLabel": "monarch" },
     { "id": "ambig_chihuahua", "file": "ambig_chihuahua", "backup": "ambig_chihuahua_b",
       "name": "Chihuahua", "category": "ambiguous", "order": 8,
-      "trueLabel": "Chihuahua" }
+      "trueLabel": "Chihuahua" },
+    { "id": "med_xray_pneumonia", "file": "med_xray_pneumonia", "backup": null,
+      "name": "Chest X-ray (pneumonia)", "category": "medical", "order": 4,
+      "trueLabel": null, "trueFinding": "Pneumonia",
+      "trueSource": "source caption of the image (pneumonia), as supplied by Ray" },
+    { "id": "med_xray_normal", "file": "med_xray_normal", "backup": null,
+      "name": "Chest X-ray (normal)", "category": "medical", "order": 9,
+      "trueLabel": null, "trueFinding": null }
   ]
 }

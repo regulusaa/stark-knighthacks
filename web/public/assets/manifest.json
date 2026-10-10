@@ -65,6 +65,27 @@
       "steerable": true
     },
     {
+      "id": "med_xray_pneumonia",
+      "name": "Chest X-ray (pneumonia)",
+      "category": "medical",
+      "order": 4,
+      "trueClass": {
+        "classId": 8,
+        "label": "Pneumonia"
+      },
+      "folder": "assets/med_xray_pneumonia/",
+      "files": {
+        "crop": true,
+        "tree": true,
+        "gradcam": true,
+        "atlas": false,
+        "stability": false,
+        "fgsm": false,
+        "medical": true
+      },
+      "steerable": false
+    },
+    {
       "id": "ambig_wolf",
       "name": "Wolf in snow",
       "category": "ambiguous",
@@ -147,6 +168,24 @@
         "medical": false
       },
       "steerable": true
+    },
+    {
+      "id": "med_xray_normal",
+      "name": "Chest X-ray (normal)",
+      "category": "medical",
+      "order": 9,
+      "trueClass": null,
+      "folder": "assets/med_xray_normal/",
+      "files": {
+        "crop": true,
+        "tree": true,
+        "gradcam": true,
+        "atlas": false,
+        "stability": false,
+        "fgsm": false,
+        "medical": true
+      },
+      "steerable": false
     }
   ]
 }

@@ -11,7 +11,7 @@ from importlib import metadata
 from . import config, gallery
 
 STAMPS = config.CACHE / "stamps.json"
-LIBS = ("tensorflow", "keras", "numpy", "pillow", "nltk")
+LIBS = ("tensorflow", "keras", "numpy", "pillow", "nltk", "torch", "torchxrayvision", "grad-cam", "scikit-image")
 
 
 def _lib_versions():

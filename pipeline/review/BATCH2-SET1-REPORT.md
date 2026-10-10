@@ -67,3 +67,41 @@ The stage is `pipeline/stages/fgsm.py`; it runs before core and creates `adv_ret
 - **Skips:** `fromLayer` follows the contract and its fixture (the block's `_1_relu` → `_out`). The prompt says "from the block's input layer", so each skip also carries `inputLayer` (the previous block's `_out`) and `inputInAtlas`. For conv2_block1 the real input is `pool1_pool`, which is not in the atlas. **Open question** below.
 - **Validator:** checks offsets, lengths, sizes, a peak of 255 and the skips. It also checks that the conv5_block3_out map matches `conv5.bin` (it does).
 - **What I saw:** the edges of the dog and the butterfly at conv1–conv2, part outlines at conv3, and coarse object blobs at conv5. **conv4_block6_out peaks at the top-left corner on both images I checked**, a border response rather than the subject. It is worth knowing before narrating that layer.
+
+## Part E: medical card, DONE (with an honesty flag)
+- **Model:** torchxrayvision `densenet121-res224-all`, loaded from the local cache. Preprocessing is the library's own: grayscale, `xrv.datasets.normalize(img, 255)`, `XRayCenterCrop`, `XRayResizer(224)`.
+- **Scores:** all 18 pathologies are non-empty labels, and all are kept with `scoreKind: "independent"`. Nothing is softmaxed. xrv's operating-point normalization puts each finding's threshold at 0.5.
+- **Grad-CAM:** pytorch-grad-cam 1.5.7 on **`features.denseblock4`**, the last dense block (the name was checked against the loaded model). It covers the top 3 findings plus Pneumonia.
+  - The library's map agrees with a 7×7 Grad-CAM recomputed from the same hooks (r ≥ 0.9999).
+  - The PNG keeps the library's own min-max scaling, and `index.json` says so.
+- **Outputs:**
+  - `crop.png`, the exact model input as grayscale;
+  - a fan `tree.json`;
+  - `gradcam/`;
+  - `medical.json`, with the caveat text;
+  - `steerable: false` in the manifest.
+- **Inputs:** `med_xray_pneumonia.jpg` and `med_xray_normal.jpg`, the 960-px versions from `~/Downloads` dated Oct 8, copied to `pipeline/inputs/`. Gallery orders 4 and 9. The pneumonia film's true class is Pneumonia (source caption); the normal film's is null.
+
+**Scores**
+
+| Image | Top 3 (independent scores) | Pneumonia |
+|---|---|---|
+| med_xray_pneumonia | Cardiomegaly 0.57, Mass 0.53, Atelectasis 0.52 | **rank 13 of 18, 0.18** |
+| med_xray_normal | Pleural Thickening 0.51, Fibrosis 0.50, Infiltration 0.45 | 0.18 (not a true class) |
+
+**Honesty flag: the model does not flag pneumonia on the pneumonia film.** Every top score sits near the 0.5 operating point, so nothing stands out. I checked the older, smaller files in Downloads, which I did not use: their Pneumonia ranks are 13 (0.27) and 11 (0.10). So this comes from the model, not from the file choice. The card has to show it as it is ("the model's scores for each finding"), and must not narrate it as a correct diagnosis.
+
+**What the heatmaps show.** I looked at them myself and am describing only what is visible:
+- **Pneumonia film:**
+  - Cardiomegaly: the heart and lower mediastinum, centre.
+  - Mass: the mediastinum and the lower centre, near the right hemidiaphragm.
+  - Atelectasis: a band along the bottom edge of the image, below the diaphragm.
+  - Pneumonia: the lower-left of the image (the patient's right lower zone, where the visible opacity is), running into the bottom edge.
+- **Normal film:**
+  - Pleural Thickening: the left image border at the lower lung zone.
+  - Fibrosis: the bottom-left corner below the diaphragm, plus the top-right near the shoulder.
+  - Infiltration: the upper mediastinum.
+  - Pneumonia: a small spot right of the trachea near the aortic knob.
+- **Markers and borders:**
+  - The center crop removes the "Sin"/"Dx" markers on both films, so no map sits on a marker.
+  - Several maps do sit on image borders or below the diaphragm rather than in the lung fields: Atelectasis's bottom band, and Fibrosis's corners.
