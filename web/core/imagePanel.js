@@ -6,6 +6,9 @@ import * as THREE from 'three';
 import { INFERNO_GLSL, infernoTexture } from './inferno.js';
 import { RIG } from './cameraRig.js';
 
+/** How far the caption hangs below the photo's bottom edge (frame + gap + caption), for framing. */
+export const panelExtentBelow = () => PANEL.frameWidth + PANEL.captionGap + PANEL.captionHeight;
+
 export const PANEL = {
   size: 3.8,           // secondary to the Brain, which is the subject
   position: new THREE.Vector3(-7.2, 6.9, 5.0),   // front-left of the brain, clear of the frontal and temporal lobes
@@ -116,6 +119,7 @@ export function createImagePanel() {
     [s + w / 2, 0, w, 2 * s], [-s - w / 2, 0, w, 2 * s]]) {
     const q = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), frameMat);
     q.position.set(x, y, 0.001);
+    q.renderOrder = 20;   // after the translucent tissue, which would otherwise paint over it
     group.add(q);
   }
 
@@ -124,6 +128,7 @@ export function createImagePanel() {
   const caption = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), captionMat);
   caption.position.set(0, -s - w - PANEL.captionGap - PANEL.captionHeight / 2, 0.002);
   caption.visible = false;
+  caption.renderOrder = 20;
   group.add(caption);
   const captions = new Map();
   let captionText = null;
@@ -164,6 +169,12 @@ export function createImagePanel() {
       if (instant) { uniforms.uWeightA.value = toA; uniforms.uWeightB.value = 1 - toA; fade = null; }
       else startFade(toA, 1 - toA);
       return my;
+    },
+    /** Where the panel sits for this viewport (framing.js): world position and uniform scale. */
+    setPlacement(position, scale = 1) {
+      group.position.fromArray(position);
+      group.scale.setScalar(scale);
+      group.updateMatrixWorld(true);
     },
     get heatClass() { return currentClass; },
     /**

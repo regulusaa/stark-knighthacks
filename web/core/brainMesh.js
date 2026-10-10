@@ -1,7 +1,8 @@
-// The Brain's veins (master plan 6.4): one tube per tree edge, all sharing one ShaderMaterial.
+// The Brain's veins (master plan 6.4): one fibre tract per tree edge, all sharing one ShaderMaterial.
 // Per-edge data rides in vertex attributes, so time, reveal and breathing are uniforms on that one material.
-// Each tube is drawn twice: normally, and again where tissue hides it (depth test inverted), faintly for ordinary
-// veins and strongly for the top-1 and focused paths, so the chosen path is never lost inside the brain.
+// Tracts are solid, lit tubes coloured by the inferno score ramp (so the confident ones are gold), seen through the
+// translucent tissue. The top-1 and focused paths are drawn a second time where tissue lies in front of them (depth
+// test inverted, additive), so the chosen path is never lost inside the brain.
 // Steer (contract v2): setValues() retargets each edge's value and the lit path. Values follow a critically damped
 // spring and the lit path crossfades; the vertex shader pushes the tube wall along its normal by the change in
 // radius, so no geometry is ever rebuilt.
@@ -12,8 +13,9 @@ import { veinRadius, BRAIN } from './brainLayout.js';
 export const VEINS = {
   segmentsPerUnit: 14,         // tube segments per world unit of edge length (min 12)
   radialSegments: 8,
-  dim: 0.07,                   // brightness before the reveal
-  colorFloor: 0.3,             // colour = inferno(floor + (1 - floor) · sqrt(value)); see the report
+  dim: 0.12,                   // brightness before the reveal
+  colorFloor: 0.3,             // colour = inferno(floor + (ceil - floor) · sqrt(value)); see the report
+  colorCeil: 0.86,             // the top of the ramp is near-white: the most confident tracts stop at gold
   highlightPeriod: 2.5,        // s: top-1 path highlight, root → leaf
   highlightWidth: 0.15,        // fraction of the top-1 path
   livingPeriod: 2.8,           // s: soft pulse leaf → root on every lit vein
@@ -22,9 +24,15 @@ export const VEINS = {
   revealMs: 800,
   springOmega: 23,             // rad/s: a critically damped spring settles (within 1%) in about 250 ms
   litFadeMs: 300,              // the lit path crossfades to a new answer over this long
-  hiddenPath: 0.5,             // brightness of the top-1 / focused path where tissue hides it
-  hiddenThin: 0.5,             // … drawn at this fraction less than its radius
-  hiddenOther: 0.07,           // … and of every other vein (faint vessels under the cortex)
+  hiddenPath: 0.1,             // brightness added to the top-1 / focused path where tissue hides it
+  hiddenThin: 0.15,            // … drawn at this fraction less than its radius
+  hiddenOther: 0,              // … and of every other vein (the translucent tissue already shows them)
+  keyLight: [-0.45, 0.65, 0.6], // view space: upper left, toward the viewer
+  specular: [1, 0.92, 0.7],    // warm white-gold highlight
+  shininess: 28,
+  hiddenOrder: 12,             // after the tissue (brainTissue.js TISSUE.order), against its depth
+  pickPx: 9,                   // a click this close (CSS px) to a tract selects it
+  pickSamples: 24,
 };
 
 const vertexShader = /* glsl */ `
@@ -83,6 +91,7 @@ uniform float uReveal;        // 0..1
 uniform float uMaxDepth;
 uniform float uDim;
 uniform float uColorFloor;
+uniform float uColorCeil;
 uniform float uPathLen;
 uniform float uMaxDist;
 uniform float uHiPeriod;
@@ -91,6 +100,9 @@ uniform float uLivePeriod;
 uniform float uHidden;        // 0: normal pass; 1: the pass behind tissue
 uniform float uHiddenPath;
 uniform float uHiddenOther;
+uniform vec3 uKeyLight;
+uniform vec3 uSpecular;
+uniform float uShininess;
 varying vec4 vEdge;
 varying float vFocus;
 varying float vS;
@@ -113,28 +125,39 @@ void main() {
   float bright = mix(vFocus > 0.5 ? 0.85 : 0.25 + 0.35 * value, 1.0, onPath);
   float level = mix(uDim, bright, lit);
 
-  // tissue look: translucent core, brighter silhouette
-  float facing = abs(dot(normalize(vNormal), normalize(vView)));
+  vec3 N = normalize(vNormal);
+  vec3 V = normalize(vView);
+  float facing = abs(dot(N, V));
   float rim = pow(1.0 - facing, 1.6);
-  float body = 0.35 + 1.0 * rim;
 
   // "other" is grey, unless Steer pushed the answer outside the Brain: then its path is the lit one
-  vec3 base = isOther > 0.5 ? mix(vec3(0.16, 0.15, 0.17), inferno(uColorFloor + (1.0 - uColorFloor) * sqrt(value)), onPath)
-                            : inferno(uColorFloor + (1.0 - uColorFloor) * sqrt(value));
-  vec3 col = base * level * body;
+  vec3 score = inferno(uColorFloor + (uColorCeil - uColorFloor) * sqrt(value));
+  vec3 base = isOther > 0.5 ? mix(vec3(0.16, 0.15, 0.17), score, onPath) : score;
+  vec3 col;
+  if (uHidden > 0.5) {
+    // behind tissue: a glow, brighter at the silhouette
+    col = base * level * (0.35 + rim);
+  } else {
+    // a solid tube: half-Lambert key light, warm specular, a little rim; the chosen paths also glow
+    vec3 L = normalize(uKeyLight);
+    float diff = 0.5 + 0.5 * dot(N, L);
+    diff *= diff;
+    float spec = pow(max(dot(N, normalize(L + V)), 0.0), uShininess);
+    col = base * level * (0.22 + 0.7 * diff + 0.25 * rim) + uSpecular * spec * (0.12 + 0.4 * level);
+  }
 
   // top-1 highlight: a band 15% of the path long, root → leaf, looping
   if (onPath > 0.0) {
     float head = fract(uTime / uHiPeriod) * (1.0 + uHiWidth) - uHiWidth * 0.5;
     float s = vS / uPathLen;
     float band = 1.0 - smoothstep(0.0, uHiWidth * 0.5, abs(s - head));
-    col += inferno(1.0) * band * lit * onPath * (0.6 + 0.6 * rim);
+    col += inferno(uColorCeil) * band * lit * onPath * (0.6 + 0.6 * rim);
   }
   // living pulse: softer, slower, leaf → root, on every lit vein
   float headD = (1.0 - fract(uTime / uLivePeriod)) * (uMaxDist + 1.0);
   float live = exp(-pow((vS - headD) / 0.45, 2.0));
   col += base * live * lit * 0.55;
-  // behind tissue: the chosen path shows through strongly, everything else as faint vessels
+  // behind tissue: only the chosen path shows through (strongly)
   if (uHidden > 0.5) col *= isOther > 0.5 ? onPath * uHiddenPath : mix(uHiddenOther * (0.5 + value), uHiddenPath, chosen);
 
   gl_FragColor = vec4(col, 1.0);
@@ -151,6 +174,7 @@ export function createBrainMesh() {
     uMaxDepth: { value: 1 },
     uDim: { value: VEINS.dim },
     uColorFloor: { value: VEINS.colorFloor },
+    uColorCeil: { value: VEINS.colorCeil },
     uPathLen: { value: 1 },
     uMaxDist: { value: 1 },
     uHiPeriod: { value: VEINS.highlightPeriod },
@@ -164,19 +188,20 @@ export function createBrainMesh() {
     uHiddenOther: { value: VEINS.hiddenOther },
     uRadiusBase: { value: BRAIN.veinRadiusBase },
     uRadiusScale: { value: BRAIN.veinRadiusScale },
+    uKeyLight: { value: new THREE.Vector3(...VEINS.keyLight) },
+    uSpecular: { value: new THREE.Color(...VEINS.specular) },
+    uShininess: { value: VEINS.shininess },
   }]);
   uniforms.uInferno.value = infernoTexture;
-  const material = new THREE.ShaderMaterial({
-    uniforms, vertexShader, fragmentShader, fog: true,
-    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
-  });
+  // solid tracts (opaque: drawn before the translucent tissue, which they show through)
+  const material = new THREE.ShaderMaterial({ uniforms, vertexShader, fragmentShader, fog: true });
   // the same veins where tissue is in front of them (shares every uniform object except uHidden)
   const hiddenMaterial = new THREE.ShaderMaterial({
     uniforms: { ...uniforms, uHidden: { value: 1 } }, vertexShader, fragmentShader, fog: true,
     transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthFunc: THREE.GreaterDepth,
   });
 
-  let meshes = [];      // [{edge, mesh, hidden, curve, live, v, vel, target, lit, litFrom, litTo}]
+  let meshes = [];      // [{edge, mesh, hidden, curve, pick, live, v, vel, target, lit, litFrom, litTo, focus}]
   let byTo = new Map(); // child node id → its entry
   let reveal = null;    // {t, ms} while animating
   let litFade = null;   // {t} while the lit path crossfades
@@ -192,7 +217,11 @@ export function createBrainMesh() {
     moving = false;
   }
 
+  // the through-tissue pass only for the chosen paths (it draws nothing for the rest)
+  const showHidden = (m) => { m.hidden.visible = m.lit > 1e-3 || m.focus; };
+
   function writeLive(m) {
+    showHidden(m);
     const a = m.live.array;
     if (a[0] === m.v && a[1] === m.lit) return;
     for (let i = 0; i < a.length; i += 2) { a[i] = m.v; a[i + 1] = m.lit; }
@@ -235,13 +264,15 @@ export function createBrainMesh() {
         for (let i = 0; i < n; i++) { live.array[i * 2] = value; live.array[i * 2 + 1] = lit; }
         geo.setAttribute('aLive', live);
         const mesh = new THREE.Mesh(geo, material);
-        mesh.renderOrder = e.onTop1Path ? 2 : 1;
         mesh.frustumCulled = false; // the breathing offset happens in the shader
         const hidden = new THREE.Mesh(geo, hiddenMaterial);
-        hidden.renderOrder = 1;
+        hidden.renderOrder = VEINS.hiddenOrder;
         hidden.frustumCulled = false;
         group.add(mesh, hidden);
-        const entry = { edge: e, mesh, hidden, curve, live, v: value, vel: 0, target: value, lit, litFrom: lit, litTo: lit };
+        // points along the tract (brain-root space) for picking by screen distance
+        const pick = Array.from({ length: VEINS.pickSamples }, (_, i) => curve.getPointAt(i / (VEINS.pickSamples - 1)));
+        const entry = { edge: e, mesh, hidden, curve, pick, live, v: value, vel: 0, target: value, lit, litFrom: lit, litTo: lit, focus: false };
+        showHidden(entry);
         meshes.push(entry);
         byTo.set(e.to, entry);
         if (e.onTop1Path && e.to !== null && !layout.edges.some((x) => x.from === e.to)) litLeaf = e.to;
@@ -281,10 +312,64 @@ export function createBrainMesh() {
       for (const m of meshes) {
         const a = m.mesh.geometry.attributes.aFocus;
         const v = on.has(m) ? 1 : 0;
+        m.focus = v === 1;
+        showHidden(m);
         if (a.array[0] === v) continue;
         a.array.fill(v);
         a.needsUpdate = true;
       }
+    },
+    /**
+     * The tract nearest a screen point (CSS px, within VEINS.pickPx), seen through the tissue: the id of the leaf it
+     * selects, i.e. its own leaf, or for an inner tract the leaf beneath it with the highest live value. null if none.
+     */
+    pickTrack(x, y, camera, width, height) {
+      const v = new THREE.Vector3();
+      const M = group.matrixWorld;
+      const pxPerUnit = height / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);   // at distance 1
+      // among the tracts whose tube covers the point: the lit or focused path (it shows through everything), else the
+      // front-most (what the eye sees there); if none covers it, the nearest within pickPx
+      let front = null, frontDist = Infinity, frontChosen = false;
+      let near = null, nearD = VEINS.pickPx;
+      for (const m of meshes) {
+        const r = veinRadius(m.v);
+        let px = null, py = null, pd = 0;
+        for (const p of m.pick) {
+          v.copy(p).applyMatrix4(M);
+          const dist = v.distanceTo(camera.position);
+          v.project(camera);
+          const sx = (v.x + 1) / 2 * width, sy = (1 - v.y) / 2 * height;
+          if (v.z < 1 && px !== null) {
+            const dx = sx - px, dy = sy - py;
+            const t = Math.max(0, Math.min(1, ((x - px) * dx + (y - py) * dy) / (dx * dx + dy * dy || 1)));
+            const d = Math.hypot(x - px - dx * t, y - py - dy * t);
+            const depth = pd + (dist - pd) * t;
+            const chosen = m.lit > 0.5 || m.focus;
+            if (d <= Math.max(2, (r * pxPerUnit) / depth) && (chosen && !frontChosen || chosen === frontChosen && depth < frontDist)) {
+              frontDist = depth; front = m; frontChosen = chosen;
+            }
+            if (d < nearD) { nearD = d; near = m; }
+          }
+          px = sx; py = sy; pd = dist;
+        }
+      }
+      const best = front ?? near;
+      return best ? this.bestLeafUnder(best.edge.to) : null;
+    },
+    /** The leaf at or beneath a node with the highest live value ("other" only when nothing else is there). */
+    bestLeafUnder(nodeId) {
+      let best = null;
+      const visit = (id) => {
+        const kids = meshes.filter((m) => m.edge.from === id);
+        if (!kids.length) {
+          const m = byTo.get(id);
+          if (m && (!best || (best.edge.isOther && !m.edge.isOther) || (m.edge.isOther === best.edge.isOther && m.v > best.v))) best = m;
+          return;
+        }
+        for (const k of kids) visit(k.edge.to);
+      };
+      visit(nodeId);
+      return best?.edge.to ?? null;
     },
     /** About `n` points spread along the path from the trunk top to a node (brain-root space). */
     pathPoints(nodeId, n = 40) {

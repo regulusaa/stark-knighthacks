@@ -5,16 +5,18 @@
 import * as THREE from 'three';
 import { createScene } from './scene.js';
 import { loadManifest } from './assets.js';
-import { createImagePanel } from './imagePanel.js';
+import { createImagePanel, PANEL, panelExtentBelow } from './imagePanel.js';
 import { createTrunk } from './trunk.js';
-import { createCameraRig } from './cameraRig.js';
+import { createCameraRig, RIG } from './cameraRig.js';
+import { frameFor } from './framing.js';
 import { createApi } from './api.js';
 import { mountHud } from './hudBridge.js';
 import { attachInput } from './input.js';
 import { layoutBrain } from './brainLayout.js';
 import { createBrainMesh, VEINS } from './brainMesh.js';
 import { createTissue, createTissueLights } from './brainTissue.js';
-import { ANATOMY, BOUNDS, occluded } from './brainShape.js';
+import { createFibers } from './brainFibers.js';
+import { ANATOMY, BOUNDS, STEM_FRAME_Y, occluded } from './brainShape.js';
 import { createTips } from './tips.js';
 import { createLabels } from './labels.js';
 import { createFocus } from './focus.js';
@@ -58,7 +60,9 @@ function tipHidden(classId) {
 }
 const labels = createLabels({ isHidden: tipHidden });
 if (params.get('labelsAll') === '1') labels.nearDistance = 100; // test hook: make every label eligible
-brainRoot.add(veins.group, tips.group, labels.group);
+// decorative nerves off the spinal cord (never data, never pickable)
+const fibers = createFibers();
+brainRoot.add(veins.group, tips.group, labels.group, fibers.mesh);
 scene.add(brainPivot, createTissueLights(BRAIN_VOLUME.center));
 
 if (params.get('guides') === '1') scene.add(new THREE.Box3Helper(BRAIN_VOLUME.box, 0x6b4c8a));
@@ -74,6 +78,29 @@ attachInput(canvas, api, hud, steerKeys);
 const tissue = await tissueReady;
 brainRoot.add(tissue.mesh);
 
+// Framing (framing.js): the default view and the photo's place follow the viewport, on load, on resize and on Reset.
+// The Brain's extent is a subsample of its tissue vertices (brain-root space is world space at rest), split into the
+// brain itself and the brainstem and cord below the cerebellum, which hang down beside the photo.
+const framePoints = [];
+const stemPoints = [];
+{
+  const pos = tissue.mesh.geometry.attributes.position;
+  for (let i = 0; i < pos.count; i += 23) (pos.getY(i) < STEM_FRAME_Y ? stemPoints : framePoints).push([pos.getX(i), pos.getY(i), pos.getZ(i)]);
+}
+let framing = null;
+function applyFraming() {
+  framing = frameFor(camera.aspect, {
+    brainPoints: framePoints,
+    stemPoints,
+    panel: { size: PANEL.size, extentBelow: panelExtentBelow(), position: PANEL.position.toArray() },
+    authored: { position: RIG.defaultPosition.toArray(), target: RIG.defaultTarget.toArray(), fov: RIG.fov },
+  });
+  panel.setPlacement(framing.panel.position, framing.panel.scale);
+  rig.setDefault(framing);
+}
+applyFraming();
+window.addEventListener('resize', applyFraming); // after scene.js's own resize handler has set the aspect
+
 // the focused tip's path lights up in the veins and glows through the tissue above it
 function highlight(classId) {
   const id = classId === null ? null : tips.get(classId)?.node.id ?? null;
@@ -82,7 +109,12 @@ function highlight(classId) {
 }
 const focus = createFocus({ api, rig, panel, tips, labels, highlight });
 api.attachFocus(focus);
-attachPicking(canvas, camera, tips, { onTip: (id) => api.focusTip(id), onEmpty: () => api.clearFocus(), isHidden: tipHidden });
+// a click on a fibre tract selects its leaf (an inner tract: the best-scoring leaf beneath it)
+function pickTrack(x, y, w, h) {
+  const leaf = veins.pickTrack(x, y, camera, w, h);
+  return leaf === null ? null : tips.list.find((t) => t.node.id === leaf && !t.isOther)?.classId ?? null;
+}
+attachPicking(canvas, camera, tips, { onTip: (id) => api.focusTip(id), onEmpty: () => api.clearFocus(), isHidden: tipHidden, pickTrack });
 
 api.onImageLoaded(() => {
   const a = api.assets;
@@ -102,7 +134,7 @@ api.onPulseComplete(() => veins.startReveal());
 const steer = linkSteer({ api, panel, veins, tips, labels, tissue });
 
 // Exposed for CC-4b/CC-5 code in this lane and for test scripts.
-const stark = { api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, tissue, tipHidden, steer, relay: null };
+const stark = { get framing() { return framing; }, fibers, pickTrack, api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, tissue, tipHidden, steer, relay: null };
 window.__stark = stark;
 
 let readyPending = true;
