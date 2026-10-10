@@ -2,7 +2,7 @@
 # One-time provisioning of a fresh Ubuntu 24.04 Vultr server for Stark (master plan 12.2). Run as root:
 #   bash setup.sh [hostname]      hostname defaults to <public-ip-with-dashes>.sslip.io
 #   STARK_BRANCH=agent/claude-core bash setup.sh    deploy a branch other than main (saved for update.sh)
-# Installs Node 20, git and Caddy; clones the repo into /opt/stark as the "stark" user; installs the systemd
+# Installs Node 20 (NodeSource), git and Caddy (Ubuntu archive); clones the repo into /opt/stark as the "stark" user; installs the systemd
 # unit and the Caddyfile; opens only 22/80/443. It never writes secrets: create /etc/stark.env yourself.
 set -euo pipefail
 
@@ -20,7 +20,7 @@ echo "==> hostname: $HOST"
 echo "==> packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -q
-apt-get install -yq git curl ufw ca-certificates gnupg debian-keyring debian-archive-keyring apt-transport-https
+apt-get install -yq git curl ufw ca-certificates gnupg
 
 if ! node -v 2>/dev/null | grep -q '^v20\.'; then
   echo "==> Node 20 LTS (NodeSource)"
@@ -29,10 +29,9 @@ if ! node -v 2>/dev/null | grep -q '^v20\.'; then
 fi
 
 if ! command -v caddy >/dev/null; then
-  echo "==> Caddy (official apt repo)"
-  curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key \
-    | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-  curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt > /etc/apt/sources.list.d/caddy-stable.list
+  # Caddy's own apt repo (Cloudsmith) started answering 402, so use Ubuntu's package (universe, Caddy 2.x).
+  echo "==> Caddy (Ubuntu archive)"
+  rm -f /etc/apt/sources.list.d/caddy-stable.list
   apt-get update -q
   apt-get install -yq caddy
 fi
