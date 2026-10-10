@@ -4,10 +4,11 @@ import * as THREE from 'three';
 
 export const RIG = {
   fov: 40,
-  // solved numerically at 16:9: panel + Brain volume within NDC x ±0.84, y −0.84..0.76 (top 12% kept for the HUD),
-  // trunk base above −0.95. Same viewing direction as the CC-4a starting values.
-  defaultPosition: new THREE.Vector3(8.01, 8.15, 20.44),
-  defaultTarget: new THREE.Vector3(-1.55, 7.5, 0.1),
+  // A raised posterior-lateral three-quarter view (azimuth 41°, polar 68°): cerebellum, brainstem and the top of the
+  // fissure all show. Solved numerically at 16:9: every tissue vertex and the panel within NDC x ±0.9,
+  // y −0.9..0.68 (the top 16% kept for the HUD and the tips riding the crown); the trunk below may leave the frame.
+  defaultPosition: new THREE.Vector3(6.51, 14.95, 10.44),
+  defaultTarget: new THREE.Vector3(-1.7, 9.9, 1.0),
   damping: 0.08,                 // fraction of the remaining gap closed per 60 Hz frame
   minPolar: THREE.MathUtils.degToRad(20),
   maxPolar: THREE.MathUtils.degToRad(100),
@@ -29,6 +30,7 @@ export function createCameraRig(camera) {
   const live = { target: new THREE.Vector3(), sph: new THREE.Spherical() };
   const from = { target: new THREE.Vector3(), sph: new THREE.Spherical() };
   const to = { target: new THREE.Vector3(), sph: new THREE.Spherical() };
+  const scratch = { target: new THREE.Vector3(), sph: new THREE.Spherical() };
   let tween = null; // {t, ms}
   const tmp = new THREE.Vector3();
   const sphere = new THREE.Sphere();
@@ -95,14 +97,16 @@ export function createCameraRig(camera) {
       startTween(ms);
     },
     /**
-     * Fly so every point fits inside ±margin of the screen (NDC), keeping the current viewing direction.
+     * Fly so every point fits inside ±margin of the screen (NDC), keeping the current viewing direction, or
+     * looking from `view` ({theta, phi}, radians) when given.
      * Solved exactly per point: depth along the view and the horizontal/vertical half-angles give the distance.
      */
-    flyToFit(points, ms = RIG.flyMs, margin = 0.84, topMargin = 0.76) {
+    flyToFit(points, ms = RIG.flyMs, margin = 0.84, topMargin = 0.76, view = null) {
       fitBox.makeEmpty();
       for (const p of points) fitBox.expandByPoint(p);
       fitBox.getCenter(to.target);
       to.sph.copy(goal.sph);
+      if (view) { to.sph.theta = view.theta; to.sph.phi = view.phi; clampSph(to.sph); }
       dir.setFromSpherical(tmpSph.set(1, to.sph.phi, to.sph.theta));
       right.crossVectors(UP, dir).normalize();
       up.crossVectors(dir, right);
@@ -133,6 +137,16 @@ export function createCameraRig(camera) {
       live.sph.copy(goal.sph);
       apply();
     },
+    /** Snap to an explicit view without animation (debug views and screenshots). */
+    snapTo(position, target) {
+      tween = null;
+      viewOf(position, target, goal);
+      live.target.copy(goal.target);
+      live.sph.copy(goal.sph);
+      apply();
+    },
+    /** The default view's direction, as {theta, phi}. */
+    get defaultView() { viewOf(RIG.defaultPosition, RIG.defaultTarget, scratch); return { theta: scratch.sph.theta, phi: scratch.sph.phi }; },
     get moving() { return Boolean(tween); },
     get state() { return { target: live.target, spherical: live.sph }; },
     update(dt) {

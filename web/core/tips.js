@@ -1,5 +1,6 @@
 // Brain tips (master plan 6.4): one glowing sphere per displayed class, a halo on tips that have a heatmap,
-// the true-class ring, and invisible pick spheres for the mouse.
+// the true-class ring, and invisible pick spheres for the mouse. The top-1 tip, the focused tip and the ring also
+// have a faint twin drawn only where tissue hides them, so the chosen answer is never lost behind the brain.
 import * as THREE from 'three';
 import { inferno } from './inferno.js';
 
@@ -17,6 +18,7 @@ export const TIPS = {
   pickRadius: 0.35,
   hoverScale: 1.2,
   dimLevel: 0.25,             // tip brightness before the reveal
+  hiddenOpacity: 0.5,         // twins seen through tissue
 };
 
 const sphereGeo = new THREE.SphereGeometry(1, 24, 16);
@@ -24,35 +26,46 @@ const pickGeo = new THREE.SphereGeometry(TIPS.pickRadius, 12, 8);
 const haloGeo = new THREE.RingGeometry(1.28, 1.42, 40);
 const ringGeo = new THREE.TorusGeometry(TIPS.ringRadius, TIPS.ringTube, 12, 64);
 const pickMat = new THREE.MeshBasicMaterial({ visible: false });
+const throughTissue = (color) => new THREE.MeshBasicMaterial({
+  color, transparent: true, opacity: TIPS.hiddenOpacity, depthWrite: false, depthFunc: THREE.GreaterDepth, fog: false,
+});
 
 export function createTips() {
   const group = new THREE.Group();
   const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: TIPS.ringColor, fog: false }));
   ring.visible = false;
   ring.renderOrder = 5;
+  const ringHidden = new THREE.Mesh(ringGeo, throughTissue(TIPS.ringColor));
+  ringHidden.renderOrder = 5;
+  ring.add(ringHidden);
   group.add(ring);
 
   let tips = [];          // {classId, node, mesh, halo, pick, radius, color, isOther, hasHeatmap}
   const byClass = new Map();
   let hovered = null;
   let lit = 0;
+  let focused = null;
 
   function dispose() {
     for (const t of tips) {
       group.remove(t.mesh, t.pick);
       if (t.halo) { group.remove(t.halo); t.halo.material.dispose(); }
       t.mesh.material.dispose();
+      t.twin.material.dispose();
     }
     tips = [];
     byClass.clear();
     hovered = null;
+    focused = null;
     ring.visible = false;
   }
 
   function applyBrightness(t) {
     const k = TIPS.dimLevel + (1 - TIPS.dimLevel) * lit;
     t.mesh.material.color.copy(t.color).multiplyScalar(k);
+    t.twin.material.color.copy(t.mesh.material.color);
   }
+  function applyTwin(t) { t.twin.visible = !t.isOther && (t.node.onTop1Path || t.classId === focused); }
 
   return {
     group,
@@ -74,8 +87,12 @@ export function createTips() {
         mesh.scale.setScalar(radius);
         mesh.renderOrder = 3;
         group.add(mesh);
-        const t = { classId: n.classId, node: n, mesh, halo: null, pick: null, radius, color, isOther,
-          hasHeatmap: !isOther && heat.get(n.classId) === true, score, pos: mesh.position };
+        const twin = new THREE.Mesh(sphereGeo, throughTissue(color));
+        twin.renderOrder = 3;
+        mesh.add(twin);                  // follows the tip's position and hover scale
+        const t = { classId: n.classId, node: n, mesh, twin, halo: null, pick: null, radius, color, isOther,
+          hasHeatmap: !isOther && heat.get(n.classId) === true, score, pos: mesh.position,
+          normal: new THREE.Vector3().fromArray(v.normal ?? v.dir) };
         if (t.hasHeatmap) {
           t.halo = new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({
             color: TIPS.haloColor, transparent: true, opacity: TIPS.haloOpacity, side: THREE.DoubleSide, depthWrite: false,
@@ -97,6 +114,7 @@ export function createTips() {
           ring.visible = true;
         }
         applyBrightness(t);
+        applyTwin(t);
         tips.push(t);
       }
     },
@@ -116,6 +134,8 @@ export function createTips() {
       if (t) { t.mesh.scale.setScalar(t.radius * TIPS.hoverScale); t.halo?.scale.setScalar(t.radius * TIPS.hoverScale); }
     },
     get hovered() { return hovered; },
+    /** The focused tip also shows through tissue. */
+    setFocused(classId) { focused = classId; for (const t of tips) applyTwin(t); },
     /** 0..1: brightness follows the strand reveal. */
     setLit(k) {
       if (k === lit) return;

@@ -2,11 +2,12 @@
 // coloured by the shared inferno ramp and blended over it. Heatmaps crossfade through two slots.
 import * as THREE from 'three';
 import { INFERNO_GLSL, infernoTexture } from './inferno.js';
+import { RIG } from './cameraRig.js';
 
 export const PANEL = {
-  size: 4.5,
-  position: new THREE.Vector3(-7, 5.5, 0.5),
-  yawDeg: 18,          // turned toward the camera (which sits on the +x side)
+  size: 3.8,           // secondary to the Brain, which is the subject
+  position: new THREE.Vector3(-7.2, 6.9, 5.0),   // front-left of the brain, clear of the frontal and temporal lobes
+  // parallel to the default camera's image plane, so the crop reads as an upright square photo
   heatAlpha: 0.55,
   fadeMs: 300,
   frameWidth: 0.028,   // ≈ 2 px at the default view on a 1080p screen
@@ -44,7 +45,7 @@ BLANK.needsUpdate = true;
 export function createImagePanel() {
   const group = new THREE.Group();
   group.position.copy(PANEL.position);
-  group.rotation.y = THREE.MathUtils.degToRad(PANEL.yawDeg);
+  group.quaternion.setFromRotationMatrix(new THREE.Matrix4().lookAt(RIG.defaultPosition, RIG.defaultTarget, new THREE.Vector3(0, 1, 0)));
 
   const uniforms = {
     uInferno: { value: infernoTexture },
