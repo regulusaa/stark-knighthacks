@@ -36,6 +36,7 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
   let medical = null;
   let currentDriver = null;
   let playbackToken = 0;
+  let steerMock = null;
 
   const status = {
     phase: 'connecting',
@@ -143,6 +144,17 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
 
   async function beginMock() {
     try {
+      if (params.get('steer') === '1') {
+        const { createSteerMock } = await import('/ui/dev/steer-engine.js');
+        steerMock = await createSteerMock({ scene, role });
+        if (closed) { steerMock.close(); return; }
+        status.clientId = steerMock.status.clientId;
+        status.label = steerMock.status.label;
+        for (const event of Object.values(EVENTS)) steerMock.on(event, payload => deliver(event, payload));
+        steerMock.status.subscribe(value => setStatus(value.phase, value.reason));
+        steerMock.start();
+        return;
+      }
       [baseDisplayState, manifest, fixtureError, fgsm, medical] = await Promise.all([
         loadFixture('display-state'), loadFixture('manifest'), loadFixture('error'), loadFixture('fgsm'), loadFixture('medical'),
       ]);
@@ -222,6 +234,7 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
 
   function emit(event, payload = {}) {
     if (!allowedEvents.has(event)) throw new RangeError(`Unknown contract event: ${event}`);
+    if (steerMock) return steerMock.emit(event, payload);
     if (!mock) {
       if (closed || status.phase !== 'connected' || !socket?.connected) return false;
       socket.emit(event, payload);
@@ -399,6 +412,7 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
       clearTimeout(registrationRetryTimer);
       clearTimeout(loadRetryTimer);
       socket?.disconnect();
+      steerMock?.close();
       socket?.removeAllListeners();
       if (socket && onReconnectAttempt) socket.io.off('reconnect_attempt', onReconnectAttempt);
       for (const timer of timers) clearTimeout(timer);
