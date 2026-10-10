@@ -105,3 +105,55 @@ The stage is `pipeline/stages/fgsm.py`; it runs before core and creates `adv_ret
 - **Markers and borders:**
   - The center crop removes the "Sin"/"Dx" markers on both films, so no map sits on a marker.
   - Several maps do sit on image borders or below the diaphragm rather than in the lung fields: Atelectasis's bottom band, and Fibrosis's corners.
+
+## Final: clean run, validation and regression
+
+**Clean run.** I deleted all of `web/public/assets/*` and `pipeline/.cache`, then ran `python -m pipeline.run --force`.
+- It took **70.5 s** for all 9 images. The total per stage was: core 14.6 s, steer 7.0 s, stability 28.9 s (most of it TensorFlow warm-up on the first batch), atlas 6.2 s, medical 9.0 s, fgsm 2.0 s.
+- `python -m pipeline.validate` passes, with 9 images.
+- `node contract/steer-dsl.test.mjs` passes, 101/101.
+- **Reproducibility:** the clean run reproduced every committed file byte for byte. `git status` was empty afterwards, review PNGs included.
+
+**Regression check against Part 0.** 69 of the 70 baseline files are unchanged. The one change is `manifest.json`, which is intentional: it gains `steerable` on every entry plus three new entries (adv_retriever, med_xray_pneumonia, med_xray_normal). 61 files were added. Nothing unexpected changed.
+
+**Display.** It loads all 9 images with 0 console errors, including the fan trees (18 tips) with the true-class ring on Pneumonia. The layout test passes for all 9 images. The suites still pass: relay 19/19, CC-4a 21/21, CC-4b 30/30, all with 0 console errors, and server smoke passes 58 checks. CC-4a's old check that "key 2 does nothing" now expects key 2 to load adv_retriever, since gallery order 2 exists.
+
+### Flip table (zero the top channels by margin, top-1 vs top-2; global argmax re-checked after each)
+
+| Image | n | From → to | New score | Identity error |
+|---|---|---|---|---|
+| clean_retriever | 7 | golden retriever (0.969) → Labrador retriever | 0.487 | 2.8e-06 |
+| adv_retriever | 1 | Labrador retriever (0.213) → golden retriever | 0.131 | 1.5e-06 |
+| ambig_cat | 1 | tabby (0.438) → tiger cat | 0.466 | 3.3e-06 |
+| ambig_wolf | 4 | timber wolf (0.884) → white wolf | 0.395 | 6.9e-06 |
+| clean_sportscar | 1 | sports car (0.564) → snowmobile | 0.372 | 4.1e-06 |
+| clean_monarch | 17 | monarch (1.000) → ringlet | 0.429 | 8.7e-06 |
+| ambig_chihuahua | 12 | Chihuahua (0.977) → toy terrier | 0.437 | 2.2e-06 |
+
+Demo note: on `adv_retriever`, **zeroing one channel undoes the attack** (it returns to golden retriever).
+
+### Closed-form CAM correlation (Pearson, against the core stage's PNGs)
+r = 1.000000 (minimum) on every image: retriever 25 heatmaps, every other ResNet image 5 each, 50 in total. The details are in `pipeline/review/steer_checks.json`.
+
+## Summary
+
+| Part | Status | Evidence |
+|---|---|---|
+| 0 Reconcile | DONE | Checkpoint 1 passed; main `9d184d8` pushed; Vultr on main, health ok; 70 assets hashed |
+| A Contract v2 + DSL | DONE | CONTRACT.md, contract.js, `steer-dsl.js`; 101/101 tests (limits, positions, round trip ×200, hostile input); 8 fixtures; server smoke ok |
+| B Steer data | DONE | head.bin 8,196,000 B; conv5.bin 401,408 B ×7; identity < 1e-5; reference.json from real Keras layers; CAM r = 1.0; steer_review.png checked |
+| C Stability + FGSM | DONE | mc.json ×3; the cat is less stable (40%); adv_retriever flips at ε = 2/255 after PNG rounding, PSNR 42.1 dB, full asset set |
+| D Atlas | DONE | 49 layers, 54,145 B, ×7 images; layer-config.json |
+| E Medical | DONE, with a flag | Fan trees, independent scores, Grad-CAM on `features.denseblock4`; the model ranks Pneumonia 13th on the pneumonia film |
+
+## Open questions for Ray
+1. **The medical result.** The model doesn't flag pneumonia on the pneumonia film: Pneumonia is 0.18, rank 13, and every finding sits near the 0.5 operating point. Options:
+   - keep it and narrate it honestly ("the model's per-finding scores; it misses this one");
+   - choose a different public-domain pneumonia film. I did not go looking for a film that scores better.
+2. **Image credits.** `credits.txt` is empty. The two X-rays came from `~/Downloads` and need their source and licence recorded. The `trueSource` text in gallery.json is a placeholder ("source caption … as supplied by Ray").
+3. **Atlas skips.** The prompt says each skip runs from the block's input layer; the contract and its fixture say `_1_relu`. I followed the contract and added `inputLayer`/`inputInAtlas` with the real input. Which one should the renderer draw?
+4. **mc.json `classes`** holds the top 10 by mean, as the prompt asked; contract 2.6 says "the image's topK classes". Extra fields: `aspectRatio`, `cleanTop1`, `matchFraction`.
+5. **fgsm.json** has extra fields beyond contract 2.7: `maxPixelChange`, `meanAbsChange`, `psnr`, `method`. `noiseFile` is `noise_x50.png`.
+6. **The server lags contract v2** (`/server` was out of scope here). Its `steer-update` validator still checks the v1 shape and sends "Steer is not available yet". The v2 rate limits (steer-update 20/s, steer-result from the display at 15/s) and the `steer-dsl` parse check need a Set 2 task.
+7. **The gallery key** is `preprocessed: true` (it already existed for exactly this) rather than `precropped: true`.
+8. **conv4_block6_out** peaks at the top-left corner on both images I looked at, a border response. Worth knowing before narrating the trunk interior.
