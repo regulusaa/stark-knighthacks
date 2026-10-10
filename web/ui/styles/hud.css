@@ -68,3 +68,18 @@
 @media (prefers-reduced-motion: reduce) {
   .stark-hud .hud-fade, .stark-hud [data-field], .stark-hud .hud-qr-image { transition: none; }
 }
+/* The live scene has just two lines. The fixture lab keeps the full layout. */
+.stark-hud.hud-compact .hud-result {
+  top: max(32px, env(safe-area-inset-top));
+  left: max(32px, env(safe-area-inset-left));
+  width: min(560px, calc(100% - 64px));
+  margin: 0;
+  text-align: left;
+  font-size: 28px;
+  line-height: 1.3;
+}
+.stark-hud.hud-compact .hud-answer { font-size: inherit; font-weight: 500; }
+.stark-hud.hud-compact .hud-secondary { white-space: nowrap; }
+@media (max-width: 1199px) {
+  .stark-hud.hud-compact .hud-result { font-size: 18px; }
+}
