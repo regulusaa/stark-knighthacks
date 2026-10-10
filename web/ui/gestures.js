@@ -90,9 +90,7 @@ export function create(el, { sensitivity = 1 } = {}) {
       orbitY += ((current.y - previous.y) / Math.max(1, el.clientHeight)) * gain;
     } else {
       const afterDistance = pairDistance();
-      if (beforeDistance >= MIN_DISTANCE_PX && afterDistance >= MIN_DISTANCE_PX) {
-        zoom += Math.log(afterDistance / beforeDistance) * gain;
-      }
+      zoom += Math.log(Math.max(MIN_DISTANCE_PX, afterDistance) / Math.max(MIN_DISTANCE_PX, beforeDistance)) * gain;
     }
     if (orbitX || orbitY || zoom) schedule();
   }
