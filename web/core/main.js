@@ -64,7 +64,9 @@ if (params.get('guides') === '1') scene.add(new THREE.Box3Helper(BRAIN_VOLUME.bo
 
 const manifest = await loadManifest();
 const api = createApi({ manifest, panel, trunk, rig });
-const hud = await mountHud(document.getElementById('hud'), api);
+let relay = null; // net.js, connected last
+// the room comes from the relay once registered; until then the HUD shows none
+const hud = await mountHud(document.getElementById('hud'), api, { getRoom: () => relay?.room ?? api.state?.room ?? null });
 attachInput(canvas, api, hud);
 
 const tissue = await tissueReady;
@@ -164,7 +166,7 @@ if (first) {
 
 // Networking last, so the first state the relay sees is a loaded image. ?offline=1 skips it.
 if (params.get('offline') !== '1') {
-  stark.relay = await connectRelay(api, {
+  stark.relay = relay = await connectRelay(api, {
     onStatus: (st) => { stark.netStatus = st.phase; if (st.phase !== 'connecting' && st.phase !== 'registering') netSettled = true; },
   });
   if (!stark.relay) netSettled = true;
