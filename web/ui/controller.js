@@ -23,6 +23,7 @@ const resetBottom = document.getElementById('reset-view');
 const resetHost = document.getElementById('host-reset');
 const retry = document.getElementById('retry-button');
 const notice = document.getElementById('notice');
+const connectionDetail = document.getElementById('connection-detail');
 
 let transport;
 let state = 'connecting';
@@ -34,6 +35,9 @@ let wakeLock = null;
 let wakeRequest = null;
 let queuedFocus = null;
 let optimisticFocus = null;
+let hostTakePending = false;
+let connectionWatchdog = 0;
+let connectionTimedOut = false;
 
 app.dataset.role = role;
 if (query.get('mock') === '1') {
@@ -57,7 +61,7 @@ const screens = {
   badKey: ['HOST ACCESS', 'Host link not accepted', 'The host key is missing or incorrect. Ask Ray for a fresh host link.', true],
   offline: ['DISPLAY OFFLINE', 'The display went away', 'Keep this page open and try again when the monitor is ready.', true],
   reconnecting: ['RECONNECTING', 'Reaching the display again', 'Your connection dropped. We are trying to get you back in.', true],
-  unavailable: ['NOT CONNECTED', 'Controller preview', 'Live Socket.io transport arrives in CX-5. Add ?mock=1 to preview this page.', true],
+  unavailable: ['NOT CONNECTED', 'Could not join the room', 'Check your connection and try again.', true],
 };
 
 function haptic(duration = 8) { navigator.vibrate?.(duration); }
@@ -75,7 +79,18 @@ function scoreText(answer) {
 }
 
 function isDriving() {
-  return role === ROLES.HOST || (!pendingControl && display?.driver?.id && display.driver.id === transport?.status.clientId);
+  return transport?.status.phase === 'connected' && (role === ROLES.HOST || (!pendingControl && display?.driver?.id && display.driver.id === transport?.status.clientId));
+}
+
+function stopConnectionWatchdog() { clearTimeout(connectionWatchdog); connectionWatchdog = 0; }
+
+function armConnectionWatchdog() {
+  stopConnectionWatchdog();
+  connectionWatchdog = setTimeout(() => {
+    if (transport?.status.phase === 'connected' || state !== 'connecting') return;
+    connectionTimedOut = true;
+    setState('error', 'reconnecting');
+  }, 8000);
 }
 
 function setState(next, kind = null) {
@@ -110,6 +125,13 @@ function render() {
     document.getElementById('state-title').textContent = config[1];
     document.getElementById('state-message').textContent = config[2];
     retry.hidden = !config[3];
+    connectionDetail.hidden = state === 'connecting' || state === 'waiting-for-display';
+    connectionDetail.textContent = connectionTimedOut
+      ? 'No response after 8 seconds · reconnecting automatically.'
+      : errorKind === 'reconnecting' ? 'Reconnecting automatically · Retry starts a fresh connection.'
+      : errorKind === 'offline' ? 'Connected to the room · waiting for the display to return.'
+      : '';
+    if (!connectionDetail.textContent) connectionDetail.hidden = true;
     label.textContent = state === 'error' ? errorKind === 'reconnecting' ? 'Reconnecting' : 'No signal' : state === 'connecting' ? 'Connecting' : 'Waiting';
     if (state !== 'connecting') window[READY_FLAG] = true;
     return;
@@ -158,8 +180,10 @@ function releaseWakeLock() {
 }
 
 function onStatus(status) {
-  if (status.phase === 'connecting') { display = null; setState('connecting'); }
+  if (status.phase === 'connecting') { display = null; armConnectionWatchdog(); setState('connecting'); }
   else if (status.phase === 'connected') {
+    stopConnectionWatchdog();
+    connectionTimedOut = false;
     if (!display) setState('waiting-for-display');
     void acquireWakeLock();
   } else if (status.phase === 'disconnected') {
@@ -167,6 +191,7 @@ function onStatus(status) {
     pendingControl = false;
     queuedFocus = null;
     optimisticFocus = null;
+    hostTakePending = false;
     gallery?.clearPending();
     hostControls?.clearPending();
     releaseWakeLock();
@@ -176,19 +201,23 @@ function onStatus(status) {
     pendingControl = false;
     queuedFocus = null;
     optimisticFocus = null;
+    hostTakePending = false;
     gallery?.clearPending();
     hostControls?.clearPending();
     releaseWakeLock();
+    if (!connectionWatchdog) armConnectionWatchdog();
     setState('error', 'reconnecting');
   } else if (status.phase === 'error') {
+    stopConnectionWatchdog();
     releaseWakeLock();
-    setState('error', 'unavailable');
+    setState('error', status.reason === ERROR_CODES.NO_ROOM ? 'noRoom' : status.reason === ERROR_CODES.BAD_KEY ? 'badKey' : 'unavailable');
   }
 }
 
 function onDisplayState(value) {
   const imageChanged = Boolean(display && display.image?.id !== value.image?.id);
   display = value;
+  if (value.driver?.id === transport?.status.clientId) hostTakePending = false;
   gallery?.setCurrent(value.image?.id);
   hostControls?.setDisplay(value);
   const answersChanged = answerList.setAnswers(value.answers);
@@ -207,12 +236,19 @@ function onDisplayState(value) {
   void acquireWakeLock();
 }
 
-function onDriverChanged({ driver }) {
+function onDriverChanged({ driver, reason }) {
   if (!display) return;
+  const previous = display.driver;
+  const wasDriving = previous?.id === transport?.status.clientId;
   display = { ...display, driver };
   pendingControl = false;
+  hostTakePending = false;
   const driving = Boolean(isDriving());
   setState(role === ROLES.HOST ? 'host' : driving ? 'guest-driving' : 'guest-viewing');
+  if (reason === 'idle' && wasDriving && role === ROLES.GUEST) showNotice('Tap to take control again');
+  else if (driver && driver.id !== transport?.status.clientId && driver.id !== previous?.id) {
+    showNotice(reason === 'host-override' ? `${driver.label} is driving` : `${driver.label} took control`);
+  }
   if (driving && role === ROLES.GUEST) {
     haptic(12);
     if (queuedFocus) {
@@ -236,12 +272,18 @@ function onFocusState(value) {
 
 function onError(error) {
   pendingControl = false;
+  if (error.event === EVENTS.TAKE_CONTROL) hostTakePending = false;
+  if ([EVENTS.TAKE_CONTROL, EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS].includes(error.event)) {
+    queuedFocus = null;
+    optimisticFocus = null;
+    answerList.setFocus(display?.focus);
+  }
   if (role === ROLES.HOST) {
     gallery?.clearPending();
     hostControls?.clearPending();
   }
-  if (error.code === ERROR_CODES.NO_ROOM) { releaseWakeLock(); setState('error', 'noRoom'); }
-  else if (error.code === ERROR_CODES.BAD_KEY) { releaseWakeLock(); setState('error', 'badKey'); }
+  if (error.code === ERROR_CODES.NO_ROOM) { stopConnectionWatchdog(); releaseWakeLock(); setState('error', 'noRoom'); }
+  else if (error.code === ERROR_CODES.BAD_KEY) { stopConnectionWatchdog(); releaseWakeLock(); setState('error', 'badKey'); }
   else if (error.code === ERROR_CODES.LOCKED) {
     if (display && error.driver) display = { ...display, driver: error.driver };
     queuedFocus = null;
@@ -251,16 +293,31 @@ function onError(error) {
     showNotice(error.driver ? `${error.driver.label} is driving · Take control in a moment` : 'Someone else is driving · Take control in a moment');
     if (mockScene === 'error-locked') window.__cx2Ready = true;
     haptic(6);
-  } else showNotice(error.message || 'That action did not work. Please try again.');
+  } else if (error.code === ERROR_CODES.FORBIDDEN) {
+    const driverEvent = [EVENTS.CONTROL_ORBIT, EVENTS.CONTROL_ZOOM, EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS, EVENTS.RESET_VIEW].includes(error.event);
+    if (driverEvent && role === ROLES.GUEST && display?.driver?.id === transport?.status.clientId) {
+      display = { ...display, driver: null };
+      setState('guest-viewing');
+    }
+    queuedFocus = null;
+    optimisticFocus = null;
+    answerList.setFocus(display?.focus);
+    showNotice(error.message || 'This control is unavailable right now.');
+  } else if (error.code === ERROR_CODES.BAD_PAYLOAD) showNotice(error.message || 'That control was not accepted.');
+  else if (error.code === ERROR_CODES.RATE_LIMITED) showNotice('Too many inputs · slow down for a moment.');
+  else showNotice(error.message || 'That action did not work. Please try again.');
 }
 
 function startConnection() {
+  stopConnectionWatchdog();
+  connectionTimedOut = false;
   transport?.close();
   releaseWakeLock();
   display = null;
   pendingControl = false;
   queuedFocus = null;
   optimisticFocus = null;
+  hostTakePending = false;
   gallery?.clearPending();
   hostControls?.setDisplay(null);
   answerList.setAnswers([]);
@@ -279,26 +336,36 @@ function startConnection() {
       setState('error', 'offline');
     }
   });
+  transport.on(EVENTS.PEER_JOINED, peer => {
+    if (peer.role === ROLES.DISPLAY && state === 'error' && errorKind === 'offline') setState('waiting-for-display');
+  });
   transport.status.subscribe(onStatus);
 }
 
 function takeControl() {
-  if (role !== ROLES.GUEST || pendingControl || state !== 'guest-viewing') return;
+  if (role !== ROLES.GUEST || pendingControl || state !== 'guest-viewing' || transport?.status.phase !== 'connected') return;
   pendingControl = true;
   haptic();
   render();
   transport.emit(EVENTS.TAKE_CONTROL, {});
 }
 
+function claimHostControl() {
+  if (role !== ROLES.HOST || !display || transport?.status.phase !== 'connected') return;
+  if (display.driver?.id === transport.status.clientId || hostTakePending) return;
+  hostTakePending = transport.emit(EVENTS.TAKE_CONTROL, {});
+}
+
 function resetView() {
-  if (!isDriving() || !display) return;
+  if (!isDriving() || !display || transport?.status.phase !== 'connected') return;
+  claimHostControl();
   transport.emit(EVENTS.RESET_VIEW, {});
   showNotice('Reset view sent to the display.');
   haptic();
 }
 
 function requestFocus(event, payload, answer) {
-  if (!display) return;
+  if (!display || transport?.status.phase !== 'connected') return;
   const otherDriver = role === ROLES.GUEST && display.driver && display.driver.id !== transport?.status.clientId;
   if (otherDriver) {
     showNotice(`${display.driver.label} is driving · Take control in a moment`);
@@ -309,6 +376,7 @@ function requestFocus(event, payload, answer) {
   answerList.setFocus(answer);
   haptic();
   if (isDriving()) {
+    claimHostControl();
     transport.emit(event, payload);
   } else {
     queuedFocus = { event, payload };
@@ -361,9 +429,11 @@ retry.addEventListener('click', () => {
   startConnection();
 });
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') void acquireWakeLock();
+  if (document.visibilityState === 'visible') { transport?.reconnect?.(); void acquireWakeLock(); }
   else releaseWakeLock();
 });
+window.addEventListener('pageshow', () => transport?.reconnect?.());
+window.addEventListener('online', () => transport?.reconnect?.());
 
 const sensitivityInput = document.getElementById('sensitivity');
 const sensitivityValue = document.getElementById('sensitivity-value');
@@ -423,8 +493,11 @@ trackpad.addEventListener('pointermove', event => {
 for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
   trackpad.addEventListener(type, event => { touchPoints.delete(event.pointerId); renderTouches(); });
 }
-gestures.onOrbit(({ dx, dy }) => { if (display && isDriving()) transport.emit(EVENTS.CONTROL_ORBIT, { dx, dy }); });
-gestures.onZoom(dz => { if (display && isDriving()) transport.emit(EVENTS.CONTROL_ZOOM, { dz }); });
-window.addEventListener('pagehide', () => { releaseWakeLock(); gestures.destroy(); transport?.close(); }, { once: true });
+gestures.onOrbit(({ dx, dy }) => { if (display && isDriving()) { claimHostControl(); transport.emit(EVENTS.CONTROL_ORBIT, { dx, dy }); } });
+gestures.onZoom(dz => { if (display && isDriving()) { claimHostControl(); transport.emit(EVENTS.CONTROL_ZOOM, { dz }); } });
+window.addEventListener('pagehide', event => {
+  releaseWakeLock();
+  if (!event.persisted) { gestures.destroy(); transport?.close(); }
+});
 
 startConnection();

@@ -3,6 +3,20 @@ import { EVENTS, ERROR_CODES, ROLES } from '/contract/contract.js';
 const allowedEvents = new Set(Object.values(EVENTS));
 const fixtureRoot = '/contract/fixtures/';
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+let clientScript;
+
+function loadSocketClient() {
+  if (window.io) return Promise.resolve(window.io);
+  if (!clientScript) clientScript = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = '/socket.io/socket.io.js';
+    script.async = true;
+    script.onload = () => window.io ? resolve(window.io) : reject(new Error('Socket.io client did not load'));
+    script.onerror = () => { script.remove(); reject(new Error('Socket.io client unavailable')); };
+    document.head.append(script);
+  }).catch(error => { clientScript = null; throw error; });
+  return clientScript;
+}
 
 export function connect({ room, role = ROLES.GUEST, key } = {}) {
   const params = new URLSearchParams(location.search);
@@ -26,8 +40,8 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
   const status = {
     phase: 'connecting',
     reason: null,
-    clientId: role === ROLES.HOST ? 'h_mock' : 'c_local',
-    label: role === ROLES.HOST ? 'Host' : 'Guest 1',
+    clientId: mock ? role === ROLES.HOST ? 'h_mock' : 'c_local' : null,
+    label: mock ? role === ROLES.HOST ? 'Host' : 'Guest 1' : null,
     subscribe(callback) {
       if (typeof callback !== 'function') throw new TypeError('status callback must be a function');
       statusListeners.add(callback);
@@ -208,8 +222,13 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
 
   function emit(event, payload = {}) {
     if (!allowedEvents.has(event)) throw new RangeError(`Unknown contract event: ${event}`);
-    console.info(`[${mock ? 'mock' : 'socket stub'} emit]`, event, event === EVENTS.REGISTER ? { ...payload, key: payload.key ? '[redacted]' : undefined } : payload);
-    if (!mock || closed || status.phase !== 'connected') return;
+    if (!mock) {
+      if (closed || status.phase !== 'connected' || !socket?.connected) return false;
+      socket.emit(event, payload);
+      return true;
+    }
+    console.info('[mock emit]', event, event === EVENTS.REGISTER ? { ...payload, key: payload.key ? '[redacted]' : undefined } : payload);
+    if (closed || status.phase !== 'connected') return false;
     if (event === EVENTS.TAKE_CONTROL) {
       if (currentDriver && currentDriver.id !== status.clientId && role !== ROLES.HOST) {
         later(280, () => mockError(ERROR_CODES.LOCKED, fixtureError.message, { event, driver: currentDriver }));
@@ -249,6 +268,118 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
         layerMode: payload.layerMode ?? displayState.layerMode,
       }));
     }
+    return true;
+  }
+
+  let socket = null;
+  let socketLoading = false;
+  let loadRetryTimer = 0;
+  let loadRetryDelay = 500;
+  let registerAttempt = 0;
+  let registrationFailed = false;
+  let registrationTimer = 0;
+  let registrationRetryTimer = 0;
+  let registrationRetryDelay = 500;
+  let everRegistered = false;
+  let onReconnectAttempt = null;
+
+  function registrationRejected(error) {
+    if (closed || registrationFailed) return;
+    registrationFailed = true;
+    clearTimeout(registrationTimer);
+    if (error.code === ERROR_CODES.NO_ROOM && everRegistered) {
+      setStatus('reconnecting', 'Waiting for the room to return');
+      clearTimeout(registrationRetryTimer);
+      registrationRetryTimer = setTimeout(() => {
+        registrationRetryTimer = 0;
+        if (!closed) socket.disconnect().connect();
+      }, registrationRetryDelay);
+      registrationRetryDelay = Math.min(5000, registrationRetryDelay * 2);
+      return;
+    }
+    setStatus('error', error.code || error.message);
+    deliver(EVENTS.ERROR, error);
+  }
+
+  async function beginSocket() {
+    if (socketLoading || socket || closed) return;
+    socketLoading = true;
+    try {
+      const io = await loadSocketClient();
+      if (closed) return;
+      loadRetryDelay = 500;
+      socket = io({
+        autoConnect: false,
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 500,
+        reconnectionDelayMax: 5000,
+        randomizationFactor: 0,
+        timeout: 8000,
+      });
+      socket.on('connect', () => {
+        const attempt = ++registerAttempt;
+        registrationFailed = false;
+        clearTimeout(registrationRetryTimer);
+        status.clientId = null;
+        status.label = null;
+        setStatus(attempt === 1 ? 'connecting' : 'reconnecting', 'Registering with the room');
+        clearTimeout(registrationTimer);
+        registrationTimer = setTimeout(() => {
+          if (closed || attempt !== registerAttempt || registrationFailed || status.phase === 'connected') return;
+          setStatus('reconnecting', 'Registration timed out; retrying');
+          socket.disconnect().connect();
+        }, 8000);
+        socket.emit(EVENTS.REGISTER, { room: room || null, role, ...(key ? { key } : {}) }, ack => {
+          if (closed || attempt !== registerAttempt) return;
+          clearTimeout(registrationTimer);
+          if (!ack?.ok) {
+            const error = ack?.error || { code: ERROR_CODES.FORBIDDEN, message: 'Could not join the room.', event: EVENTS.REGISTER };
+            registrationRejected(error);
+            return;
+          }
+          status.clientId = ack.clientId;
+          status.label = ack.label;
+          everRegistered = true;
+          registrationRetryDelay = 500;
+          setStatus('connected');
+        });
+      });
+      socket.on('disconnect', reason => {
+        ++registerAttempt;
+        clearTimeout(registrationTimer);
+        status.clientId = null;
+        status.label = null;
+        if (!closed) setStatus('reconnecting', reason === 'io server disconnect' ? 'Server closed the connection' : 'Network connection lost');
+        if (reason === 'io server disconnect') socket.connect();
+      });
+      socket.on('connect_error', error => {
+        if (!closed) setStatus('reconnecting', 'Cannot reach the server');
+      });
+      onReconnectAttempt = attempt => {
+        if (!closed) setStatus('reconnecting', `Trying again · attempt ${attempt}`);
+      };
+      socket.io.on('reconnect_attempt', onReconnectAttempt);
+      socket.on(EVENTS.ERROR, error => {
+        if (error?.event === EVENTS.REGISTER) {
+          registrationRejected(error);
+          return;
+        }
+        deliver(EVENTS.ERROR, error);
+      });
+      for (const event of Object.values(EVENTS)) {
+        if (event !== EVENTS.ERROR && event !== EVENTS.REGISTER) socket.on(event, payload => deliver(event, payload));
+      }
+      socket.connect();
+    } catch (error) {
+      if (!closed) {
+        setStatus('reconnecting', 'Cannot reach the server; trying again');
+        loadRetryTimer = setTimeout(() => { loadRetryTimer = 0; void beginSocket(); }, loadRetryDelay);
+        loadRetryDelay = Math.min(5000, loadRetryDelay * 2);
+      }
+    } finally {
+      socketLoading = false;
+    }
   }
 
   const api = {
@@ -264,15 +395,26 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
     close() {
       if (closed) return;
       closed = true;
+      clearTimeout(registrationTimer);
+      clearTimeout(registrationRetryTimer);
+      clearTimeout(loadRetryTimer);
+      socket?.disconnect();
+      socket?.removeAllListeners();
+      if (socket && onReconnectAttempt) socket.io.off('reconnect_attempt', onReconnectAttempt);
       for (const timer of timers) clearTimeout(timer);
       timers.clear();
       listeners.clear();
       statusListeners.clear();
       status.phase = 'closed';
     },
+    reconnect() {
+      if (closed || mock) return;
+      if (!socket) { void beginSocket(); return; }
+      if (!socket.connected) socket.connect();
+    },
   };
 
   if (mock) void beginMock();
-  else queueMicrotask(() => setStatus('error', 'Live connection arrives in CX-5. Add ?mock=1 to preview the controller.'));
+  else void beginSocket();
   return api;
 }
