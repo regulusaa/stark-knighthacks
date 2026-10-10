@@ -4,6 +4,7 @@ import { createAnswerList } from '/ui/answer-list.js';
 import { createGallery } from '/ui/gallery.js';
 import { createHostControls } from '/ui/host-controls.js';
 import { connect } from '/ui/transport.js';
+import { createSteerPanel } from '/ui/steer/panel.js';
 
 const query = new URLSearchParams(location.search);
 const room = (query.get('room') || '').trim().toUpperCase();
@@ -38,6 +39,8 @@ let optimisticFocus = null;
 let hostTakePending = false;
 let connectionWatchdog = 0;
 let connectionTimedOut = false;
+let selectedPanel = 'answers';
+let steerPanel = null;
 
 app.dataset.role = role;
 if (query.get('mock') === '1') {
@@ -49,7 +52,7 @@ document.getElementById('host-slots').hidden = role !== ROLES.HOST;
 document.getElementById('host-gallery').hidden = role !== ROLES.HOST;
 if (role === ROLES.HOST) {
   document.querySelector('#answers-panel .slot-index').textContent = '04';
-  document.getElementById('side-panel').insertBefore(document.getElementById('host-slots'), document.getElementById('answers-panel'));
+  document.getElementById('side-panel').insertBefore(document.getElementById('host-slots'), document.getElementById('explore-tabs'));
 }
 window[READY_FLAG] = false;
 window.__cx2Ready = false;
@@ -113,6 +116,7 @@ function setState(next, kind = null) {
 }
 
 function render() {
+  renderSteer();
   const active = state === 'guest-viewing' || state === 'guest-driving' || state === 'host';
   stateScreen.hidden = active;
   workbench.hidden = !active;
@@ -271,6 +275,7 @@ function onFocusState(value) {
 }
 
 function onError(error) {
+  steerPanel?.setError(error);
   pendingControl = false;
   if (error.event === EVENTS.TAKE_CONTROL) hostTakePending = false;
   if ([EVENTS.TAKE_CONTROL, EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS].includes(error.event)) {
@@ -294,7 +299,7 @@ function onError(error) {
     if (mockScene === 'error-locked') window.__cx2Ready = true;
     haptic(6);
   } else if (error.code === ERROR_CODES.FORBIDDEN) {
-    const driverEvent = [EVENTS.CONTROL_ORBIT, EVENTS.CONTROL_ZOOM, EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS, EVENTS.RESET_VIEW].includes(error.event);
+    const driverEvent = [EVENTS.CONTROL_ORBIT, EVENTS.CONTROL_ZOOM, EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS, EVENTS.RESET_VIEW, EVENTS.STEER_UPDATE, EVENTS.STEER_RESET].includes(error.event);
     if (driverEvent && role === ROLES.GUEST && display?.driver?.id === transport?.status.clientId) {
       display = { ...display, driver: null };
       setState('guest-viewing');
@@ -329,6 +334,7 @@ function startConnection() {
   transport.on(EVENTS.DRIVER_CHANGED, onDriverChanged);
   transport.on(EVENTS.FOCUS_STATE, onFocusState);
   transport.on(EVENTS.ERROR, onError);
+  transport.on(EVENTS.STEER_RESULT, value => steerPanel?.setResult(value));
   transport.on(EVENTS.PEER_LEFT, peer => {
     if (peer.role === ROLES.DISPLAY) {
       display = null;
@@ -395,6 +401,29 @@ const answerList = createAnswerList({
   onClear: clearFocus,
   onLongLabel: showNotice,
 });
+
+steerPanel = createSteerPanel({
+  root: document.getElementById('steer-panel'),
+  emit(event, payload) {
+    if (!display?.capabilities?.steer || !isDriving()) return false;
+    claimHostControl();
+    return transport.emit(event, payload);
+  },
+  requestControl: takeControl,
+  notify: showNotice,
+  onImageChange() { document.getElementById('side-panel').scrollTop = 0; },
+});
+function renderSteer() {
+  const available = display?.capabilities?.steer === true;
+  if (!available) selectedPanel = 'answers';
+  document.getElementById('explore-tabs').hidden = !available;
+  document.getElementById('steer-medical-note').hidden = display?.image?.category !== 'medical';
+  document.getElementById('steer-panel').hidden = selectedPanel !== 'steer';
+  document.getElementById('answers-panel').hidden = selectedPanel !== 'answers';
+  for (const button of document.querySelectorAll('[data-panel]')) button.setAttribute('aria-selected', String(button.dataset.panel === selectedPanel));
+  steerPanel?.setContext({ display, connected: transport?.status.phase === 'connected', driving: Boolean(isDriving()), clientId: transport?.status.clientId, role, requesting: pendingControl, mock: query.get('mock') === '1' });
+}
+for (const button of document.querySelectorAll('[data-panel]')) button.addEventListener('click', () => { selectedPanel = button.dataset.panel; renderSteer(); });
 
 const gallery = role === ROLES.HOST ? createGallery({
   root: document.getElementById('gallery-grid'),
@@ -497,7 +526,7 @@ gestures.onOrbit(({ dx, dy }) => { if (display && isDriving()) { claimHostContro
 gestures.onZoom(dz => { if (display && isDriving()) { claimHostControl(); transport.emit(EVENTS.CONTROL_ZOOM, { dz }); } });
 window.addEventListener('pagehide', event => {
   releaseWakeLock();
-  if (!event.persisted) { gestures.destroy(); transport?.close(); }
+  if (!event.persisted) { gestures.destroy(); steerPanel.destroy(); transport?.close(); }
 });
 
 startConnection();

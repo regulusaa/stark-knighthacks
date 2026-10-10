@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050208">
+<title>Stark · Steer Lab</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../styles/tokens.css">
+<link rel="stylesheet" href="../controller.css">
+<link rel="stylesheet" href="../styles/host.css">
+<link rel="stylesheet" href="../steer/panel.css">
+<style>
+html,body { min-height:100%; height:auto; overflow-x:hidden; }
+.lab-header { padding:16px max(16px,env(safe-area-inset-left)); border-bottom:1px solid #ffffff18; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.lab-header strong { font-size:16px; letter-spacing:.16em; }
+.lab-header span { color:#fbb61a; font-size:12px; letter-spacing:.08em; }
+.lab-main { max-width:1180px; margin:auto; padding:16px; display:grid; grid-template-columns:minmax(0,1fr); gap:16px; align-items:start; }
+.lab-side { display:none; border:1px solid #781c6d; border-radius:12px; padding:24px; background:radial-gradient(ellipse at center,#781c6d22,#0e0a14); position:sticky; top:16px; min-height:500px; }
+.lab-side h1 { font-size:36px; margin:8px 0; }
+.lab-side p { color:#a79fb2; line-height:1.5; }
+.lab-side .lab-art { display:grid;place-items:center;font-size:96px;color:#fbb61a;margin:70px auto; }
+.lab-side pre { font:12px/1.5 ui-monospace,Menlo,monospace; color:#a79fb2; white-space:pre-wrap;overflow-wrap:anywhere;max-height:200px;overflow:auto; }
+@media (min-width:761px) { .lab-main {grid-template-columns:minmax(0,55fr) minmax(0,45fr);padding:24px;gap:24px}.lab-side{display:block}.lab-side pre{max-height:130px} }
+</style>
+</head>
+<body>
+<header class="lab-header"><strong>STARK</strong><span>STEER LAB · SYNTHETIC SCORES</span></header>
+<main class="lab-main"><aside class="lab-side"><p class="eyebrow">CONTROLLER PREVIEW</p><h1>Scale a channel.<br>Watch the answer move.</h1><p>This lab simulates a display with 30 ms latency. These scores are fixtures, not model output.</p><div class="lab-art" aria-hidden="true">◎</div><p class="eyebrow">MOCK EVENT LOG</p><pre id="mock-log">No events sent yet</pre></aside><section id="steer"></section></main>
+<div id="notice" class="notice" role="status" hidden></div>
+<script type="module">
+import { EVENTS, ROLES } from '/contract/contract.js';
+import { createSteerPanel } from '../steer/panel.js';
+import { createSteerMock } from './steer-engine.js';
+const query=new URLSearchParams(location.search);
+const scene=query.get('scene')||'idle';
+const role=query.get('role')==='host'?ROLES.HOST:ROLES.GUEST;
+const transport=await createSteerMock({scene,role});
+let display=transport.display;
+let noticeTimer;
+function notice(message){const el=document.getElementById('notice');el.textContent=message;el.hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>el.hidden=true,4200)}
+const panel=createSteerPanel({root:document.getElementById('steer'),emit(event,payload){const accepted=transport.emit(event,payload);document.getElementById('mock-log').textContent=transport.log.slice(-6).map(e=>`${e.event}\n${JSON.stringify(e.payload)}`).join('\n');return accepted},requestControl:()=>transport.emit(EVENTS.TAKE_CONTROL,{}),notify:notice});
+function context(){panel.setContext({display,connected:transport.status.phase==='connected',driving:role===ROLES.HOST||display.driver?.id===transport.status.clientId,clientId:transport.status.clientId,role,mock:true})}
+transport.on(EVENTS.DISPLAY_STATE,value=>{display=value;context()});
+transport.on(EVENTS.DRIVER_CHANGED,({driver})=>{display={...display,driver};context()});
+transport.on(EVENTS.STEER_RESULT,value=>panel.setResult(value));
+transport.on(EVENTS.ERROR,error=>panel.setError(error));
+transport.status.subscribe(context);transport.start();
+await new Promise(r=>setTimeout(r,80));
+if(['code-ready','code-syntax-error','resolve-error'].includes(scene)){
+ panel.setMode('code');
+ const editor=document.getElementById('steer-code-input');
+ editor.value=scene==='code-syntax-error'?'channel[87] = 0\nchannel[3000] = 0':scene==='resolve-error'?'channel[top(5, "golden retrievee")] = 0':'channel[top(5, "golden retriever")] = 0';
+ editor.dispatchEvent(new Event('input',{bubbles:true}));
+ await new Promise(r=>setTimeout(r,200));
+ if(scene==='resolve-error'){document.querySelector('.steer-run').click();await new Promise(r=>setTimeout(r,100))}
+}
+if(scene==='mid-drag'){
+ const input=document.querySelector('.steer-row input');
+ input.dispatchEvent(new PointerEvent('pointerdown',{pointerId:1,pointerType:'touch',bubbles:true}));input.value='.25';input.dispatchEvent(new Event('input',{bubbles:true}));await new Promise(r=>setTimeout(r,100));
+}
+window.__steerLab={panel,transport,context};
+window.__starkReady=true;
+window.addEventListener('pagehide',()=>{panel.destroy();transport.close();clearTimeout(noticeTimer)},{once:true});
+</script>
+</body>
+</html>

@@ -1,4 +1,5 @@
-// Contract v1: the HUD reads state through the display API and owns no socket.
+// The live display stays quiet; the lab opts into the full CX-6 HUD.
+// Both layouts read the same display API and own no socket.
 export function mountHud(rootEl, api) {
   const subscriptions = [];
   let hud;
@@ -18,7 +19,8 @@ export function mountHud(rootEl, api) {
       link.rel = 'stylesheet'; link.href = href; document.head.append(link);
     }
     hud = document.createElement('div');
-    hud.className = 'stark-hud hud-mounting';
+    const full = rootEl.dataset.hudLayout === 'full';
+    hud.className = `stark-hud hud-mounting${full ? '' : ' hud-compact'}`;
     hud.innerHTML = `
       <header class="hud-brand"><div class="hud-wordmark">STARK</div><div data-field="image" class="hud-label"></div></header>
       <section class="hud-result" aria-label="Model's answer"><div data-field="answer" class="hud-answer"></div><div data-field="score" class="hud-secondary"></div><div data-field="truth" class="hud-truth"><span class="hud-ring" aria-hidden="true"></span><span data-field="correctness"></span></div></section>
@@ -26,22 +28,27 @@ export function mountHud(rootEl, api) {
       <section class="hud-status"><div data-field="controllers"></div><div data-field="driver" class="hud-secondary"></div><div data-field="mode" class="hud-mode"></div></section>
       <section class="hud-legend" aria-label="Score legend"><div class="hud-inferno" aria-hidden="true"></div><div>low → high model score</div><div class="hud-legend-truth"><span class="hud-ring" aria-hidden="true"></span>true class</div></section>
       <section class="hud-qr"><img class="hud-qr-image" alt="Scan to open the Stark controller"><div data-field="scan">Scan to steer</div><div data-field="room" class="hud-room"></div><div class="hud-host"></div></section>`;
+    if (!full) {
+      for (const el of hud.querySelectorAll('header, section:not(.hud-result), .hud-truth')) el.remove();
+    }
     rootEl.replaceChildren(hud);
     const fields = Object.fromEntries([...hud.querySelectorAll('[data-field]')].map(el => [el.dataset.field, el]));
     const focusCard = hud.querySelector('.hud-focus');
     const qr = hud.querySelector('.hud-qr-image');
-    hud.querySelector('.hud-host').textContent = location.host;
+    if (full) hud.querySelector('.hud-host').textContent = location.host;
     const text = (field, value) => {
       const el = fields[field];
+      if (!el) return;
       const content = value === null || value === undefined ? '' : String(value);
       if (el.textContent !== content) el.textContent = content;
       el.classList.toggle('hud-empty', !content);
     };
-    const score = value => Number.isFinite(value) ? `model score ${(value * 100).toFixed(1)}%` : null;
+    const score = value => Number.isFinite(value) ? `${full ? 'model' : 'Model'} score ${(value * 100).toFixed(1)}%` : null;
     let qrRoom;
-    qr.addEventListener('error', () => { qr.classList.add('hud-empty'); });
-    qr.addEventListener('load', () => { if (qrRoom) qr.classList.remove('hud-empty'); });
+    qr?.addEventListener('error', () => { qr.classList.add('hud-empty'); });
+    qr?.addEventListener('load', () => { if (qrRoom) qr.classList.remove('hud-empty'); });
     function setRoom(room) {
+      if (!full) return;
       const valid = typeof room === 'string' && /^[A-HJ-NP-Z2-9]{5}$/i.test(room) ? room.toUpperCase() : null;
       text('room', valid); text('scan', valid ? 'Scan to steer' : null);
       if (valid === qrRoom) return;
@@ -51,6 +58,7 @@ export function mountHud(rootEl, api) {
       else qr.removeAttribute('src');
     }
     function focus(answer) {
+      if (!full) return;
       const active = answer !== null && typeof answer === 'object';
       focusCard.classList.toggle('hud-visible', active);
       focusCard.setAttribute('aria-hidden', String(!active));
@@ -64,6 +72,7 @@ export function mountHud(rootEl, api) {
       text('image', s.image?.name);
       text('answer', s.top1?.label);
       text('score', score(s.top1?.score));
+      if (!full) return;
       const comparable = s.top1?.classId != null && s.trueClass?.classId != null;
       fields.truth.classList.toggle('hud-empty', !comparable);
       text('correctness', comparable ? s.top1.classId === s.trueClass.classId ? 'Correct' : 'Incorrect' : null);

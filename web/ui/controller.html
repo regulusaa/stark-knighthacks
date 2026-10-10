@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/ui/styles/tokens.css">
   <link rel="stylesheet" href="/ui/controller.css">
   <link rel="stylesheet" href="/ui/styles/host.css">
+  <link rel="stylesheet" href="/ui/steer/panel.css">
 </head>
 <body>
   <div id="app" class="controller" data-state="connecting" data-role="guest">
@@ -49,6 +50,9 @@
         <aside id="side-panel" class="side-panel">
           <div class="current-image"><span class="eyebrow">NOW SHOWING</span><strong id="image-name">Waiting for image</strong><span id="top-answer">Model score will appear here</span><div id="truth-status" class="truth-status" hidden><span class="true-class-ring" aria-hidden="true"></span><strong id="correctness"></strong><span id="true-class-name"></span></div></div>
           <div id="host-gallery" hidden><section class="host-block" aria-labelledby="gallery-title"><div class="host-block-heading"><span class="slot-index">01</span><h3 id="gallery-title">Gallery</h3></div><div id="gallery-grid" class="gallery-grid" role="group" aria-label="Choose an image"></div></section></div>
+          <div id="explore-tabs" class="controller-tabs" role="tablist" aria-label="Explore the model" hidden><button type="button" role="tab" data-panel="answers" aria-selected="true">Answers</button><button type="button" role="tab" data-panel="steer" aria-selected="false">Steer</button></div>
+          <p id="steer-medical-note" class="steer-medical-note" hidden>Steer works on the ImageNet model only</p>
+          <section id="steer-panel" hidden aria-label="Steer channels"></section>
           <section id="answers-panel" class="answers-panel" aria-label="Model answers">
             <div class="answers-heading"><div><span class="slot-index">01</span><h3>Answers</h3></div><span id="answer-count" class="answer-count">0</span></div>
             <div id="focus-card" class="focus-card" hidden>
