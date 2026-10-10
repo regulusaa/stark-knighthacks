@@ -59,3 +59,11 @@ The stage is `pipeline/stages/fgsm.py`; it runs before core and creates `adv_ret
   - **PSNR 42.1 dB**: the two crops are indistinguishable by eye.
 - `noise_x50.png` is written.
 - `adv_retriever` (gallery order 2, `generated` + `preprocessed: true`) gets the full asset set: crop, tree, Grad-CAM, conv5/steer, atlas. Its steer identity check passes. It isn't one of reference.json's three images, so it has no reference cases.
+
+## Part D: activation atlas, DONE
+- `pipeline/stages/atlas.py` reads the 49 layer names from the loaded model: conv1_relu, then `_1_relu`, `_2_relu` and `_out` for each of the 16 blocks. It runs one multi-output model, with one forward pass per image.
+- **Asserts:** 49 layers; grid sizes 112, 56, 28, 14 and 7 (conv3_block1_1_relu is already 28, because Keras puts the stride on the first 1×1 conv); a total of exactly **54,145 bytes**.
+- `atlas.json` follows contract 2.4 (the field is `maxRaw`, as the contract names it), and `layer-config.json` is written (5 layers in the reduced trunk). All 7 steerable images have an atlas, `adv_retriever` included.
+- **Skips:** `fromLayer` follows the contract and its fixture (the block's `_1_relu` → `_out`). The prompt says "from the block's input layer", so each skip also carries `inputLayer` (the previous block's `_out`) and `inputInAtlas`. For conv2_block1 the real input is `pool1_pool`, which is not in the atlas. **Open question** below.
+- **Validator:** checks offsets, lengths, sizes, a peak of 255 and the skips. It also checks that the conv5_block3_out map matches `conv5.bin` (it does).
+- **What I saw:** the edges of the dog and the butterfly at conv1–conv2, part outlines at conv3, and coarse object blobs at conv5. **conv4_block6_out peaks at the top-left corner on both images I checked**, a border response rather than the subject. It is worth knowing before narrating that layer.

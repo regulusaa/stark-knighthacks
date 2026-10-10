@@ -15,7 +15,7 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
-        "atlas": false,
+        "atlas": true,
         "stability": true,
         "fgsm": false,
         "medical": false
@@ -36,7 +36,7 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
-        "atlas": false,
+        "atlas": true,
         "stability": false,
         "fgsm": true,
         "medical": false
@@ -57,7 +57,7 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
-        "atlas": false,
+        "atlas": true,
         "stability": true,
         "fgsm": false,
         "medical": false
@@ -78,7 +78,7 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
-        "atlas": false,
+        "atlas": true,
         "stability": true,
         "fgsm": false,
         "medical": false
@@ -99,7 +99,7 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
-        "atlas": false,
+        "atlas": true,
         "stability": false,
         "fgsm": false,
         "medical": false
@@ -120,7 +120,7 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
-        "atlas": false,
+        "atlas": true,
         "stability": false,
         "fgsm": false,
         "medical": false
@@ -141,7 +141,7 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
-        "atlas": false,
+        "atlas": true,
         "stability": false,
         "fgsm": false,
         "medical": false
