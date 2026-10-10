@@ -1,0 +1,18 @@
+{
+  "active": true,
+  "layer": "conv5_block3_out",
+  "mode": "slider",
+  "channels": [
+    { "channelIndex": 1187, "label": "channel 1187", "baseWeight": 0.034, "scale": 1.5 },
+    { "channelIndex": 402, "label": "channel 402", "baseWeight": 0.021, "scale": 0.0 }
+  ],
+  "code": null,
+  "result": {
+    "answers": [
+      { "classId": 207, "label": "golden retriever", "score": 0.55, "rank": 1, "hasHeatmap": true, "isTop1": true, "isTrueClass": true },
+      { "classId": 208, "label": "Labrador retriever", "score": 0.17, "rank": 2, "hasHeatmap": true, "isTop1": false, "isTrueClass": false }
+    ],
+    "treeValues": { "n00001740": 1.0, "n02084071": 0.78, "n02099029": 0.72, "n02099601": 0.55, "n02099712": 0.17 }
+  },
+  "error": null
+}

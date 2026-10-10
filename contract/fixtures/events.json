@@ -1,0 +1,26 @@
+{
+  "register": {
+    "display": { "role": "display", "room": null },
+    "host": { "role": "host", "room": "7KQ2M", "key": "<STARK_HOST_KEY>" },
+    "guest": { "role": "guest", "room": "7KQ2M" },
+    "ack": { "ok": true, "room": "7KQ2M", "clientId": "c_3f9a", "role": "guest", "label": "Guest 2" }
+  },
+  "peer-joined": { "clientId": "c_3f9a", "role": "guest", "label": "Guest 2" },
+  "peer-left": { "clientId": "c_3f9a", "role": "guest", "label": "Guest 2" },
+  "take-control": {},
+  "driver-changed": { "driver": { "id": "c_3f9a", "label": "Guest 2", "isHost": false }, "reason": "take" },
+  "control-orbit": { "dx": 0.042, "dy": -0.013 },
+  "control-zoom": { "dz": 0.087 },
+  "focus-tip": { "classId": 208 },
+  "clear-focus": {},
+  "focus-state": { "classId": 208, "label": "Labrador retriever", "score": 0.11, "rank": 2, "hasHeatmap": true, "isTop1": false, "isTrueClass": false },
+  "reset-view": {},
+  "select-image": { "imageId": "adv_retriever" },
+  "play-pulse": { "speed": 1.0, "skipToEnd": false },
+  "set-mode": { "mode": "stability" },
+  "display-state": "see display-state.json",
+  "steer-update": { "layer": "conv5_block3_out", "mode": "slider", "channels": [ { "channelIndex": 1187, "scale": 1.5 } ], "code": null },
+  "steer-result": "see steer-state.json",
+  "steer-reset": {},
+  "error": "see error.json"
+}

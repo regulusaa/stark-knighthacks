@@ -1,0 +1,21 @@
+{
+  "schema": "stark.manifest/1",
+  "images": [
+    { "id": "clean_retriever", "name": "Golden retriever", "category": "clean", "order": 1,
+      "trueClass": { "classId": 207, "label": "golden retriever" },
+      "folder": "assets/clean_retriever/",
+      "files": { "crop": true, "tree": true, "gradcam": true, "atlas": true, "stability": true, "fgsm": false, "medical": false } },
+    { "id": "adv_retriever", "name": "Adversarial retriever", "category": "adversarial", "order": 2,
+      "trueClass": { "classId": 207, "label": "golden retriever" },
+      "folder": "assets/adv_retriever/",
+      "files": { "crop": true, "tree": true, "gradcam": true, "atlas": true, "stability": false, "fgsm": true, "medical": false } },
+    { "id": "ambig_husky", "name": "Husky in snow", "category": "ambiguous", "order": 3,
+      "trueClass": { "classId": 250, "label": "Siberian husky" },
+      "folder": "assets/ambig_husky/",
+      "files": { "crop": true, "tree": true, "gradcam": true, "atlas": true, "stability": true, "fgsm": false, "medical": false } },
+    { "id": "med_xray_pneumonia", "name": "Chest X-ray (pneumonia)", "category": "medical", "order": 4,
+      "trueClass": { "classId": 8, "label": "Pneumonia" },
+      "folder": "assets/med_xray_pneumonia/",
+      "files": { "crop": true, "tree": true, "gradcam": true, "atlas": false, "stability": false, "fgsm": false, "medical": true } }
+  ]
+}

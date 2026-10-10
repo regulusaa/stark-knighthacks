@@ -1,0 +1,234 @@
+{
+  "schema": "stark.tree/1",
+  "kind": "wordnet",
+  "scoreKind": "softmax",
+  "model": "resnet50-imagenet-keras",
+  "imageId": "clean_retriever",
+  "rootId": "n00001740",
+  "top1": {
+    "classId": 207,
+    "label": "golden retriever",
+    "score": 0.62
+  },
+  "trueClass": {
+    "classId": 207,
+    "label": "golden retriever",
+    "score": 0.62,
+    "rank": 1
+  },
+  "otherScore": 0.155,
+  "topK": [
+    {
+      "rank": 1,
+      "classId": 207,
+      "wnid": "n02099601",
+      "label": "golden retriever",
+      "score": 0.62
+    },
+    {
+      "rank": 2,
+      "classId": 208,
+      "wnid": "n02099712",
+      "label": "Labrador retriever",
+      "score": 0.11
+    },
+    {
+      "rank": 3,
+      "classId": 205,
+      "wnid": "n02099267",
+      "label": "flat-coated retriever",
+      "score": 0.05
+    },
+    {
+      "rank": 4,
+      "classId": 222,
+      "wnid": "n02104029",
+      "label": "kuvasz",
+      "score": 0.03
+    },
+    {
+      "rank": 5,
+      "classId": 852,
+      "wnid": "n04409515",
+      "label": "tennis ball",
+      "score": 0.02
+    },
+    {
+      "rank": 6,
+      "classId": 257,
+      "wnid": "n02111500",
+      "label": "Great Pyrenees",
+      "score": 0.015
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n00001740",
+      "label": "entity",
+      "depth": 0,
+      "parent": null,
+      "children": [
+        "n00003553",
+        "other"
+      ],
+      "value": 1.0,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00003553",
+      "label": "whole",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [
+        "n02084071",
+        "n04409515"
+      ],
+      "value": 0.845,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02084071",
+      "label": "dog",
+      "depth": 2,
+      "parent": "n00003553",
+      "children": [
+        "n02099029",
+        "n02104029",
+        "n02111500"
+      ],
+      "value": 0.825,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02099029",
+      "label": "retriever",
+      "depth": 3,
+      "parent": "n02084071",
+      "children": [
+        "n02099601",
+        "n02099712",
+        "n02099267"
+      ],
+      "value": 0.78,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02099601",
+      "label": "golden retriever",
+      "depth": 4,
+      "parent": "n02099029",
+      "children": [],
+      "value": 0.62,
+      "isLeaf": true,
+      "onTop1Path": true,
+      "isTrueLabel": true,
+      "isOther": false,
+      "classId": 207,
+      "rank": 1
+    },
+    {
+      "id": "n02099712",
+      "label": "Labrador retriever",
+      "depth": 4,
+      "parent": "n02099029",
+      "children": [],
+      "value": 0.11,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 208,
+      "rank": 2
+    },
+    {
+      "id": "n02099267",
+      "label": "flat-coated retriever",
+      "depth": 4,
+      "parent": "n02099029",
+      "children": [],
+      "value": 0.05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 205,
+      "rank": 3
+    },
+    {
+      "id": "n02104029",
+      "label": "kuvasz",
+      "depth": 3,
+      "parent": "n02084071",
+      "children": [],
+      "value": 0.03,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 222,
+      "rank": 4
+    },
+    {
+      "id": "n02111500",
+      "label": "Great Pyrenees",
+      "depth": 3,
+      "parent": "n02084071",
+      "children": [],
+      "value": 0.015,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 257,
+      "rank": 6
+    },
+    {
+      "id": "n04409515",
+      "label": "tennis ball",
+      "depth": 2,
+      "parent": "n00003553",
+      "children": [],
+      "value": 0.02,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 852,
+      "rank": 5
+    },
+    {
+      "id": "other",
+      "label": "other (classes not shown)",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [],
+      "value": 0.155,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": true,
+      "classId": null,
+      "rank": null
+    }
+  ]
+}
