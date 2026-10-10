@@ -1,0 +1,359 @@
+{
+  "version": 1,
+  "imageId": "ambig_wolf",
+  "layer": "conv5_block3_out",
+  "grid": 7,
+  "channels": 2048,
+  "identityMaxAbsErr": 6.884224692527141e-06,
+  "classes": [
+    {
+      "classId": 269,
+      "label": "timber wolf",
+      "rank": 1,
+      "logit": 19.96778106689453,
+      "top": [
+        {
+          "channel": 31,
+          "contribution": 1.6199916282335023,
+          "pooled": 11.243836217997025
+        },
+        {
+          "channel": 240,
+          "contribution": 1.6162888379839873,
+          "pooled": 7.527938305115213
+        },
+        {
+          "channel": 449,
+          "contribution": 1.1729307721790567,
+          "pooled": 6.576530395113692
+        },
+        {
+          "channel": 1220,
+          "contribution": 1.0159942663880037,
+          "pooled": 5.652788413422448
+        },
+        {
+          "channel": 894,
+          "contribution": 0.8383780774711703,
+          "pooled": 4.560342463911796
+        },
+        {
+          "channel": 831,
+          "contribution": 0.7884850736187673,
+          "pooled": 5.001171277493847
+        },
+        {
+          "channel": 788,
+          "contribution": 0.6731151470051185,
+          "pooled": 4.626793685008068
+        },
+        {
+          "channel": 1816,
+          "contribution": 0.5964945077150468,
+          "pooled": 4.752719368253436
+        },
+        {
+          "channel": 1203,
+          "contribution": 0.5282572459986252,
+          "pooled": 4.206881635043086
+        },
+        {
+          "channel": 216,
+          "contribution": 0.4656961948605702,
+          "pooled": 4.300155104423056
+        }
+      ]
+    },
+    {
+      "classId": 270,
+      "label": "white wolf",
+      "rank": 2,
+      "logit": 17.1583251953125,
+      "top": [
+        {
+          "channel": 1220,
+          "contribution": 1.2135221759842953,
+          "pooled": 5.652788413422448
+        },
+        {
+          "channel": 240,
+          "contribution": 1.0519886873236193,
+          "pooled": 7.527938305115213
+        },
+        {
+          "channel": 31,
+          "contribution": 0.9371813194463462,
+          "pooled": 11.243836217997025
+        },
+        {
+          "channel": 894,
+          "contribution": 0.8212755184069918,
+          "pooled": 4.560342463911796
+        },
+        {
+          "channel": 788,
+          "contribution": 0.7659514619611032,
+          "pooled": 4.626793685008068
+        },
+        {
+          "channel": 1064,
+          "contribution": 0.6936774890266068,
+          "pooled": 5.8873870932326025
+        },
+        {
+          "channel": 1772,
+          "contribution": 0.6473900993836701,
+          "pooled": 4.09771699078229
+        },
+        {
+          "channel": 1678,
+          "contribution": 0.5951585257527121,
+          "pooled": 3.614969090539582
+        },
+        {
+          "channel": 1816,
+          "contribution": 0.5382546859543633,
+          "pooled": 4.752719368253436
+        },
+        {
+          "channel": 302,
+          "contribution": 0.48185100898591104,
+          "pooled": 5.416278399983231
+        }
+      ]
+    },
+    {
+      "classId": 272,
+      "label": "coyote",
+      "rank": 3,
+      "logit": 16.97421646118164,
+      "top": [
+        {
+          "channel": 240,
+          "contribution": 1.660118199160322,
+          "pooled": 7.527938305115213
+        },
+        {
+          "channel": 31,
+          "contribution": 1.0450330805089925,
+          "pooled": 11.243836217997025
+        },
+        {
+          "channel": 1220,
+          "contribution": 1.0276734399750616,
+          "pooled": 5.652788413422448
+        },
+        {
+          "channel": 449,
+          "contribution": 0.9273794910939279,
+          "pooled": 6.576530395113692
+        },
+        {
+          "channel": 788,
+          "contribution": 0.7600646963618415,
+          "pooled": 4.626793685008068
+        },
+        {
+          "channel": 1200,
+          "contribution": 0.6404534672906846,
+          "pooled": 2.735515828035316
+        },
+        {
+          "channel": 831,
+          "contribution": 0.5248470453739418,
+          "pooled": 5.001171277493847
+        },
+        {
+          "channel": 1816,
+          "contribution": 0.5148019453090446,
+          "pooled": 4.752719368253436
+        },
+        {
+          "channel": 1772,
+          "contribution": 0.4577727446883436,
+          "pooled": 4.09771699078229
+        },
+        {
+          "channel": 894,
+          "contribution": 0.4541249384616894,
+          "pooled": 4.560342463911796
+        }
+      ]
+    },
+    {
+      "classId": 279,
+      "label": "Arctic fox",
+      "rank": 4,
+      "logit": 15.80456256866455,
+      "top": [
+        {
+          "channel": 1064,
+          "contribution": 1.4018450734123324,
+          "pooled": 5.8873870932326025
+        },
+        {
+          "channel": 302,
+          "contribution": 1.0739163115883956,
+          "pooled": 5.416278399983231
+        },
+        {
+          "channel": 788,
+          "contribution": 0.9733442602987751,
+          "pooled": 4.626793685008068
+        },
+        {
+          "channel": 31,
+          "contribution": 0.6552926439438551,
+          "pooled": 11.243836217997025
+        },
+        {
+          "channel": 894,
+          "contribution": 0.6529821022973813,
+          "pooled": 4.560342463911796
+        },
+        {
+          "channel": 719,
+          "contribution": 0.6451943249991329,
+          "pooled": 4.8112746823807155
+        },
+        {
+          "channel": 771,
+          "contribution": 0.6332150713227508,
+          "pooled": 2.7108762969776077
+        },
+        {
+          "channel": 984,
+          "contribution": 0.5713481686114436,
+          "pooled": 3.7512109717544244
+        },
+        {
+          "channel": 1772,
+          "contribution": 0.5580764308070236,
+          "pooled": 4.09771699078229
+        },
+        {
+          "channel": 1585,
+          "contribution": 0.5033718506374353,
+          "pooled": 3.345572084796672
+        }
+      ]
+    },
+    {
+      "classId": 248,
+      "label": "Eskimo dog",
+      "rank": 5,
+      "logit": 13.555211067199707,
+      "top": [
+        {
+          "channel": 31,
+          "contribution": 1.9123694926972108,
+          "pooled": 11.243836217997025
+        },
+        {
+          "channel": 240,
+          "contribution": 1.6463250462627366,
+          "pooled": 7.527938305115213
+        },
+        {
+          "channel": 449,
+          "contribution": 1.1436124346208865,
+          "pooled": 6.576530395113692
+        },
+        {
+          "channel": 1816,
+          "contribution": 0.8332649580652567,
+          "pooled": 4.752719368253436
+        },
+        {
+          "channel": 1064,
+          "contribution": 0.5033576149404854,
+          "pooled": 5.8873870932326025
+        },
+        {
+          "channel": 1053,
+          "contribution": 0.4602196821896785,
+          "pooled": 3.3316710007433987
+        },
+        {
+          "channel": 754,
+          "contribution": 0.4547967407734151,
+          "pooled": 4.283436563550209
+        },
+        {
+          "channel": 1772,
+          "contribution": 0.4383794257924763,
+          "pooled": 4.09771699078229
+        },
+        {
+          "channel": 1585,
+          "contribution": 0.39255015520771147,
+          "pooled": 3.345572084796672
+        },
+        {
+          "channel": 1678,
+          "contribution": 0.3705199998631966,
+          "pooled": 3.614969090539582
+        }
+      ]
+    }
+  ],
+  "favoring": {
+    "for": 269,
+    "against": 270,
+    "top": [
+      {
+        "channel": 449,
+        "margin": 1.2121794155069932
+      },
+      {
+        "channel": 31,
+        "margin": 0.6828103087871561
+      },
+      {
+        "channel": 240,
+        "margin": 0.564300150660368
+      },
+      {
+        "channel": 252,
+        "margin": 0.46409161172519503
+      },
+      {
+        "channel": 831,
+        "margin": 0.45834960568879807
+      },
+      {
+        "channel": 1053,
+        "margin": 0.3298034748055187
+      },
+      {
+        "channel": 809,
+        "margin": 0.31010958964004237
+      },
+      {
+        "channel": 956,
+        "margin": 0.29159627381858144
+      },
+      {
+        "channel": 358,
+        "margin": 0.24128798499597212
+      },
+      {
+        "channel": 213,
+        "margin": 0.21114628729256907
+      }
+    ]
+  },
+  "flip": {
+    "from": 269,
+    "to": 270,
+    "toLabel": "white wolf",
+    "toScore": 0.3945790307759969,
+    "n": 4,
+    "channels": [
+      449,
+      31,
+      240,
+      252
+    ]
+  }
+}

@@ -44,6 +44,25 @@ def key(stage, entry, input_path):
     return h.hexdigest()
 
 
+def once_key(stage, input_paths):
+    """Stamp for a stage's run_once step: its code plus the bytes of every per-image file it reads."""
+    global _LIBS
+    if _LIBS is None:
+        _LIBS = _lib_versions()
+    h = hashlib.sha256()
+    h.update(f"{stage.NAME}:once".encode())
+    for src in sorted(stage.SOURCES):
+        h.update(src.encode())
+        h.update((config.PIPELINE / src).read_bytes())
+    for p in sorted(input_paths):
+        h.update(str(p.relative_to(config.REPO)).encode())
+        h.update(p.read_bytes() if p.exists() else b"<missing>")
+    w = config.RESNET_WEIGHTS
+    h.update(str(w.stat().st_size if w.exists() else -1).encode())
+    h.update(json.dumps(_LIBS, sort_keys=True).encode())
+    return h.hexdigest()
+
+
 def load():
     try:
         return json.loads(STAMPS.read_text())

@@ -1,0 +1,9 @@
+{
+  "layer": "predictions",
+  "inputs": 2048,
+  "outputs": 1000,
+  "dtype": "float32",
+  "layout": "W[c][k] row-major, then b[k]",
+  "bytes": 8196000,
+  "sha256": "1c3ebc09bb2a7aae85a180635bfe70aabd51fab5f29bc943bb3b1fba6b900dd2"
+}

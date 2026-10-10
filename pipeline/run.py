@@ -2,6 +2,8 @@
 
   python -m pipeline.run [--only <id>] [--force] [--use-backup <id> ...]
 
+Stages may also define run_once(entries, log) for work over all images (skipped with --only).
+
 For each gallery image, runs every applicable stage (pipeline/stages/) whose stamp is out of date, then writes
 manifest.json, regenerates the review sheet if anything changed, and validates all outputs (exit 1 on failure).
 Runs fully offline from the local caches (~/.keras/models, ~/nltk_data).
@@ -57,6 +59,23 @@ def main(argv=None):
             stamps.save(marks)
             changed = True
             print(f"        {time.time() - ts:.1f}s")
+
+    # Steps that run once over all images (e.g. the Steer head, reference file and review sheet), after the loop.
+    for stage in stages:
+        if not hasattr(stage, "run_once") or args.only:
+            continue
+        tag = f"_once:{stage.NAME}"
+        key = stamps.once_key(stage, stage.once_inputs(entries))
+        if not args.force and marks.get(tag) == key and all(p.exists() for p in stage.ONCE_OUTPUTS):
+            print(f"  skip  {tag}")
+            continue
+        ts = time.time()
+        print(f"  run   {tag}")
+        stage.run_once(entries, lambda m: print(f"        {m}"))
+        marks[tag] = key
+        stamps.save(marks)
+        changed = True
+        print(f"        {time.time() - ts:.1f}s")
 
     manifest_changed = manifest.write(entries, warn=lambda m: print(f"  warn  {m}"))
     if changed or manifest_changed or not review.SHEET.exists():

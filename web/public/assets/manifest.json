@@ -19,7 +19,8 @@
         "stability": false,
         "fgsm": false,
         "medical": false
-      }
+      },
+      "steerable": true
     },
     {
       "id": "ambig_cat",
@@ -39,7 +40,8 @@
         "stability": false,
         "fgsm": false,
         "medical": false
-      }
+      },
+      "steerable": true
     },
     {
       "id": "ambig_wolf",
@@ -59,7 +61,8 @@
         "stability": false,
         "fgsm": false,
         "medical": false
-      }
+      },
+      "steerable": true
     },
     {
       "id": "clean_sportscar",
@@ -79,7 +82,8 @@
         "stability": false,
         "fgsm": false,
         "medical": false
-      }
+      },
+      "steerable": true
     },
     {
       "id": "clean_monarch",
@@ -99,7 +103,8 @@
         "stability": false,
         "fgsm": false,
         "medical": false
-      }
+      },
+      "steerable": true
     },
     {
       "id": "ambig_chihuahua",
@@ -119,7 +124,8 @@
         "stability": false,
         "fgsm": false,
         "medical": false
-      }
+      },
+      "steerable": true
     }
   ]
 }

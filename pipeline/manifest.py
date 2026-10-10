@@ -1,4 +1,4 @@
-"""manifest.json (contract 2.1), built from gallery.json plus what actually exists on disk.
+"""manifest.json (contract 2.1, v2), built from gallery.json plus what actually exists on disk.
 
 The files flags are derived from the folder contents, so stages added later (atlas, stability, fgsm, medical)
 show up without changes here. An entry whose tree.json is missing is left out with a warning.
@@ -14,6 +14,13 @@ FILES = {
     "fgsm": ["fgsm.json"],
     "medical": ["medical.json"],
 }
+STEER_FILES = ["conv5.bin", "steer.json"]
+DATA_DIRS = {"steer"}  # assets/steer/ holds the Steer head, not an image
+
+
+def steerable(entry, image_dir):
+    """v2: a ResNet50 image whose Steer data was written."""
+    return entry["category"] != "medical" and all((image_dir / f).exists() for f in STEER_FILES)
 
 
 def files_present(image_dir):
@@ -43,11 +50,12 @@ def build(entries, warn=print):
             "trueClass": true_class,
             "folder": f"{config.ASSETS_URL_PREFIX}{e['id']}/",
             "files": files_present(d),
+            "steerable": steerable(e, d),
         })
     known = {e["id"] for e in entries}
     if config.ASSETS.exists():
         for d in sorted(config.ASSETS.iterdir()):
-            if d.is_dir() and d.name not in known:
+            if d.is_dir() and d.name not in known and d.name not in DATA_DIRS:
                 warn(f"manifest: assets/{d.name}/ is not in gallery.json; ignored")
     return {"schema": "stark.manifest/1", "images": images}
 

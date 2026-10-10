@@ -1,0 +1,356 @@
+{
+  "version": 1,
+  "imageId": "clean_sportscar",
+  "layer": "conv5_block3_out",
+  "grid": 7,
+  "channels": 2048,
+  "identityMaxAbsErr": 4.0678965831375535e-06,
+  "classes": [
+    {
+      "classId": 817,
+      "label": "sports car",
+      "rank": 1,
+      "logit": 14.091270446777344,
+      "top": [
+        {
+          "channel": 457,
+          "contribution": 1.9443707284203435,
+          "pooled": 4.6775354706511205
+        },
+        {
+          "channel": 576,
+          "contribution": 1.7532889872056117,
+          "pooled": 7.828065402653753
+        },
+        {
+          "channel": 1077,
+          "contribution": 1.3373973199337688,
+          "pooled": 4.280400896558956
+        },
+        {
+          "channel": 1216,
+          "contribution": 0.7343990590723011,
+          "pooled": 5.558443149741815
+        },
+        {
+          "channel": 1733,
+          "contribution": 0.5448230949382006,
+          "pooled": 2.4567174765528463
+        },
+        {
+          "channel": 1813,
+          "contribution": 0.5169642347025256,
+          "pooled": 3.088291861573044
+        },
+        {
+          "channel": 494,
+          "contribution": 0.45419586008303087,
+          "pooled": 5.05664493113148
+        },
+        {
+          "channel": 663,
+          "contribution": 0.4162013057816073,
+          "pooled": 3.815889059889073
+        },
+        {
+          "channel": 874,
+          "contribution": 0.3557919754711677,
+          "pooled": 2.9234188332849618
+        },
+        {
+          "channel": 359,
+          "contribution": 0.348827569918642,
+          "pooled": 1.9746201439779631
+        }
+      ]
+    },
+    {
+      "classId": 670,
+      "label": "motor scooter",
+      "rank": 2,
+      "logit": 13.003093719482422,
+      "top": [
+        {
+          "channel": 576,
+          "contribution": 2.7292067767367794,
+          "pooled": 7.828065402653753
+        },
+        {
+          "channel": 1411,
+          "contribution": 1.5326656557013076,
+          "pooled": 4.547646599156516
+        },
+        {
+          "channel": 1421,
+          "contribution": 0.9835129356095578,
+          "pooled": 4.716686652631176
+        },
+        {
+          "channel": 1718,
+          "contribution": 0.9803452972863206,
+          "pooled": 4.152728793572407
+        },
+        {
+          "channel": 820,
+          "contribution": 0.8141748364146622,
+          "pooled": 3.4783552337665946
+        },
+        {
+          "channel": 1216,
+          "contribution": 0.5524428148652286,
+          "pooled": 5.558443149741815
+        },
+        {
+          "channel": 693,
+          "contribution": 0.48599123248844517,
+          "pooled": 5.300491140813244
+        },
+        {
+          "channel": 2046,
+          "contribution": 0.35414170321967875,
+          "pooled": 2.7074598536199455
+        },
+        {
+          "channel": 48,
+          "contribution": 0.35189873931516813,
+          "pooled": 1.958198603318662
+        },
+        {
+          "channel": 432,
+          "contribution": 0.28574685916340314,
+          "pooled": 4.172934585688066
+        }
+      ]
+    },
+    {
+      "classId": 802,
+      "label": "snowmobile",
+      "rank": 3,
+      "logit": 12.658214569091797,
+      "top": [
+        {
+          "channel": 576,
+          "contribution": 1.7538562428523934,
+          "pooled": 7.828065402653753
+        },
+        {
+          "channel": 693,
+          "contribution": 1.5356606566535702,
+          "pooled": 5.300491140813244
+        },
+        {
+          "channel": 1421,
+          "contribution": 0.9468855674969692,
+          "pooled": 4.716686652631176
+        },
+        {
+          "channel": 820,
+          "contribution": 0.8789312347635351,
+          "pooled": 3.4783552337665946
+        },
+        {
+          "channel": 1077,
+          "contribution": 0.7000663462998991,
+          "pooled": 4.280400896558956
+        },
+        {
+          "channel": 709,
+          "contribution": 0.5548948772031841,
+          "pooled": 1.7716876098087855
+        },
+        {
+          "channel": 1216,
+          "contribution": 0.5220775140440607,
+          "pooled": 5.558443149741815
+        },
+        {
+          "channel": 663,
+          "contribution": 0.4586733362143709,
+          "pooled": 3.815889059889073
+        },
+        {
+          "channel": 1006,
+          "contribution": 0.37871157148110124,
+          "pooled": 4.131252134332851
+        },
+        {
+          "channel": 1718,
+          "contribution": 0.37837435908337597,
+          "pooled": 4.152728793572407
+        }
+      ]
+    },
+    {
+      "classId": 751,
+      "label": "racer",
+      "rank": 4,
+      "logit": 11.246942520141602,
+      "top": [
+        {
+          "channel": 457,
+          "contribution": 1.4864281417790601,
+          "pooled": 4.6775354706511205
+        },
+        {
+          "channel": 576,
+          "contribution": 1.1661478980251632,
+          "pooled": 7.828065402653753
+        },
+        {
+          "channel": 1077,
+          "contribution": 1.1285718345830436,
+          "pooled": 4.280400896558956
+        },
+        {
+          "channel": 1216,
+          "contribution": 0.8903416637327026,
+          "pooled": 5.558443149741815
+        },
+        {
+          "channel": 663,
+          "contribution": 0.6542687092463217,
+          "pooled": 3.815889059889073
+        },
+        {
+          "channel": 693,
+          "contribution": 0.5241483457030979,
+          "pooled": 5.300491140813244
+        },
+        {
+          "channel": 1813,
+          "contribution": 0.48741300124399184,
+          "pooled": 3.088291861573044
+        },
+        {
+          "channel": 1431,
+          "contribution": 0.4373714378488529,
+          "pooled": 2.8045650002907734
+        },
+        {
+          "channel": 469,
+          "contribution": 0.40348622415654084,
+          "pooled": 1.31444950857941
+        },
+        {
+          "channel": 820,
+          "contribution": 0.37176866072636033,
+          "pooled": 3.4783552337665946
+        }
+      ]
+    },
+    {
+      "classId": 573,
+      "label": "go-kart",
+      "rank": 5,
+      "logit": 10.714421272277832,
+      "top": [
+        {
+          "channel": 663,
+          "contribution": 1.3327138815905717,
+          "pooled": 3.815889059889073
+        },
+        {
+          "channel": 2007,
+          "contribution": 1.2937821425423999,
+          "pooled": 3.3863089303581084
+        },
+        {
+          "channel": 1431,
+          "contribution": 1.0930911718665877,
+          "pooled": 2.8045650002907734
+        },
+        {
+          "channel": 457,
+          "contribution": 0.8849331092752322,
+          "pooled": 4.6775354706511205
+        },
+        {
+          "channel": 1718,
+          "contribution": 0.8267416066315628,
+          "pooled": 4.152728793572407
+        },
+        {
+          "channel": 820,
+          "contribution": 0.6319764277043424,
+          "pooled": 3.4783552337665946
+        },
+        {
+          "channel": 693,
+          "contribution": 0.5477105768621694,
+          "pooled": 5.300491140813244
+        },
+        {
+          "channel": 1568,
+          "contribution": 0.38396862054772435,
+          "pooled": 2.674246617725917
+        },
+        {
+          "channel": 1077,
+          "contribution": 0.34782063850623557,
+          "pooled": 4.280400896558956
+        },
+        {
+          "channel": 1421,
+          "contribution": 0.33440809647992065,
+          "pooled": 4.716686652631176
+        }
+      ]
+    }
+  ],
+  "favoring": {
+    "for": 817,
+    "against": 670,
+    "top": [
+      {
+        "channel": 457,
+        "margin": 1.7133956442371712
+      },
+      {
+        "channel": 1077,
+        "margin": 1.533493563474837
+      },
+      {
+        "channel": 2038,
+        "margin": 0.6247156713499287
+      },
+      {
+        "channel": 1733,
+        "margin": 0.6043455055041137
+      },
+      {
+        "channel": 1813,
+        "margin": 0.4636663568445222
+      },
+      {
+        "channel": 494,
+        "margin": 0.4584791385033542
+      },
+      {
+        "channel": 359,
+        "margin": 0.3831337772064288
+      },
+      {
+        "channel": 874,
+        "margin": 0.37655110401681746
+      },
+      {
+        "channel": 2007,
+        "margin": 0.3533427760333316
+      },
+      {
+        "channel": 1219,
+        "margin": 0.3214889672527227
+      }
+    ]
+  },
+  "flip": {
+    "from": 817,
+    "to": 802,
+    "toLabel": "snowmobile",
+    "toScore": 0.3722911460990649,
+    "n": 1,
+    "channels": [
+      457
+    ]
+  }
+}
