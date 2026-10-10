@@ -39,6 +39,7 @@ export class Rooms {
       emptyTimer: null,
       displayState: null,     // last display-state from the display (before server fields are filled in)
       focusState: null,
+      steerState: null,       // last steer-result from the display (v2); replayed to controllers that join
     };
     this.rooms.set(code, room);
     return room;

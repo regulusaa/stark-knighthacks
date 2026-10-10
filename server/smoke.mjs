@@ -71,6 +71,8 @@ async function main() {
     ok((await fetch(`${base}/api/qr.svg?room=ZZZZZ`)).status === 404, 'qr: unknown room → 404');
     ok((await fetch(`${base}/controller`)).status === 200, '/controller page');
     ok((await fetch(`${base}/display`)).status === 200, '/display page');
+    r = await fetch(`${base}/assets/steer/head.json`);
+    ok(r.status === 200 && /max-age=86400/.test(r.headers.get('cache-control') ?? ''), `steer assets cached for a day (${r.headers.get('cache-control')})`);
 
     // --- rooms -----------------------------------------------------------------------------------------------
     const display = await mk('display');
@@ -191,6 +193,97 @@ async function main() {
     const got = display.seen(EVENTS.CONTROL_ORBIT).length;
     ok(got > 0 && got <= 40, `orbit burst capped (${got}/200 relayed)`);
     ok(g1.seen(EVENTS.ERROR, (p) => p.code === ERROR_CODES.RATE_LIMITED).length === 1, 'RATE_LIMITED sent once per second');
+
+    // --- Steer (v2) ----------------------------------------------------------------------------------------------
+    // g1 drives right now (rate-limit section); the host may steer at any time; a fresh guest may not
+    await sleep(IDLE_MS * 2); // g1's lock lapses
+    const g3 = await mk('guest3');
+    const a3 = await g3.register({ role: 'guest', room });
+    ok(a3.ok, 'guest3 joins');
+    await expectError(g3, ERROR_CODES.FORBIDDEN, () => g3.emit(EVENTS.STEER_UPDATE, { seq: 1, set: [] }), EVENTS.STEER_UPDATE);
+    await expectError(g3, ERROR_CODES.FORBIDDEN, () => g3.emit(EVENTS.STEER_RESET, {}), EVENTS.STEER_RESET);
+    await expectError(g3, ERROR_CODES.FORBIDDEN, () => g3.emit(EVENTS.STEER_RESULT, { seq: 0 }), EVENTS.STEER_RESULT);
+    await expectError(display, ERROR_CODES.FORBIDDEN, () => display.emit(EVENTS.STEER_UPDATE, { seq: 1, set: [] }), EVENTS.STEER_UPDATE);
+    g3.mark();
+    g3.emit(EVENTS.TAKE_CONTROL, {});
+    await g3.waitFor(EVENTS.DRIVER_CHANGED, (p) => p.driver?.label === 'Guest 3');
+    display.mark();
+    g3.emit(EVENTS.STEER_UPDATE, { seq: 1, set: [{ channel: 31, scale: 0 }, { channel: 2047, scale: 3 }], probe: 31, junk: 1 });
+    const su = await display.waitFor(EVENTS.STEER_UPDATE);
+    ok(su.seq === 1 && su.set.length === 2 && su.probe === 31 && su.from === a3.clientId && !('junk' in su),
+      'driver steer-update relayed to the display with its sender, extra fields dropped');
+    display.mark();
+    host.emit(EVENTS.STEER_UPDATE, { seq: 7, code: 'channel[top(5, "timber wolf")] = 0' });
+    const sc = await display.waitFor(EVENTS.STEER_UPDATE);
+    ok(sc.code && sc.probe === null && sc.from !== su.from, 'host may steer without driving (code form relayed)');
+    display.mark();
+    g3.emit(EVENTS.STEER_RESET, {});
+    ok((await display.waitFor(EVENTS.STEER_RESET)).from === su.from, 'steer-reset relayed with its sender');
+
+    const badSteer = [
+      [{ seq: 2, set: [{ channel: 2048, scale: 0 }] }, 'out-of-range channel'],
+      [{ seq: 2, set: [{ channel: -1, scale: 0 }] }, 'negative channel'],
+      [{ seq: 2, set: [{ channel: 5, scale: 9 }] }, 'scale 9'],
+      [{ seq: 2, set: [{ channel: 5, scale: -0.5 }] }, 'negative scale'],
+      [{ seq: 2, set: Array.from({ length: 65 }, (_, i) => ({ channel: i, scale: 0 })) }, '65 entries'],
+      [{ seq: 2, set: [{ channel: 5, scale: 0 }, { channel: 5, scale: 1 }] }, 'duplicate channel'],
+      [{ seq: 2, code: 'channel[1] = 0 ' + '#'.repeat(586) }, '601-character code'],
+      [{ seq: 2, code: 'channel[12 = 0' }, 'broken syntax'],
+      [{ seq: 2, code: 'channel[1] = 0', set: [] }, 'both set and code'],
+      [{ seq: 2, code: 'channel[1] = 0', probe: 4 }, 'probe with code'],
+      [{ set: [] }, 'missing seq'],
+      [{ seq: 1.5, set: [] }, 'fractional seq'],
+      [{ seq: 2, set: [{ channel: 5, scale: 0 }], probe: 9999 }, 'probe out of range'],
+    ];
+    display.mark();
+    for (const [p, what] of badSteer) {
+      const e = await expectError(g3, ERROR_CODES.BAD_PAYLOAD, () => g3.emit(EVENTS.STEER_UPDATE, p), EVENTS.STEER_UPDATE);
+      if (what === '601-character code') ok(p.code.length === 601 && /600/.test(e.message), `601-character code refused (${e.message})`);
+      if (what === 'broken syntax') ok(e.parseError?.line === 1 && e.parseError?.col > 0, `broken syntax: parse error attached (${e.message})`);
+    }
+    ok(true, `${badSteer.length} bad steer-update payloads → BAD_PAYLOAD`);
+    await expectNone(display, EVENTS.STEER_UPDATE, 30);
+    const okCode = 'channel[1] = 0 ' + '#'.repeat(585);
+    display.mark();
+    g3.emit(EVENTS.STEER_UPDATE, { seq: 3, code: okCode });
+    ok((await display.waitFor(EVENTS.STEER_UPDATE)).code.length === 600, '600-character code accepted');
+
+    // rate limit: a steady 15/s (the controller's pace) all passes; a burst is capped at ~20
+    display.mark();
+    for (let i = 0; i < 15; i++) { g3.emit(EVENTS.STEER_UPDATE, { seq: 10 + i, set: [{ channel: 1, scale: i / 15 }] }); await sleep(1000 / 15); }
+    await sleep(50);
+    ok(display.seen(EVENTS.STEER_UPDATE).length === 15, 'steady 15/s steer-update stream fully relayed');
+    await sleep(1100); // the bucket refills (and g3's lock lapses: take it again)
+    g3.mark();
+    g3.emit(EVENTS.TAKE_CONTROL, {});
+    await g3.waitFor(EVENTS.DRIVER_CHANGED, (p) => p.driver?.label === 'Guest 3');
+    display.mark(); g3.mark();
+    for (let i = 0; i < 100; i++) g3.emit(EVENTS.STEER_UPDATE, { seq: 100 + i, set: [] });
+    await g3.waitFor(EVENTS.ERROR, (p) => p.code === ERROR_CODES.RATE_LIMITED && p.event === EVENTS.STEER_UPDATE);
+    await sleep(100);
+    const sgot = display.seen(EVENTS.STEER_UPDATE).length;
+    ok(sgot >= 18 && sgot <= 23, `steer-update burst capped at 20/s (${sgot}/100 relayed)`);
+
+    // steer-result: display → controllers, cached, replayed on join, cleared by select-image
+    const steerFixture = JSON.parse(readFileSync(join(import.meta.dirname, '../contract/fixtures/steer-result.active.json'), 'utf8'));
+    host.mark(); g3.mark();
+    display.emit(EVENTS.STEER_RESULT, steerFixture);
+    ok((await host.waitFor(EVENTS.STEER_RESULT)).seq === steerFixture.seq && (await g3.waitFor(EVENTS.STEER_RESULT)), 'steer-result relayed to controllers');
+    await expectNone(display, EVENTS.STEER_RESULT, 30);
+    await expectError(display, ERROR_CODES.BAD_PAYLOAD, () => display.emit(EVENTS.STEER_RESULT, { seq: 1 }), EVENTS.STEER_RESULT);
+    const g4 = await mk('guest4');
+    g4.mark();
+    ok((await g4.register({ role: 'guest', room })).ok, 'guest4 joins mid-steer');
+    const replay = await g4.waitFor(EVENTS.STEER_RESULT);
+    ok(replay.seq === steerFixture.seq && replay.code === steerFixture.code, 'mid-steer joiner gets the cached steer-result at once');
+    display.mark();
+    host.emit(EVENTS.SELECT_IMAGE, { imageId: 'clean_retriever' });
+    await display.waitFor(EVENTS.SELECT_IMAGE);
+    const g5 = await mk('guest5');
+    g5.mark();
+    ok((await g5.register({ role: 'guest', room })).ok, 'guest5 joins after select-image');
+    await expectNone(g5, EVENTS.STEER_RESULT, 80);
+    ok(true, 'select-image cleared the cached steer-result');
 
     // --- display replacement -------------------------------------------------------------------------------------
     const display2 = await mk('display2');

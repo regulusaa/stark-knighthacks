@@ -1,5 +1,5 @@
 """Steer data (contract v2 section 2.9): conv5.bin + steer.json per ResNet50 image; once per run, the dense head
-(steer/head.bin + head.json), the Keras reference file (steer/reference.json), the closed-form Grad-CAM check
+(steer/head.bin + head.json), the 1000 class labels the display resolves Steer programs against (steer/classes.json), the Keras reference file (steer/reference.json), the closed-form Grad-CAM check
 against the core stage's heatmaps, and pipeline/review/steer_review.png.
 """
 import hashlib
@@ -19,7 +19,7 @@ TOP_CHANNELS = 10
 STEER_DIR = config.ASSETS / "steer"
 REFERENCE_IMAGES = ["clean_retriever", "ambig_cat", "ambig_wolf"]  # the retriever + both stability candidates
 CHECKS = config.REVIEW / "steer_checks.json"
-ONCE_OUTPUTS = [STEER_DIR / "head.bin", STEER_DIR / "head.json", STEER_DIR / "reference.json", CHECKS,
+ONCE_OUTPUTS = [STEER_DIR / "head.bin", STEER_DIR / "head.json", STEER_DIR / "classes.json", STEER_DIR / "reference.json", CHECKS,
                 config.REVIEW / "steer_review.png"]
 
 
@@ -113,6 +113,15 @@ def _export_head(model, log):
     })
     sm.load_head.cache_clear()
     log(f"steer/head.bin {len(data)} bytes")
+
+
+def _export_classes(log):
+    """All 1000 ImageNet classes, so the display can name any class Steer turns up and resolve top(N, "label")."""
+    jsonio.write(STEER_DIR / "classes.json", {
+        "schema": "stark.classes/1",
+        "classes": [{"classId": k, "wnid": wnid, "label": lab} for k, wnid, lab in labels.classes()],
+    })
+    log(f"steer/classes.json {len(labels.classes())} classes")
 
 
 def _interventions(data):
@@ -216,6 +225,7 @@ def run_once(entries, log):
     from .. import steer_review
     model = resnet.get()
     _export_head(model, log)
+    _export_classes(log)
     _reference(model, log)
     cams = _closed_form_check(entries, log)
     identity = {}

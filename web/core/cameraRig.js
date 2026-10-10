@@ -1,5 +1,7 @@
 // Camera rig (master plan 6.5): a damped spherical orbit around a target, smooth fly-to and reset.
 // Damping eases the live camera toward a goal each frame; fly-to tweens the goal itself with easeInOutCubic.
+// The default view adapts to the viewport (framing.js via setDefault): same direction as RIG's authored view, with
+// the distance, target and lens solved so the Brain and the source image fit. Zoom limits scale with that distance.
 import * as THREE from 'three';
 
 export const RIG = {
@@ -41,10 +43,15 @@ export function createCameraRig(camera) {
   const rel = new THREE.Vector3();
   const tmpSph = new THREE.Spherical();
   const UP = new THREE.Vector3(0, 1, 0);
+  // the default view for this viewport (starts as the authored one); zoom limits scale with its distance
+  const home = { target: RIG.defaultTarget.clone(), position: RIG.defaultPosition.clone() };
+  const authoredRadius = RIG.defaultPosition.distanceTo(RIG.defaultTarget);
+  let limitScale = 1;
+  let atHome = true;    // nothing has moved the camera since the last reset: a new viewport re-frames it
 
   function clampSph(s) {
     s.phi = THREE.MathUtils.clamp(s.phi, RIG.minPolar, RIG.maxPolar);
-    s.radius = THREE.MathUtils.clamp(s.radius, RIG.minDistance, RIG.maxDistance);
+    s.radius = THREE.MathUtils.clamp(s.radius, RIG.minDistance * limitScale, RIG.maxDistance * limitScale);
     return s;
   }
   function viewOf(position, target, out) {
@@ -76,6 +83,7 @@ export function createCameraRig(camera) {
     /** dx, dy: drag as a fraction of the drag area (−1..1); +x = drag right, +y = drag down. */
     orbit(dx, dy) {
       tween = null;
+      atHome = false;
       goal.sph.theta -= dx * RIG.orbitSpeed;
       goal.sph.phi -= dy * RIG.orbitSpeed * 0.5;
       clampSph(goal.sph);
@@ -83,11 +91,13 @@ export function createCameraRig(camera) {
     /** d > 0 zooms in; d is a log-scale step (contract control-zoom dz). */
     zoom(d) {
       tween = null;
+      atHome = false;
       goal.sph.radius *= Math.exp(-d);
       clampSph(goal.sph);
     },
     /** Fly so the box fills the view, keeping the current viewing direction. */
     flyTo(box, ms = RIG.flyMs) {
+      atHome = false;
       box.getBoundingSphere(sphere);
       const fit = sphere.radius / Math.sin(THREE.MathUtils.degToRad(camera.fov) / 2);
       to.target.copy(sphere.center);
@@ -102,6 +112,7 @@ export function createCameraRig(camera) {
      * Solved exactly per point: depth along the view and the horizontal/vertical half-angles give the distance.
      */
     flyToFit(points, ms = RIG.flyMs, margin = 0.84, topMargin = 0.76, view = null) {
+      atHome = false;
       fitBox.makeEmpty();
       for (const p of points) fitBox.expandByPoint(p);
       fitBox.getCenter(to.target);
@@ -126,13 +137,30 @@ export function createCameraRig(camera) {
       startTween(ms);
     },
     resetView(ms = RIG.flyMs) {
-      viewOf(RIG.defaultPosition, RIG.defaultTarget, to);
+      viewOf(home.position, home.target, to);
       startTween(ms);
+      atHome = true;
     },
+    /**
+     * The default view for the current viewport: {target, radius, back, fov} from framing.js. If the camera is at
+     * home (initial load, after Reset, or flying back), it goes straight to the new default.
+     */
+    setDefault({ target, radius, back, fov }) {
+      home.target.fromArray(target);
+      home.position.fromArray(back).multiplyScalar(radius).add(home.target);
+      limitScale = radius / authoredRadius;
+      if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
+      if (!atHome) return;
+      if (tween) { viewOf(home.position, home.target, to); startTween(Math.max(1, tween.ms - tween.t)); return; }
+      this.snapToDefault();
+    },
+    get home() { return { target: home.target.clone(), position: home.position.clone(), fov: camera.fov }; },
+    get atHome() { return atHome; },
     /** Snap without animation (only for jump-to-end style resets and screenshots). */
     snapToDefault() {
       tween = null;
-      viewOf(RIG.defaultPosition, RIG.defaultTarget, goal);
+      atHome = true;
+      viewOf(home.position, home.target, goal);
       live.target.copy(goal.target);
       live.sph.copy(goal.sph);
       apply();
@@ -140,6 +168,7 @@ export function createCameraRig(camera) {
     /** Snap to an explicit view without animation (debug views and screenshots). */
     snapTo(position, target) {
       tween = null;
+      atHome = false;
       viewOf(position, target, goal);
       live.target.copy(goal.target);
       live.sph.copy(goal.sph);

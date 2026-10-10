@@ -1,8 +1,13 @@
 // The image panel (master plan 6.1): the exact 224x224 model crop on a tilted plane, with a Grad-CAM heatmap
 // coloured by the shared inferno ramp and blended over it. Heatmaps crossfade through two slots.
+// Steer (contract v2) writes live heatmaps into two 224×224 data textures (setLiveHeat), and a caption under the
+// photo says where the map comes from.
 import * as THREE from 'three';
 import { INFERNO_GLSL, infernoTexture } from './inferno.js';
 import { RIG } from './cameraRig.js';
+
+/** How far the caption hangs below the photo's bottom edge (frame + gap + caption), for framing. */
+export const panelExtentBelow = () => PANEL.frameWidth + PANEL.captionGap + PANEL.captionHeight;
 
 export const PANEL = {
   size: 3.8,           // secondary to the Brain, which is the subject
@@ -13,7 +18,51 @@ export const PANEL = {
   frameWidth: 0.028,   // ≈ 2 px at the default view on a 1080p screen
   frameOpacity: 0.3,
   frameColor: 0xe6eeff,
+  captionHeight: 0.24,  // world units
+  captionGap: 0.12,
+  captionFontPx: 44,
+  captionColor: '#d9cbe8',
 };
+
+function captionTexture(text) {
+  const c = document.createElement('canvas');
+  const g = c.getContext('2d');
+  const font = `500 ${PANEL.captionFontPx}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+  g.font = font;
+  const pad = 18;
+  c.width = Math.ceil(g.measureText(text).width) + pad * 2;
+  c.height = Math.ceil(PANEL.captionFontPx * 1.4);
+  g.font = font;
+  g.fillStyle = 'rgba(5, 2, 8, 0.55)';
+  g.beginPath();
+  g.roundRect(0, 0, c.width, c.height, c.height / 2);
+  g.fill();
+  g.fillStyle = PANEL.captionColor;
+  g.textBaseline = 'middle';
+  g.fillText(text, pad, c.height / 2 + 1);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.minFilter = THREE.LinearFilter;
+  tex.generateMipmaps = false;
+  return { tex, aspect: c.width / c.height };
+}
+
+const LIVE = 224;
+function liveTexture() {
+  const tex = new THREE.DataTexture(new Uint8Array(LIVE * LIVE), LIVE, LIVE, THREE.RedFormat, THREE.UnsignedByteType);
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.generateMipmaps = false;
+  tex.unpackAlignment = 1;
+  tex.needsUpdate = true;
+  return tex;
+}
+/** Model-crop rows run top to bottom; a data texture's first row is the bottom (v = 0). */
+function copyFlipped(src, tex) {
+  const dst = tex.image.data;
+  for (let y = 0; y < LIVE; y++) dst.set(src.subarray(y * LIVE, (y + 1) * LIVE), (LIVE - 1 - y) * LIVE);
+  tex.needsUpdate = true;
+}
 
 const vertexShader = /* glsl */ `
 varying vec2 vUv;
@@ -73,6 +122,18 @@ export function createImagePanel() {
     group.add(q);
   }
 
+  // Caption under the photo (Steer): one quad, its texture cached per text.
+  const captionMat = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, fog: false });
+  const caption = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), captionMat);
+  caption.position.set(0, -s - w - PANEL.captionGap - PANEL.captionHeight / 2, 0.002);
+  caption.visible = false;
+  group.add(caption);
+  const captions = new Map();
+  let captionText = null;
+
+  const live = [liveTexture(), liveTexture()];
+  let liveKey = null;
+
   // Two heat slots. `active` is the slot showing (or fading in) the current heatmap.
   let active = 'A';
   let currentClass = null;
@@ -107,10 +168,45 @@ export function createImagePanel() {
       else startFade(toA, 1 - toA);
       return my;
     },
+    /** Where the panel sits for this viewport (framing.js): world position and uniform scale. */
+    setPlacement(position, scale = 1) {
+      group.position.fromArray(position);
+      group.scale.setScalar(scale);
+      group.updateMatrixWorld(true);
+    },
     get heatClass() { return currentClass; },
+    /**
+     * A live heatmap (224×224 uint8, rows top to bottom) under `key` (e.g. "cam:207", "probe:31"). The same key
+     * updates the map in place; a new key crossfades to it. null clears the overlay.
+     */
+    setLiveHeat(data, key, instant = false) {
+      if (!data) { liveKey = null; return this.setHeat(null, null, instant); }
+      const shown = uniforms[active === 'A' ? 'uHeatA' : 'uHeatB'].value;
+      if (key === liveKey && currentClass === key && live.includes(shown)) { copyFlipped(data, shown); return token; }
+      const tex = shown === live[0] ? live[1] : live[0];
+      copyFlipped(data, tex);
+      liveKey = key;
+      return this.setHeat(tex, key, instant);
+    },
+    get liveKey() { return currentClass === liveKey ? liveKey : null; },
+    /** Caption under the photo, or null to hide it. */
+    setCaption(text) {
+      if (text === captionText) return;
+      captionText = text;
+      caption.visible = Boolean(text);
+      if (!text) return;
+      if (!captions.has(text)) captions.set(text, captionTexture(text));
+      const { tex, aspect } = captions.get(text);
+      captionMat.map = tex;
+      captionMat.needsUpdate = true;
+      caption.scale.set(PANEL.captionHeight * aspect, PANEL.captionHeight, 1);
+    },
+    get caption() { return captionText; },
     clear() {
       currentClass = null;
+      liveKey = null;
       fade = null;
+      this.setCaption(null);
       uniforms.uCrop.value = BLANK;
       uniforms.uHeatA.value = uniforms.uHeatB.value = BLANK;
       uniforms.uWeightA.value = uniforms.uWeightB.value = 0;

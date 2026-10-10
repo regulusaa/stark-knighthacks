@@ -1,6 +1,16 @@
 # setup.sh replaces __HOST__ with <server-ip-with-dashes>.sslip.io. Caddy gets the HTTPS certificate itself,
 # passes WebSockets through, and sets X-Forwarded-Proto/Host for the app.
+# Compression: Caddy's default list skips application/octet-stream, so the Steer binaries (head.bin, conv5.bin)
+# are named explicitly. (They are float32 weights and activations and compress only a little.)
 __HOST__ {
-	encode gzip
+	encode zstd gzip {
+		match {
+			header Content-Type text/*
+			header Content-Type application/json*
+			header Content-Type application/javascript*
+			header Content-Type image/svg+xml*
+			header Content-Type application/octet-stream*
+		}
+	}
 	reverse_proxy 127.0.0.1:3000
 }

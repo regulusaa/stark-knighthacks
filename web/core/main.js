@@ -5,9 +5,10 @@
 import * as THREE from 'three';
 import { createScene } from './scene.js';
 import { loadManifest } from './assets.js';
-import { createImagePanel } from './imagePanel.js';
+import { createImagePanel, PANEL, panelExtentBelow } from './imagePanel.js';
 import { createTrunk } from './trunk.js';
-import { createCameraRig } from './cameraRig.js';
+import { createCameraRig, RIG } from './cameraRig.js';
+import { frameFor } from './framing.js';
 import { createApi } from './api.js';
 import { mountHud } from './hudBridge.js';
 import { attachInput } from './input.js';
@@ -20,6 +21,7 @@ import { createLabels } from './labels.js';
 import { createFocus } from './focus.js';
 import { attachPicking } from './picking.js';
 import { connectRelay } from './net.js';
+import { linkSteer } from './steer/link.js';
 
 // The anatomy's bounding box; the whole Brain breathes about the cerebrum's centre.
 export const BRAIN_VOLUME = {
@@ -67,10 +69,31 @@ const api = createApi({ manifest, panel, trunk, rig });
 let relay = null; // net.js, connected last
 // the room comes from the relay once registered; until then the HUD shows none
 const hud = await mountHud(document.getElementById('hud'), api, { getRoom: () => relay?.room ?? api.state?.room ?? null });
-attachInput(canvas, api, hud);
+const steerKeys = { zeroFlip: () => steer?.zeroFlip(), zeroTop1: () => steer?.zeroTop1(), reset: () => steer?.reset() };
+attachInput(canvas, api, hud, steerKeys);
 
 const tissue = await tissueReady;
 brainRoot.add(tissue.mesh);
+
+// Framing (framing.js): the default view and the photo's place follow the viewport, on load, on resize and on Reset.
+// The Brain's extent is a subsample of its tissue vertices (brain-root space is world space at rest).
+const framePoints = [];
+{
+  const pos = tissue.mesh.geometry.attributes.position;
+  for (let i = 0; i < pos.count; i += 23) framePoints.push([pos.getX(i), pos.getY(i), pos.getZ(i)]);
+}
+let framing = null;
+function applyFraming() {
+  framing = frameFor(camera.aspect, {
+    brainPoints: framePoints,
+    panel: { size: PANEL.size, extentBelow: panelExtentBelow(), position: PANEL.position.toArray() },
+    authored: { position: RIG.defaultPosition.toArray(), target: RIG.defaultTarget.toArray(), fov: RIG.fov },
+  });
+  panel.setPlacement(framing.panel.position, framing.panel.scale);
+  rig.setDefault(framing);
+}
+applyFraming();
+window.addEventListener('resize', applyFraming); // after scene.js's own resize handler has set the aspect
 
 // the focused tip's path lights up in the veins and glows through the tissue above it
 function highlight(classId) {
@@ -96,9 +119,11 @@ api.onImageLoaded(() => {
   if (top1) tissue.setPath(veins.pathPoints(top1.id));
 });
 api.onPulseComplete(() => veins.startReveal());
+// Steer (contract v2): registered after the Brain's own image-loaded handler, so it moves a Brain that exists
+const steer = linkSteer({ api, panel, veins, tips, labels, tissue });
 
 // Exposed for CC-4b/CC-5 code in this lane and for test scripts.
-const stark = { api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, tissue, tipHidden, relay: null };
+const stark = { get framing() { return framing; }, api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, tissue, tipHidden, steer, relay: null };
 window.__stark = stark;
 
 let readyPending = true;
@@ -117,10 +142,12 @@ function frame() {
   rig.update(dt);
   trunk.update(dt);
   panel.update(dt);
+  steer.tick();
   veins.update(animTime, dt);
   brainPivot.scale.setScalar(1 + BREATHE.amp * Math.sin((2 * Math.PI * animTime) / BREATHE.period));
   tips.setLit(veins.revealProgress);
-  tissue.setGlow(veins.revealProgress);
+  tips.animate(dt);
+  tissue.setGlow(veins.revealProgress * steer.update(dt));
   tissue.update(animTime);
   tips.update(camera);
   renderer.getSize(viewSize);
@@ -167,6 +194,7 @@ if (first) {
 // Networking last, so the first state the relay sees is a loaded image. ?offline=1 skips it.
 if (params.get('offline') !== '1') {
   stark.relay = relay = await connectRelay(api, {
+    steer: steer.session,
     onStatus: (st) => { stark.netStatus = st.phase; if (st.phase !== 'connecting' && st.phase !== 'registering') netSettled = true; },
   });
   if (!stark.relay) netSettled = true;
