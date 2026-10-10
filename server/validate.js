@@ -1,12 +1,18 @@
-// Payload validation per event (contract v1 section 5). Each validator returns a clean payload, or throws a
+// Payload validation per event (contract v2 section 5). Each validator returns a clean payload, or throws a
 // BadPayload with a short message. Unknown extra fields are dropped. Nothing here trusts the client.
 import { readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { EVENTS, MODES, LAYER_MODES } from '../contract/contract.js';
+import { EVENTS, MODES, LAYER_MODES, DEFAULTS, STEER } from '../contract/contract.js';
+import { parse as parseSteer } from '../contract/steer-dsl.js';
 
 export const MAX_PAYLOAD_CHARS = 64 * 1024;
 
-export class BadPayload extends Error {}
+export class BadPayload extends Error {
+  constructor(message, extra = null) {
+    super(message);
+    this.extra = extra; // extra fields for the error event (e.g. the parse error of a Steer program)
+  }
+}
 
 const fail = (msg) => { throw new BadPayload(msg); };
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -124,15 +130,45 @@ export const validators = {
     int(p.classId, 'classId', 0, 999);
     return p;
   },
+  // (v2) slider form {seq, set, probe?} or code form {seq, code, probe?: null}. Out-of-range values are refused,
+  // not clamped: a slider can't produce them, so they mean a broken or hostile client.
   [EVENTS.STEER_UPDATE]: (p) => {
     obj(p);
-    const mode = p.mode === 'code' ? 'code' : p.mode === 'slider' ? 'slider' : fail('mode must be slider or code');
-    if (!Array.isArray(p.channels ?? []) || (p.channels ?? []).length > 32) fail('channels must be an array (≤ 32)');
-    const channels = (p.channels ?? []).map((c, i) => (obj(c), {
-      channelIndex: int(c.channelIndex, `channels[${i}].channelIndex`, 0, 4095),
-      scale: num(c.scale, `channels[${i}].scale`, 0, 4),
-    }));
-    const code = p.code === null || p.code === undefined ? null : str(p.code, 'code', 2000);
-    return { layer: str(p.layer, 'layer', 64), mode, channels, code };
+    const seq = int(p.seq, 'seq', 0, Number.MAX_SAFE_INTEGER);
+    const hasCode = p.code !== undefined && p.code !== null;
+    if (hasCode === (p.set !== undefined && p.set !== null)) fail('send either set or code');
+    if (hasCode) {
+      if (typeof p.code !== 'string') fail('code must be a string');
+      if (p.code.length > DEFAULTS.STEER_CODE_MAX) fail(`code is ${p.code.length} characters; the limit is ${DEFAULTS.STEER_CODE_MAX}`);
+      if (p.probe !== undefined && p.probe !== null) fail('probe must be null with code');
+      const r = parseSteer(p.code);
+      if (!r.ok) throw new BadPayload(`code: ${r.error.message}`, { parseError: r.error });
+      return { seq, code: p.code, probe: null };
+    }
+    if (!Array.isArray(p.set)) fail('set must be an array of {channel, scale}');
+    if (p.set.length > DEFAULTS.STEER_MAX_CHANNELS) fail(`set has ${p.set.length} entries; the limit is ${DEFAULTS.STEER_MAX_CHANNELS}`);
+    const seen = new Set();
+    const set = p.set.map((e, i) => {
+      obj(e);
+      const channel = int(e.channel, `set[${i}].channel`, 0, STEER.CHANNELS - 1);
+      if (typeof e.scale !== 'number' || !Number.isFinite(e.scale) || e.scale < 0 || e.scale > DEFAULTS.STEER_MAX_SCALE) {
+        fail(`set[${i}].scale must be a number 0–${DEFAULTS.STEER_MAX_SCALE}`);
+      }
+      if (seen.has(channel)) fail(`channel ${channel} appears twice in set`);
+      seen.add(channel);
+      return { channel, scale: e.scale };
+    });
+    const probe = p.probe === undefined || p.probe === null ? null : int(p.probe, 'probe', 0, STEER.CHANNELS - 1);
+    return { seq, set, probe };
+  },
+  // (v2) the display's SteerState: checked for shape and size only, then cached and relayed to controllers
+  [EVENTS.STEER_RESULT]: (p) => {
+    obj(p);
+    size(p);
+    int(p.seq, 'seq', 0, Number.MAX_SAFE_INTEGER);
+    str(p.imageId, 'imageId', 64);
+    if (!Array.isArray(p.scales) || p.scales.length > DEFAULTS.STEER_MAX_CHANNELS) fail(`scales must be an array (≤ ${DEFAULTS.STEER_MAX_CHANNELS})`);
+    if (!isObj(p.result) || !Array.isArray(p.result.answers) || p.result.answers.length > 64) fail('result.answers must be an array (≤ 64)');
+    return p;
   },
 };

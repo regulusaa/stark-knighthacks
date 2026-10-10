@@ -62,6 +62,8 @@ export function start({
   app.use('/ui', files('web/ui'));
   app.use('/core', files('web/core'));
   app.use('/web', files('web'));
+  // Steer's head.bin is 8.2 MB and never changes between deploys of the same pipeline run: cache it for a day
+  app.use('/assets/steer', express.static(join(ROOT, 'web/public/assets/steer'), { index: false, maxAge: '1d' }));
   app.use('/assets', files('web/public/assets'));
   app.use('/contract', files('contract'));
   app.use('/vendor/three', files('node_modules/three'));

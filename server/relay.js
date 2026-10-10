@@ -22,6 +22,7 @@ const PERMISSION = {
   [EVENTS.SET_MODE]: 'host',
   [EVENTS.DISPLAY_STATE]: 'display',
   [EVENTS.FOCUS_STATE]: 'display',
+  [EVENTS.STEER_RESULT]: 'display',
 };
 
 // Controller events forwarded unchanged (after validation) to the room's display.
@@ -29,6 +30,8 @@ const TO_DISPLAY = new Set([
   EVENTS.CONTROL_ORBIT, EVENTS.CONTROL_ZOOM, EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS, EVENTS.RESET_VIEW,
   EVENTS.SELECT_IMAGE, EVENTS.PLAY_PULSE, EVENTS.SET_MODE,
 ]);
+// Steer events also carry the sender, so the display can drop stale updates per driver (latest wins).
+const WITH_SENDER = new Set([EVENTS.STEER_UPDATE, EVENTS.STEER_RESET]);
 
 const KNOWN = new Set(Object.values(EVENTS));
 const allRoom = (code) => `room:${code}`;
@@ -114,6 +117,7 @@ export function attachRelay(io, { hostKey, hostLabel = 'Ray', fixedRoom, idleMs,
     if (client.role !== ROLES.DISPLAY) {
       broadcastState(room); // controllerCount changed; also syncs the newcomer
       if (room.displayState) socket.emit(EVENTS.FOCUS_STATE, room.focusState);
+      if (room.steerState) socket.emit(EVENTS.STEER_RESULT, room.steerState); // mid-steer joiners see it at once
     }
     log(`[${room.code}] + ${client.label} (${client.id})`);
   }
@@ -153,8 +157,8 @@ export function attachRelay(io, { hostKey, hostLabel = 'Ray', fixedRoom, idleMs,
       clean = validators[event](payload, room);
     } catch (err) {
       if (!(err instanceof BadPayload)) throw err;
-      sendError(socket, ERROR_CODES.BAD_PAYLOAD, err.message, event);
-      ack?.({ ok: false, error: { code: ERROR_CODES.BAD_PAYLOAD, message: err.message } });
+      sendError(socket, ERROR_CODES.BAD_PAYLOAD, err.message, event, err.extra ?? {});
+      ack?.({ ok: false, error: { code: ERROR_CODES.BAD_PAYLOAD, message: err.message, ...(err.extra ?? {}) } });
       return;
     }
     if (event === EVENTS.REGISTER) return register(socket, clean, ack);
@@ -174,9 +178,13 @@ export function attachRelay(io, { hostKey, hostLabel = 'Ray', fixedRoom, idleMs,
     } else if (event === EVENTS.FOCUS_STATE) {
       room.focusState = clean;
       io.to(ctlRoom(room.code)).emit(EVENTS.FOCUS_STATE, clean);
-    } else if (event === EVENTS.STEER_UPDATE || event === EVENTS.STEER_RESET) {
-      sendError(socket, ERROR_CODES.FORBIDDEN, 'Steer is not available yet.', event); // batch 2
+    } else if (event === EVENTS.STEER_RESULT) {
+      room.steerState = clean;
+      io.to(ctlRoom(room.code)).emit(EVENTS.STEER_RESULT, clean);
+    } else if (WITH_SENDER.has(event)) {
+      room.display?.socket.emit(event, { ...clean, from: client.id });
     } else if (TO_DISPLAY.has(event)) {
+      if (event === EVENTS.SELECT_IMAGE) room.steerState = null; // the display clears steering on a new image
       room.display?.socket.emit(event, clean);
     }
   }

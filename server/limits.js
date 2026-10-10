@@ -1,4 +1,4 @@
-// Per-socket, per-event rate limits (contract v1 section 5). A token bucket per event: it holds up to one
+// Per-socket, per-event rate limits (contract v2 section 5). A token bucket per event: it holds up to one
 // second's worth of messages and refills continuously, so a steady 30/s stream passes and bursts beyond it drop.
 import { EVENTS, DEFAULTS } from '../contract/contract.js';
 
@@ -16,8 +16,9 @@ export const RATES = {
   [EVENTS.PLAY_PULSE]: 5,
   [EVENTS.SET_MODE]: 5,
   [EVENTS.DISPLAY_STATE]: 20,
-  [EVENTS.STEER_UPDATE]: 5,
+  [EVENTS.STEER_UPDATE]: 20,
   [EVENTS.STEER_RESET]: 2,
+  [EVENTS.STEER_RESULT]: DEFAULTS.STEER_SEND_HZ,
 };
 const DEFAULT_RATE = 5; // events not in the table (server-only names sent by a client)
 

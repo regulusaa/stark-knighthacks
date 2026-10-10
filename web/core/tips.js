@@ -20,7 +20,11 @@ export const TIPS = {
   hoverScale: 1.2,
   dimLevel: 0.25,             // tip brightness before the reveal
   hiddenOpacity: 0.5,         // twins seen through tissue
+  springOmega: 23,            // Steer: scores spring to their new values (critically damped, ~250 ms)
 };
+
+const tipRadius = (score) => TIPS.radiusBase + TIPS.radiusScale * Math.sqrt(Math.max(0, Math.min(1, score)));
+const tipColor = (score, out) => out.copy(inferno(TIPS.colorFloor + (1 - TIPS.colorFloor) * Math.sqrt(Math.max(0, Math.min(1, score)))));
 
 const sphereGeo = new THREE.SphereGeometry(1, 24, 16);
 const pickGeo = new THREE.SphereGeometry(TIPS.pickRadius, 12, 8);
@@ -46,6 +50,8 @@ export function createTips() {
   let hovered = null;
   let lit = 0;
   let focused = null;
+  let litClass = null;    // the tip whose path is lit (the top-1); Steer can move it
+  let moving = false;
 
   function dispose() {
     const old = [];
@@ -67,7 +73,12 @@ export function createTips() {
     t.mesh.material.color.copy(t.color).multiplyScalar(k);
     t.twin.material.color.copy(t.mesh.material.color);
   }
-  function applyTwin(t) { t.twin.visible = !t.isOther && (t.node.onTop1Path || t.classId === focused); }
+  function applyTwin(t) { t.twin.visible = !t.isOther && (t.classId === litClass || t.classId === focused); }
+  function applySize(t) {
+    const k = t.classId !== null && t.classId === hovered ? TIPS.hoverScale : 1;
+    t.mesh.scale.setScalar(t.radius * k);
+    t.halo?.scale.setScalar(t.radius * k);
+  }
 
   return {
     group,
@@ -76,6 +87,7 @@ export function createTips() {
     get list() { return tips; },
     build(layout, tree, gradcam) {
       dispose();
+      litClass = tree.top1?.classId ?? null;
       const heat = new Map((gradcam?.classes || []).map((c) => [c.classId, c.hasHeatmap === true]));
       for (const v of layout.nodes.values()) {
         if (!v.isLeaf) continue;
@@ -93,7 +105,7 @@ export function createTips() {
         twin.renderOrder = 3;
         mesh.add(twin);                  // follows the tip's position and hover scale
         const t = { classId: n.classId, node: n, mesh, twin, halo: null, pick: null, radius, color, isOther,
-          hasHeatmap: !isOther && heat.get(n.classId) === true, score, pos: mesh.position,
+          hasHeatmap: !isOther && heat.get(n.classId) === true, score, target: score, vel: 0, pos: mesh.position,
           normal: new THREE.Vector3().fromArray(v.normal ?? v.dir) };
         if (t.hasHeatmap) {
           t.halo = new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({
@@ -130,10 +142,45 @@ export function createTips() {
     hover(classId) {
       if (hovered === classId) return;
       const prev = byClass.get(hovered);
-      if (prev) { prev.mesh.scale.setScalar(prev.radius); prev.halo?.scale.setScalar(prev.radius); }
       hovered = classId;
+      if (prev) applySize(prev);
       const t = byClass.get(classId);
-      if (t) { t.mesh.scale.setScalar(t.radius * TIPS.hoverScale); t.halo?.scale.setScalar(t.radius * TIPS.hoverScale); }
+      if (t) applySize(t);
+    },
+    /** Steer: new scores per class id (the "other" tip keeps its size) and the class whose path is lit. */
+    setScores(scoreOf, litClassId) {
+      for (const t of tips) {
+        if (t.isOther) continue;
+        const s = scoreOf(t.classId);
+        if (s !== undefined && s !== null) t.target = s;
+      }
+      moving = true;
+      if (litClassId !== undefined && litClassId !== litClass) {
+        litClass = litClassId;
+        for (const t of tips) applyTwin(t);
+      }
+    },
+    get litClass() { return litClass; },
+    /** Springs toward the Steer scores; call every frame. */
+    animate(dt) {
+      if (!moving) return;
+      const w = TIPS.springOmega;
+      const steps = Math.max(1, Math.ceil(dt / 0.008));
+      const h = dt / steps;
+      let still = true;
+      for (const t of tips) {
+        if (t.isOther) continue;
+        for (let i = 0; i < steps; i++) {
+          t.vel += (-2 * w * t.vel - w * w * (t.score - t.target)) * h;
+          t.score += t.vel * h;
+        }
+        if (Math.abs(t.score - t.target) < 1e-4 && Math.abs(t.vel) < 1e-3) { t.score = t.target; t.vel = 0; } else still = false;
+        t.radius = tipRadius(t.score);
+        tipColor(t.score, t.color);
+        applySize(t);
+        applyBrightness(t);
+      }
+      if (still) moving = false;
     },
     get hovered() { return hovered; },
     /** The focused tip also shows through tissue. */

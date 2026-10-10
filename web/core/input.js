@@ -1,7 +1,10 @@
 // Mouse and keyboard fallback controls (master plan 12.6 step 3). Everything goes through the api.
+// Keys: 1–9 image (manifest order) · R reset view · Space replay · E end · [ ] speed · G heatmap · H HUD · Esc unfocus
+//       Steer (no network needed): F zero the image's flip channels · Shift+F zero the top-5 channels of the current
+//       top-1 (again to keep going) · X reset Steer
 import { TRUNK } from './trunk.js';
 
-export function attachInput(canvas, api, hud) {
+export function attachInput(canvas, api, hud, steer = {}) {
   let drag = null;
   canvas.addEventListener('pointerdown', (e) => {
     drag = { x: e.clientX, y: e.clientY, id: e.pointerId };
@@ -42,6 +45,8 @@ export function attachInput(canvas, api, hud) {
       case 'g': api.toggleHeatmap(); break;
       case 'h': hud.setVisible(!hud.visible); break;
       case 'escape': api.clearFocus(); break;
+      case 'f': if (e.shiftKey) steer.zeroTop1?.(); else steer.zeroFlip?.(); break;
+      case 'x': steer.reset?.(); break;
       default: return;
     }
   });

@@ -5,6 +5,7 @@ export async function mountHud(root, api, { getRoom = () => null } = {}) {
   const hudApi = {
     onState: (cb) => api.onDisplayState(cb),
     onFocus: (cb) => api.onFocus(cb),
+    onSteer: (cb) => api.onSteer(cb),   // (v2) SteerState after every change; result.outsideBrain names an answer not drawn
     getRoom,
     setVisible(v) { visible = Boolean(v); root.style.display = visible ? '' : 'none'; },
   };
@@ -30,6 +31,7 @@ function builtIn(root, hudApi) {
       .stark-hud .name { font-size: 22px; letter-spacing: .08em; text-transform: uppercase; color: #bfa9d9; }
       .stark-hud .answer { margin-top: 6px; font-size: 40px; font-weight: 600; text-shadow: 0 0 18px rgba(252,180,60,.35); }
       .stark-hud .score { font-weight: 400; color: #fcd27a; }
+      .stark-hud .steer { margin-top: 4px; font-size: 18px; color: #bfa9d9; min-height: 1.2em; }
       .stark-hud .status { position: absolute; left: 28px; bottom: 24px; font-size: 18px; color: #9d8bb3; }
       .stark-hud .status b { color: #f4ecff; letter-spacing: .12em; }
       .stark-hud .qr { position: absolute; right: 28px; bottom: 24px; text-align: center; font-size: 15px; color: #bfa9d9; }
@@ -38,12 +40,20 @@ function builtIn(root, hudApi) {
       .stark-hud .qr[hidden] { display: none; }
     </style>
     <div class="stark-hud">
-      <div class="top"><div class="name"></div><div class="answer"></div></div>
+      <div class="top"><div class="name"></div><div class="answer"></div><div class="steer"></div></div>
       <div class="status">Room <b class="room">—</b><span class="who"></span></div>
       <div class="qr" hidden><img alt="QR code: scan to take the wheel"><div>Scan to take the wheel</div></div>
     </div>`;
   let qrRoom = null;
   const $ = (s) => root.querySelector(s);
+  hudApi.onSteer((st) => {
+    const r = st?.result;
+    if (!st?.active || !r) { $('.steer').textContent = ''; return; }
+    const was = r.top1Changed ? ` (was ${r.baselineTop1.label})` : '';
+    $('.steer').textContent = r.outsideBrain
+      ? `Steered: ${r.outsideBrain.label} is not drawn in the Brain; its path runs to "other"${was}`
+      : `Steered: ${st.scales.length} channel${st.scales.length === 1 ? '' : 's'} changed${was}`;
+  });
   hudApi.onState((s) => {
     $('.name').textContent = s.image?.name ?? '';
     const t = s.top1;

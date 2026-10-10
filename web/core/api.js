@@ -20,16 +20,22 @@ function emitter() {
   };
 }
 
-/** Contract Answer list: top ANSWER_LIST by rank, plus the true class if outside them. */
-export function buildAnswers(tree, gradcam) {
+/**
+ * Contract Answer list: top ANSWER_LIST by rank, plus the true class if outside them.
+ * `live` (Steer ready on this image): every class without a stored PNG can still get a live Grad-CAM.
+ */
+export function buildAnswers(tree, gradcam, { live = null } = {}) {
   const heat = new Map((gradcam?.classes || []).map((c) => [c.classId, c.hasHeatmap === true]));
   const trueId = tree.trueClass?.classId ?? null;
-  const answer = (e) => ({
-    classId: e.classId, label: e.label, score: e.score, rank: e.rank,
-    hasHeatmap: heat.get(e.classId) === true,
-    isTop1: e.classId === tree.top1.classId,
-    isTrueClass: e.classId === trueId,
-  });
+  const answer = (e) => {
+    const source = heat.get(e.classId) === true ? 'precomputed' : live?.(e.classId) ? 'live' : null;
+    return {
+      classId: e.classId, label: e.label, score: e.score, rank: e.rank,
+      hasHeatmap: source !== null, heatmapSource: source,
+      isTop1: e.classId === tree.top1.classId,
+      isTrueClass: e.classId === trueId,
+    };
+  };
   const answers = tree.topK.slice(0, DEFAULTS.ANSWER_LIST).map(answer);
   if (trueId !== null && !answers.some((a) => a.classId === trueId)) answers.push(answer(tree.trueClass));
   return answers;
@@ -42,6 +48,7 @@ export function createApi({ manifest, panel, trunk, rig }) {
   let state = null;
   let heatOn = false;
   let focusImpl = null; // focus.js, attached by main once the Brain exists
+  let heatProvider = null; // Steer: (classId, instant) → true if it showed a live heatmap
   const server = { room: null, driver: null, controllerCount: 0 }; // kept across image switches
 
   function publish() {
@@ -64,8 +71,14 @@ export function createApi({ manifest, panel, trunk, rig }) {
     if (classId === null || classId === undefined) {
       heatOn = false;
       panel.setHeat(null, null, instant);
+      panel.setCaption(null);
       return;
     }
+    if (heatProvider) {
+      const shown = heatProvider(classId, instant);
+      if (shown !== false) { heatOn = shown === true; return; }   // true: live map; null: no positive evidence
+    }
+    panel.setCaption(null);
     const entry = assets.gradcam?.classes.find((c) => c.classId === classId);
     if (!entry?.hasHeatmap) {
       console.warn(`[stark] no heatmap for class ${classId} on ${assets.entry.id}; overlay cleared`);
@@ -116,6 +129,7 @@ export function createApi({ manifest, panel, trunk, rig }) {
           stability: entry.files?.stability === true,
           trunkInterior: false, layerModes: false, bloom: false, steer: false,
         },
+        steer: null,
         answers: [],
       };
       if (tree) {
@@ -169,6 +183,36 @@ export function createApi({ manifest, panel, trunk, rig }) {
       if (layerMode !== undefined && caps.layerModes) state.layerMode = layerMode;
       publish();
     },
+    /**
+     * Steer (contract v2): turn the capability on or off for the current image. On: classes without a stored PNG
+     * get live heatmaps. Off: back to the pipeline's answers.
+     */
+    setSteerCapability(on, { live = null } = {}) {
+      if (!state || !assets?.tree) return;
+      state.capabilities.steer = Boolean(on);
+      state.steer = on ? { active: false, changedCount: 0, top1Changed: false } : null;
+      state.answers = buildAnswers(assets.tree, assets.gradcam, { live: on ? live : null });
+      state.top1 = state.answers.find((a) => a.isTop1) ?? null;
+      state.trueClass = state.answers.find((a) => a.isTrueClass) ?? null;
+      publish();
+    },
+    /** Steer applied: the display-state shows the steered answers, top-1 and true class. */
+    applySteer({ answers, top1, trueAnswer, summary }) {
+      if (!state?.capabilities.steer) return;
+      state.answers = answers;
+      state.top1 = top1;
+      state.trueClass = trueAnswer;
+      state.steer = summary;
+      if (state.focus) {
+        const f = answers.find((a) => a.classId === state.focus.classId);
+        if (f) { state.focus = f; ev.emit('focus-state', f); }
+      }
+      publish();
+    },
+    attachHeatProvider(fn) { heatProvider = fn; },
+    /** Set by the Steer link: the steered Answer for any class (null when Steer is off or inactive). */
+    steerAnswer: () => null,
+    get heatProviderActive() { return Boolean(heatProvider); },
     /** Used by focus.js: record the focused Answer (or null) and publish it. */
     setFocus(answer) {
       if (!state) return;
@@ -177,10 +221,15 @@ export function createApi({ manifest, panel, trunk, rig }) {
       publish();
     },
     toggleHeatmap() { return showHeatmap(heatOn ? null : state?.top1?.classId ?? null); },
+    get heatOn() { return heatOn; },
+    set heatOn(v) { heatOn = Boolean(v); },
 
     onDisplayState(cb) { const off = ev.on('display-state', cb); if (state) cb(state); return off; },
     onFocus(cb) { const off = ev.on('focus-state', cb); cb(state?.focus ?? null); return off; },
     onPulseComplete: (cb) => ev.on('pulse-complete', cb),
+    /** Steer: every SteerState the display produces (contract 3.4), e.g. for a HUD to name result.outsideBrain. */
+    onSteer: (cb) => ev.on('steer-result', cb),
+    publishSteer: (st) => ev.emit('steer-result', st),
     onImageLoaded: (cb) => ev.on('image-loaded', cb),
   };
   return api;

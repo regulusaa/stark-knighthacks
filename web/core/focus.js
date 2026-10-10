@@ -51,13 +51,16 @@ export function createFocus({ api, rig, panel, tips, labels, highlight = () => {
     const s = api.state;
     const listed = s?.answers.find((a) => a.classId === classId);
     if (listed) return { ...listed };
+    const steered = api.steerAnswer?.(classId);   // Steer on: the steered score and rank
+    if (steered) return steered;
     const tree = api.assets?.tree;
     const k = tree?.topK.find((e) => e.classId === classId)
       ?? (tree?.trueClass?.classId === classId ? tree.trueClass : null);
     if (!k) return null;
     const heat = api.assets.gradcam?.classes.find((c) => c.classId === classId);
+    const source = heat?.hasHeatmap === true ? 'precomputed' : s?.capabilities.steer ? 'live' : null;
     return {
-      classId, label: k.label, score: k.score, rank: k.rank, hasHeatmap: heat?.hasHeatmap === true,
+      classId, label: k.label, score: k.score, rank: k.rank, hasHeatmap: source !== null, heatmapSource: source,
       isTop1: classId === tree.top1.classId, isTrueClass: classId === tree.trueClass?.classId,
     };
   }
