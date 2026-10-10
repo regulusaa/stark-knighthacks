@@ -1,0 +1,125 @@
+{
+  "room": "7KQ2M",
+  "image": {
+    "id": "clean_retriever",
+    "name": "Golden retriever",
+    "category": "clean"
+  },
+  "scoreKind": "softmax",
+  "top1": {
+    "classId": 207,
+    "label": "golden retriever",
+    "score": 0.62,
+    "rank": 1,
+    "hasHeatmap": true,
+    "isTop1": true,
+    "isTrueClass": true,
+    "heatmapSource": "precomputed"
+  },
+  "trueClass": {
+    "classId": 207,
+    "label": "golden retriever",
+    "score": 0.62,
+    "rank": 1,
+    "hasHeatmap": true,
+    "isTop1": true,
+    "isTrueClass": true,
+    "heatmapSource": "precomputed"
+  },
+  "mode": "normal",
+  "layerMode": "full",
+  "playback": {
+    "state": "done",
+    "speed": 1
+  },
+  "focus": {
+    "classId": 208,
+    "label": "Labrador retriever",
+    "score": 0.11,
+    "rank": 2,
+    "hasHeatmap": true,
+    "isTop1": false,
+    "isTrueClass": false,
+    "heatmapSource": "precomputed"
+  },
+  "driver": {
+    "id": "c_3f9a",
+    "label": "Guest 2",
+    "isHost": false
+  },
+  "controllerCount": 3,
+  "capabilities": {
+    "stability": true,
+    "trunkInterior": true,
+    "layerModes": true,
+    "bloom": true,
+    "steer": true
+  },
+  "answers": [
+    {
+      "classId": 207,
+      "label": "golden retriever",
+      "score": 0.62,
+      "rank": 1,
+      "hasHeatmap": true,
+      "isTop1": true,
+      "isTrueClass": true,
+      "heatmapSource": "precomputed"
+    },
+    {
+      "classId": 208,
+      "label": "Labrador retriever",
+      "score": 0.11,
+      "rank": 2,
+      "hasHeatmap": true,
+      "isTop1": false,
+      "isTrueClass": false,
+      "heatmapSource": "precomputed"
+    },
+    {
+      "classId": 205,
+      "label": "flat-coated retriever",
+      "score": 0.05,
+      "rank": 3,
+      "hasHeatmap": true,
+      "isTop1": false,
+      "isTrueClass": false,
+      "heatmapSource": "precomputed"
+    },
+    {
+      "classId": 222,
+      "label": "kuvasz",
+      "score": 0.03,
+      "rank": 4,
+      "hasHeatmap": true,
+      "isTop1": false,
+      "isTrueClass": false,
+      "heatmapSource": "precomputed"
+    },
+    {
+      "classId": 852,
+      "label": "tennis ball",
+      "score": 0.02,
+      "rank": 5,
+      "hasHeatmap": true,
+      "isTop1": false,
+      "isTrueClass": false,
+      "heatmapSource": "precomputed"
+    },
+    {
+      "classId": 257,
+      "label": "Great Pyrenees",
+      "score": 0.015,
+      "rank": 6,
+      "hasHeatmap": false,
+      "isTop1": false,
+      "isTrueClass": false,
+      "heatmapSource": null
+    }
+  ],
+  "steer": {
+    "active": true,
+    "changedCount": 2,
+    "top1Changed": false
+  }
+}

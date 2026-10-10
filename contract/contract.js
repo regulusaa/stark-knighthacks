@@ -1,8 +1,8 @@
-// Stark shared contract v1. CONTRACT.md is authoritative; this file mirrors it.
+// Stark shared contract v2. CONTRACT.md is authoritative; this file mirrors it.
 // Owner: Ray. Agents import it; they never edit it.
 // Works in Node (import from '../contract/contract.js') and the browser ('/contract/contract.js').
 
-export const CONTRACT_VERSION = 1;
+export const CONTRACT_VERSION = 2;
 
 /** Socket.io event names. Direction and permission: see CONTRACT.md section 5. */
 export const EVENTS = Object.freeze({
@@ -21,9 +21,9 @@ export const EVENTS = Object.freeze({
   PLAY_PULSE: 'play-pulse',
   SET_MODE: 'set-mode',
   DISPLAY_STATE: 'display-state',
-  STEER_UPDATE: 'steer-update',
-  STEER_RESULT: 'steer-result',
-  STEER_RESET: 'steer-reset',
+  STEER_UPDATE: 'steer-update',   // v2: controller → server → display (Steer is computed on the display)
+  STEER_RESULT: 'steer-result',   // v2: display → server → controllers
+  STEER_RESET: 'steer-reset',     // controller → server → display
   ERROR: 'error',
 });
 
@@ -61,7 +61,26 @@ export const DEFAULTS = Object.freeze({
   DRIVER_IDLE_MS: 20000,
   TOP_K: 25,
   ANSWER_LIST: 10,
+  STEER_MAX_CHANNELS: 64,   // distinct channels in one intervention (slider set or program)
+  STEER_MAX_SCALE: 3,       // every scale is clamped to 0..STEER_MAX_SCALE
+  STEER_CODE_MAX: 600,      // characters in a Steer program
+  STEER_SEND_HZ: 15,        // max steer-result messages per second from the display
 });
+
+/** Steer works on this layer (contract v2): after it come only global average pooling and one dense layer. */
+export const STEER = Object.freeze({
+  LAYER: 'conv5_block3_out',
+  GRID: 7,
+  CHANNELS: 2048,
+  CLASSES: 1000,
+  HEAD_BYTES: 8196000,      // assets/steer/head.bin: float32 W[2048][1000] then b[1000]
+  CONV5_BYTES: 401408,      // assets/<id>/conv5.bin: float32 7×7×2048, HWC
+  MAX_STATEMENTS: 20,       // in a Steer program
+  TOP_N_MAX: 20,            // top(N, "label") takes N in 1..20
+});
+
+/** Where an Answer's heatmap comes from (contract v2). null = no heatmap. */
+export const HEATMAP_SOURCES = Object.freeze({ PRECOMPUTED: 'precomputed', LIVE: 'live' });
 
 /** Server-issued room codes. STARK_FIXED_ROOM (env) overrides; it must use the same alphabet. */
 export const ROOM_CODE = Object.freeze({
@@ -99,6 +118,7 @@ export const READY_FLAG = '__starkReady';
  * @property {ClassRef|null} trueClass
  * @property {string} folder       relative to the site root, trailing slash
  * @property {{crop:boolean, tree:boolean, gradcam:boolean, atlas:boolean, stability:boolean, fgsm:boolean, medical:boolean}} files
+ * @property {boolean} steerable   v2: true for ResNet50 images (conv5.bin + steer.json), false for medical
  *
  * @typedef {Object} Manifest
  * @property {'stark.manifest/1'} schema
@@ -251,7 +271,8 @@ export const READY_FLAG = '__starkReady';
  * @property {string} label
  * @property {number} score       model score (never "probability correct")
  * @property {number} rank
- * @property {boolean} hasHeatmap
+ * @property {boolean} hasHeatmap  equals heatmapSource !== null
+ * @property {'precomputed'|'live'|null} heatmapSource   v2
  * @property {boolean} isTop1
  * @property {boolean} isTrueClass
  *
@@ -265,7 +286,7 @@ export const READY_FLAG = '__starkReady';
  * @property {boolean} trunkInterior
  * @property {boolean} layerModes
  * @property {boolean} bloom
- * @property {boolean} steer
+ * @property {boolean} steer   head.bin and this image's conv5.bin loaded AND the identity check passed
  *
  * @typedef {Object} DisplayState
  * @property {string} room
@@ -281,25 +302,63 @@ export const READY_FLAG = '__starkReady';
  * @property {number} controllerCount
  * @property {Capabilities} capabilities
  * @property {Answer[]} answers   top ANSWER_LIST by rank, plus the true class if outside them
+ * @property {{active:boolean, changedCount:number, top1Changed:boolean}|null} steer   v2
  *
  * @typedef {Answer|null} FocusState
  */
 
 /**
- * @typedef {Object} SteerChannel
- * @property {number} channelIndex
- * @property {string} label
- * @property {number} baseWeight
- * @property {number} scale
+ * Steer (contract v2). Computed on the display from assets/steer/head.bin and assets/<id>/conv5.bin.
  *
- * @typedef {Object} SteerState
+ * @typedef {Object} SteerHeadMeta   assets/steer/head.json
+ * @property {'predictions'} layer
+ * @property {2048} inputs
+ * @property {1000} outputs
+ * @property {'float32'} dtype
+ * @property {string} layout   "W[c][k] row-major, then b[k]"
+ * @property {number} bytes    8196000
+ * @property {string} sha256
+ *
+ * @typedef {Object} SteerData   assets/<id>/steer.json
+ * @property {number} version
+ * @property {string} imageId
+ * @property {'conv5_block3_out'} layer
+ * @property {7} grid
+ * @property {2048} channels
+ * @property {number} identityMaxAbsErr
+ * @property {{classId:number, label:string, rank:number, logit:number,
+ *             top:{channel:number, contribution:number, pooled:number}[]}[]} classes   top 5 + true class; 10 channels each
+ * @property {{for:number, against:number, top:{channel:number, margin:number}[]}} favoring
+ * @property {{from:number, to:number, toLabel:string, toScore:number, n:number, channels:number[]}|null} flip
+ *
+ * @typedef {Object} SteerUpdateSlider
+ * @property {number} seq                          integer ≥ 0
+ * @property {{channel:number, scale:number}[]} set   COMPLETE list of changed channels (≤ 64); replaces the previous one
+ * @property {number|null} [probe]
+ *
+ * @typedef {Object} SteerUpdateCode
+ * @property {number} seq
+ * @property {string} code                         ≤ STEER_CODE_MAX characters; must pass steer-dsl parse()
+ * @property {null} [probe]
+ *
+ * @typedef {SteerUpdateSlider|SteerUpdateCode} SteerUpdate
+ *
+ * @typedef {Object} SteerSetEntry
+ * @property {number} classId
+ * @property {string} label
+ * @property {{channel:number, contribution:number}[]} channels   5, from the UNSTEERED image
+ *
+ * @typedef {Object} SteerState   payload of steer-result
+ * @property {number} seq
+ * @property {string} imageId
  * @property {boolean} active
- * @property {string} layer
- * @property {'slider'|'code'} mode
- * @property {SteerChannel[]} channels
- * @property {string|null} code
- * @property {{answers:Answer[], treeValues:Object<string, number>}|null} result
- * @property {string|null} error
+ * @property {'slider'|'code'|null} source
+ * @property {{channel:number, scale:number}[]} scales   only scale ≠ 1, sorted by channel
+ * @property {string|null} code                           canonical program for the current scales (format())
+ * @property {{top1:SteerSetEntry, top2:SteerSetEntry}} sets
+ * @property {{answers:Answer[], top1:Answer, baselineTop1:Answer, top1Changed:boolean, outsideBrain:Answer|null}} result
+ * @property {number|null} probe
+ * @property {{line:number, col:number, message:string}|null} error
  */
 
 /**
