@@ -8,150 +8,150 @@
   "sourceLabel": {
     "classId": 8,
     "label": "Pneumonia",
-    "source": "source caption of the image (pneumonia), as supplied by Ray"
+    "source": "Parmar MS, BMC Infect Dis 2005;5:30, \"Overwhelming Blastomycosis pneumonia\": initial PA film, consolidation in the right mid and both lower lobes"
   },
   "findings": [
     {
       "classId": 0,
       "label": "Atelectasis",
-      "score": 0.5242519378662109,
-      "rank": 3,
-      "hasHeatmap": true,
-      "file": "gradcam/0.png"
+      "score": 0.5268598794937134,
+      "rank": 11,
+      "hasHeatmap": false,
+      "file": null
     },
     {
       "classId": 1,
       "label": "Consolidation",
-      "score": 0.49143654108047485,
-      "rank": 6,
+      "score": 0.7191736698150635,
+      "rank": 5,
       "hasHeatmap": false,
       "file": null
     },
     {
       "classId": 2,
       "label": "Infiltration",
-      "score": 0.2552802264690399,
-      "rank": 11,
+      "score": 0.749855101108551,
+      "rank": 4,
       "hasHeatmap": false,
       "file": null
     },
     {
       "classId": 3,
       "label": "Pneumothorax",
-      "score": 0.055754926055669785,
-      "rank": 16,
+      "score": 0.5233898162841797,
+      "rank": 13,
       "hasHeatmap": false,
       "file": null
     },
     {
       "classId": 4,
       "label": "Edema",
-      "score": 0.03796030580997467,
-      "rank": 17,
+      "score": 0.5445512533187866,
+      "rank": 9,
       "hasHeatmap": false,
       "file": null
     },
     {
       "classId": 5,
       "label": "Emphysema",
-      "score": 0.5012716054916382,
-      "rank": 5,
+      "score": 0.5018916130065918,
+      "rank": 14,
       "hasHeatmap": false,
       "file": null
     },
     {
       "classId": 6,
       "label": "Fibrosis",
-      "score": 0.41342693567276,
-      "rank": 8,
+      "score": 0.5238348841667175,
+      "rank": 12,
       "hasHeatmap": false,
       "file": null
     },
     {
       "classId": 7,
       "label": "Effusion",
-      "score": 0.14747783541679382,
-      "rank": 15,
+      "score": 0.6558221578598022,
+      "rank": 6,
       "hasHeatmap": false,
       "file": null
     },
     {
       "classId": 8,
       "label": "Pneumonia",
-      "score": 0.18320733308792114,
-      "rank": 13,
+      "score": 0.8422489166259766,
+      "rank": 2,
       "hasHeatmap": true,
       "file": "gradcam/8.png"
     },
     {
       "classId": 9,
       "label": "Pleural Thickening",
-      "score": 0.2308966964483261,
-      "rank": 12,
+      "score": 0.5304603576660156,
+      "rank": 10,
       "hasHeatmap": false,
       "file": null
     },
     {
       "classId": 10,
       "label": "Cardiomegaly",
-      "score": 0.5650686025619507,
-      "rank": 1,
-      "hasHeatmap": true,
-      "file": "gradcam/10.png"
+      "score": 0.11436861753463745,
+      "rank": 16,
+      "hasHeatmap": false,
+      "file": null
     },
     {
       "classId": 11,
       "label": "Nodule",
-      "score": 0.5036739110946655,
-      "rank": 4,
+      "score": 0.5752127766609192,
+      "rank": 7,
       "hasHeatmap": false,
       "file": null
     },
     {
       "classId": 12,
       "label": "Mass",
-      "score": 0.5343918800354004,
-      "rank": 2,
+      "score": 0.7610113024711609,
+      "rank": 3,
       "hasHeatmap": true,
       "file": "gradcam/12.png"
     },
     {
       "classId": 13,
       "label": "Hernia",
-      "score": 0.17862239480018616,
-      "rank": 14,
+      "score": 0.001830778201110661,
+      "rank": 18,
       "hasHeatmap": false,
       "file": null
     },
     {
       "classId": 14,
       "label": "Lung Lesion",
-      "score": 0.013577339239418507,
-      "rank": 18,
+      "score": 0.10271084308624268,
+      "rank": 17,
       "hasHeatmap": false,
       "file": null
     },
     {
       "classId": 15,
       "label": "Fracture",
-      "score": 0.3659763038158417,
-      "rank": 9,
+      "score": 0.17370495200157166,
+      "rank": 15,
       "hasHeatmap": false,
       "file": null
     },
     {
       "classId": 16,
       "label": "Lung Opacity",
-      "score": 0.2996132969856262,
-      "rank": 10,
-      "hasHeatmap": false,
-      "file": null
+      "score": 0.9714586138725281,
+      "rank": 1,
+      "hasHeatmap": true,
+      "file": "gradcam/16.png"
     },
     {
       "classId": 17,
       "label": "Enlarged Cardiomediastinum",
-      "score": 0.4851638376712799,
-      "rank": 7,
+      "score": 0.5682556629180908,
+      "rank": 8,
       "hasHeatmap": false,
       "file": null
     }

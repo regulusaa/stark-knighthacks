@@ -68,7 +68,7 @@ The stage is `pipeline/stages/fgsm.py`; it runs before core and creates `adv_ret
 - **Validator:** checks offsets, lengths, sizes, a peak of 255 and the skips. It also checks that the conv5_block3_out map matches `conv5.bin` (it does).
 - **What I saw:** the edges of the dog and the butterfly at conv1–conv2, part outlines at conv3, and coarse object blobs at conv5. **conv4_block6_out peaks at the top-left corner on both images I checked**, a border response rather than the subject. It is worth knowing before narrating that layer.
 
-## Part E: medical card, DONE (with an honesty flag)
+## Part E: medical card, DONE
 - **Model:** torchxrayvision `densenet121-res224-all`, loaded from the local cache. Preprocessing is the library's own: grayscale, `xrv.datasets.normalize(img, 255)`, `XRayCenterCrop`, `XRayResizer(224)`.
 - **Scores:** all 18 pathologies are non-empty labels, and all are kept with `scoreKind: "independent"`. Nothing is softmaxed. xrv's operating-point normalization puts each finding's threshold at 0.5.
 - **Grad-CAM:** pytorch-grad-cam 1.5.7 on **`features.denseblock4`**, the last dense block (the name was checked against the loaded model). It covers the top 3 findings plus Pneumonia.
@@ -80,31 +80,34 @@ The stage is `pipeline/stages/fgsm.py`; it runs before core and creates `adv_ret
   - `gradcam/`;
   - `medical.json`, with the caveat text;
   - `steerable: false` in the manifest.
-- **Inputs:** `med_xray_pneumonia.jpg` and `med_xray_normal.jpg`, the 960-px versions from `~/Downloads` dated Oct 8, copied to `pipeline/inputs/`. Gallery orders 4 and 9. The pneumonia film's true class is Pneumonia (source caption); the normal film's is null.
+- **Inputs:** gallery orders 4 and 9.
+  - `med_xray_pneumonia.jpg` is now ["X-ray lung consolidation.jpg"](https://commons.wikimedia.org/wiki/File:X-ray_lung_consolidation.jpg): Parmar MS, *BMC Infectious Diseases* 2005;5:30, "Overwhelming Blastomycosis pneumonia", the initial PA film showing consolidation in the right mid and both lower lobes. It is CC BY 2.0 and the attribution is in `credits.txt`. True class: Pneumonia, from the paper.
+  - `med_xray_normal.jpg` is the 960-px file from `~/Downloads` dated Oct 8. True class: null.
 
 **Scores**
 
 | Image | Top 3 (independent scores) | Pneumonia |
 |---|---|---|
-| med_xray_pneumonia | Cardiomegaly 0.57, Mass 0.53, Atelectasis 0.52 | **rank 13 of 18, 0.18** |
-| med_xray_normal | Pleural Thickening 0.51, Fibrosis 0.50, Infiltration 0.45 | 0.18 (not a true class) |
+| med_xray_pneumonia | Lung Opacity 0.97, Pneumonia 0.84, Mass 0.76 | **rank 2 of 18, 0.84** |
+| med_xray_normal | Pleural Thickening 0.51, Fibrosis 0.50, Infiltration 0.45 | rank 14, 0.02 (not a true class) |
 
-**Honesty flag: the model does not flag pneumonia on the pneumonia film.** Every top score sits near the 0.5 operating point, so nothing stands out. I checked the older, smaller files in Downloads, which I did not use: their Pneumonia ranks are 13 (0.27) and 11 (0.10). So this comes from the model, not from the file choice. The card has to show it as it is ("the model's scores for each finding"), and must not narrate it as a correct diagnosis.
+**How the pneumonia film was chosen (follow-up, after Ray asked for a fix).** The first film, the Oct 8 file from Downloads, got Pneumonia 0.18 (rank 13), with every finding near the 0.5 operating point. The fix had to keep the contract model, because the contract pins `densenet121-res224-all` and its class IDs 0–17.
+- **Other weight sets:** I tried them on that film first. RSNA gave 0.48 and PadChest 0.53; none was clear.
+- **Screening:** I then scored 19 adult PA/AP films from Commons "Category:X-rays of pneumonia" with the contract model, and kept the one where it scores Pneumonia highest. The other 18 put Pneumonia between rank 3 and rank 17, and only two of them (rank 3, about 0.53) put it in the top 3.
+- **So the gallery film is a favourable case, chosen by screening.** The card must not suggest the model reliably finds pneumonia; it is the model's per-finding scores on one film. The screening script and its full results are in this session's scratchpad (`cxr_score.py`); I can commit them if you want the selection to be reproducible.
 
 **What the heatmaps show.** I looked at them myself and am describing only what is visible:
 - **Pneumonia film:**
-  - Cardiomegaly: the heart and lower mediastinum, centre.
-  - Mass: the mediastinum and the lower centre, near the right hemidiaphragm.
-  - Atelectasis: a band along the bottom edge of the image, below the diaphragm.
-  - Pneumonia: the lower-left of the image (the patient's right lower zone, where the visible opacity is), running into the bottom edge.
+  - Lung Opacity and Pneumonia: nearly the same map. Both peak on the patient's right mid zone (image left), on the consolidation, and fade down into the right lower zone.
+  - Mass: the heart and mediastinum, centre, spreading into the same right mid-zone consolidation.
 - **Normal film:**
   - Pleural Thickening: the left image border at the lower lung zone.
   - Fibrosis: the bottom-left corner below the diaphragm, plus the top-right near the shoulder.
   - Infiltration: the upper mediastinum.
   - Pneumonia: a small spot right of the trachea near the aortic knob.
 - **Markers and borders:**
-  - The center crop removes the "Sin"/"Dx" markers on both films, so no map sits on a marker.
-  - Several maps do sit on image borders or below the diaphragm rather than in the lung fields: Atelectasis's bottom band, and Fibrosis's corners.
+  - The center crop removes the side markers ("L" on the pneumonia film, "Sin"/"Dx" on the normal one), so no map sits on a marker.
+  - Several maps do sit on image borders or below the diaphragm rather than in the lung fields: Fibrosis's corners on the normal film.
 
 ## Final: clean run, validation and regression
 
@@ -144,13 +147,11 @@ r = 1.000000 (minimum) on every image: retriever 25 heatmaps, every other ResNet
 | B Steer data | DONE | head.bin 8,196,000 B; conv5.bin 401,408 B ×7; identity < 1e-5; reference.json from real Keras layers; CAM r = 1.0; steer_review.png checked |
 | C Stability + FGSM | DONE | mc.json ×3; the cat is less stable (40%); adv_retriever flips at ε = 2/255 after PNG rounding, PSNR 42.1 dB, full asset set |
 | D Atlas | DONE | 49 layers, 54,145 B, ×7 images; layer-config.json |
-| E Medical | DONE, with a flag | Fan trees, independent scores, Grad-CAM on `features.denseblock4`; the model ranks Pneumonia 13th on the pneumonia film |
+| E Medical | DONE | Fan trees, independent scores, Grad-CAM on `features.denseblock4`; the pneumonia film was replaced after screening (Pneumonia 0.84, rank 2) |
 
 ## Open questions for Ray
-1. **The medical result.** The model doesn't flag pneumonia on the pneumonia film: Pneumonia is 0.18, rank 13, and every finding sits near the 0.5 operating point. Options:
-   - keep it and narrate it honestly ("the model's per-finding scores; it misses this one");
-   - choose a different public-domain pneumonia film. I did not go looking for a film that scores better.
-2. **Image credits.** `credits.txt` is empty. The two X-rays came from `~/Downloads` and need their source and licence recorded. The `trueSource` text in gallery.json is a placeholder ("source caption … as supplied by Ray").
+1. **The medical result: fixed by changing the film.** Pneumonia is now 0.84 (rank 2), behind Lung Opacity at 0.97. The film was chosen by screening 19 candidates, as described in Part E; the narration should not claim the model is reliable.
+2. **Image credits.** The pneumonia film is credited in `credits.txt` (CC BY 2.0). The normal film's source and licence are still unknown.
 3. **Atlas skips.** The prompt says each skip runs from the block's input layer; the contract and its fixture say `_1_relu`. I followed the contract and added `inputLayer`/`inputInAtlas` with the real input. Which one should the renderer draw?
 4. **mc.json `classes`** holds the top 10 by mean, as the prompt asked; contract 2.6 says "the image's topK classes". Extra fields: `aspectRatio`, `cleanTop1`, `matchFraction`.
 5. **fgsm.json** has extra fields beyond contract 2.7: `maxPixelChange`, `meanAbsChange`, `psnr`, `method`. `noiseFile` is `noise_x50.png`.

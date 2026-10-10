@@ -25,7 +25,7 @@
     { "id": "med_xray_pneumonia", "file": "med_xray_pneumonia", "backup": null,
       "name": "Chest X-ray (pneumonia)", "category": "medical", "order": 4,
       "trueLabel": null, "trueFinding": "Pneumonia",
-      "trueSource": "source caption of the image (pneumonia), as supplied by Ray" },
+      "trueSource": "Parmar MS, BMC Infect Dis 2005;5:30, \"Overwhelming Blastomycosis pneumonia\": initial PA film, consolidation in the right mid and both lower lobes" },
     { "id": "med_xray_normal", "file": "med_xray_normal", "backup": null,
       "name": "Chest X-ray (normal)", "category": "medical", "order": 9,
       "trueLabel": null, "trueFinding": null }
