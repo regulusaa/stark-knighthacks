@@ -1,0 +1,125 @@
+{
+  "schema": "stark.manifest/1",
+  "images": [
+    {
+      "id": "clean_retriever",
+      "name": "Golden retriever",
+      "category": "clean",
+      "order": 1,
+      "trueClass": {
+        "classId": 207,
+        "label": "golden retriever"
+      },
+      "folder": "assets/clean_retriever/",
+      "files": {
+        "crop": true,
+        "tree": true,
+        "gradcam": true,
+        "atlas": false,
+        "stability": false,
+        "fgsm": false,
+        "medical": false
+      }
+    },
+    {
+      "id": "ambig_cat",
+      "name": "Tabby cat",
+      "category": "ambiguous",
+      "order": 3,
+      "trueClass": {
+        "classId": 281,
+        "label": "tabby"
+      },
+      "folder": "assets/ambig_cat/",
+      "files": {
+        "crop": true,
+        "tree": true,
+        "gradcam": true,
+        "atlas": false,
+        "stability": false,
+        "fgsm": false,
+        "medical": false
+      }
+    },
+    {
+      "id": "ambig_wolf",
+      "name": "Wolf in snow",
+      "category": "ambiguous",
+      "order": 5,
+      "trueClass": {
+        "classId": 269,
+        "label": "timber wolf"
+      },
+      "folder": "assets/ambig_wolf/",
+      "files": {
+        "crop": true,
+        "tree": true,
+        "gradcam": true,
+        "atlas": false,
+        "stability": false,
+        "fgsm": false,
+        "medical": false
+      }
+    },
+    {
+      "id": "clean_sportscar",
+      "name": "Sports car",
+      "category": "clean",
+      "order": 6,
+      "trueClass": {
+        "classId": 817,
+        "label": "sports car"
+      },
+      "folder": "assets/clean_sportscar/",
+      "files": {
+        "crop": true,
+        "tree": true,
+        "gradcam": true,
+        "atlas": false,
+        "stability": false,
+        "fgsm": false,
+        "medical": false
+      }
+    },
+    {
+      "id": "clean_monarch",
+      "name": "Monarch butterfly",
+      "category": "clean",
+      "order": 7,
+      "trueClass": {
+        "classId": 323,
+        "label": "monarch"
+      },
+      "folder": "assets/clean_monarch/",
+      "files": {
+        "crop": true,
+        "tree": true,
+        "gradcam": true,
+        "atlas": false,
+        "stability": false,
+        "fgsm": false,
+        "medical": false
+      }
+    },
+    {
+      "id": "ambig_chihuahua",
+      "name": "Chihuahua",
+      "category": "ambiguous",
+      "order": 8,
+      "trueClass": {
+        "classId": 151,
+        "label": "Chihuahua"
+      },
+      "folder": "assets/ambig_chihuahua/",
+      "files": {
+        "crop": true,
+        "tree": true,
+        "gradcam": true,
+        "atlas": false,
+        "stability": false,
+        "fgsm": false,
+        "medical": false
+      }
+    }
+  ]
+}

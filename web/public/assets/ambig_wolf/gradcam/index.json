@@ -1,0 +1,186 @@
+{
+  "schema": "stark.gradcam/1",
+  "imageId": "ambig_wolf",
+  "targetLayer": "conv5_block3_out",
+  "width": 224,
+  "height": 224,
+  "encoding": "png-gray8",
+  "normalization": "per-heatmap: relu(cam) / max(cam) * 255",
+  "classes": [
+    {
+      "classId": 269,
+      "label": "timber wolf",
+      "hasHeatmap": true,
+      "file": "gradcam/269.png",
+      "rawMax": 1.4407057538026868
+    },
+    {
+      "classId": 270,
+      "label": "white wolf",
+      "hasHeatmap": true,
+      "file": "gradcam/270.png",
+      "rawMax": 1.3551008142837468
+    },
+    {
+      "classId": 272,
+      "label": "coyote",
+      "hasHeatmap": true,
+      "file": "gradcam/272.png",
+      "rawMax": 1.186618688332645
+    },
+    {
+      "classId": 279,
+      "label": "Arctic fox",
+      "hasHeatmap": true,
+      "file": "gradcam/279.png",
+      "rawMax": 1.0692686459966727
+    },
+    {
+      "classId": 248,
+      "label": "Eskimo dog",
+      "hasHeatmap": true,
+      "file": "gradcam/248.png",
+      "rawMax": 1.059582728799136
+    },
+    {
+      "classId": 271,
+      "label": "red wolf",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 174,
+      "label": "Norwegian elkhound",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 249,
+      "label": "malamute",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 280,
+      "label": "grey fox",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 250,
+      "label": "Siberian husky",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 537,
+      "label": "dogsled",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 274,
+      "label": "dhole",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 296,
+      "label": "ice bear",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 261,
+      "label": "keeshond",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 273,
+      "label": "dingo",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 289,
+      "label": "snow leopard",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 277,
+      "label": "red fox",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 278,
+      "label": "kit fox",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 287,
+      "label": "lynx",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 294,
+      "label": "brown bear",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 235,
+      "label": "German shepherd",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 258,
+      "label": "Samoyed",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 260,
+      "label": "chow",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 106,
+      "label": "wombat",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 286,
+      "label": "cougar",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    }
+  ]
+}

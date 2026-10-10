@@ -1,0 +1,844 @@
+{
+  "schema": "stark.tree/1",
+  "kind": "wordnet",
+  "scoreKind": "softmax",
+  "model": "resnet50-imagenet-keras",
+  "imageId": "ambig_wolf",
+  "rootId": "n00001740",
+  "top1": {
+    "classId": 269,
+    "label": "timber wolf",
+    "score": 0.8841640269727516
+  },
+  "trueClass": {
+    "classId": 269,
+    "label": "timber wolf",
+    "score": 0.8841640269727516,
+    "rank": 1
+  },
+  "otherScore": 1.4831638158741e-05,
+  "topK": [
+    {
+      "rank": 1,
+      "classId": 269,
+      "wnid": "n02114367",
+      "label": "timber wolf",
+      "score": 0.8841640269727516
+    },
+    {
+      "rank": 2,
+      "classId": 270,
+      "wnid": "n02114548",
+      "label": "white wolf",
+      "score": 0.05326006094713297
+    },
+    {
+      "rank": 3,
+      "classId": 272,
+      "wnid": "n02114855",
+      "label": "coyote",
+      "score": 0.04430413398249269
+    },
+    {
+      "rank": 4,
+      "classId": 279,
+      "wnid": "n02120079",
+      "label": "Arctic fox",
+      "score": 0.013755298537534745
+    },
+    {
+      "rank": 5,
+      "classId": 248,
+      "wnid": "n02109961",
+      "label": "Eskimo dog",
+      "score": 0.0014507382961447361
+    },
+    {
+      "rank": 6,
+      "classId": 271,
+      "wnid": "n02114712",
+      "label": "red wolf",
+      "score": 0.0008591676598159973
+    },
+    {
+      "rank": 7,
+      "classId": 174,
+      "wnid": "n02091467",
+      "label": "Norwegian elkhound",
+      "score": 0.0006073956829533125
+    },
+    {
+      "rank": 8,
+      "classId": 249,
+      "wnid": "n02110063",
+      "label": "malamute",
+      "score": 0.0004001147875558214
+    },
+    {
+      "rank": 9,
+      "classId": 280,
+      "wnid": "n02120505",
+      "label": "grey fox",
+      "score": 0.0003951000926817873
+    },
+    {
+      "rank": 10,
+      "classId": 250,
+      "wnid": "n02110185",
+      "label": "Siberian husky",
+      "score": 0.00028891147698126464
+    },
+    {
+      "rank": 11,
+      "classId": 537,
+      "wnid": "n03218198",
+      "label": "dogsled",
+      "score": 0.00018619171723934433
+    },
+    {
+      "rank": 12,
+      "classId": 274,
+      "wnid": "n02115913",
+      "label": "dhole",
+      "score": 9.009784602627195e-05
+    },
+    {
+      "rank": 13,
+      "classId": 296,
+      "wnid": "n02134084",
+      "label": "ice bear",
+      "score": 5.421475503248125e-05
+    },
+    {
+      "rank": 14,
+      "classId": 261,
+      "wnid": "n02112350",
+      "label": "keeshond",
+      "score": 4.364170275064191e-05
+    },
+    {
+      "rank": 15,
+      "classId": 273,
+      "wnid": "n02115641",
+      "label": "dingo",
+      "score": 3.961019319980189e-05
+    },
+    {
+      "rank": 16,
+      "classId": 289,
+      "wnid": "n02128757",
+      "label": "snow leopard",
+      "score": 2.857944175757291e-05
+    },
+    {
+      "rank": 17,
+      "classId": 277,
+      "wnid": "n02119022",
+      "label": "red fox",
+      "score": 1.8832783061422005e-05
+    },
+    {
+      "rank": 18,
+      "classId": 278,
+      "wnid": "n02119789",
+      "label": "kit fox",
+      "score": 1.2789552299891445e-05
+    },
+    {
+      "rank": 19,
+      "classId": 287,
+      "wnid": "n02127052",
+      "label": "lynx",
+      "score": 9.844911116414517e-06
+    },
+    {
+      "rank": 20,
+      "classId": 294,
+      "wnid": "n02132136",
+      "label": "brown bear",
+      "score": 4.036988662314517e-06
+    },
+    {
+      "rank": 21,
+      "classId": 235,
+      "wnid": "n02106662",
+      "label": "German shepherd",
+      "score": 3.1814876874641582e-06
+    },
+    {
+      "rank": 22,
+      "classId": 258,
+      "wnid": "n02111889",
+      "label": "Samoyed",
+      "score": 2.633953931012898e-06
+    },
+    {
+      "rank": 23,
+      "classId": 260,
+      "wnid": "n02112137",
+      "label": "chow",
+      "score": 2.4012930447300822e-06
+    },
+    {
+      "rank": 24,
+      "classId": 106,
+      "wnid": "n01883070",
+      "label": "wombat",
+      "score": 2.278449555255711e-06
+    },
+    {
+      "rank": 25,
+      "classId": 286,
+      "wnid": "n02125311",
+      "label": "cougar",
+      "score": 1.8848504316313803e-06
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n00001740",
+      "label": "entity",
+      "depth": 0,
+      "parent": null,
+      "children": [
+        "n00003553",
+        "other"
+      ],
+      "value": 1.0,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00003553",
+      "label": "whole",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [
+        "n00015388",
+        "n03218198"
+      ],
+      "value": 0.9999851683618413,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00015388",
+      "label": "animal",
+      "depth": 2,
+      "parent": "n00003553",
+      "children": [
+        "n01861778",
+        "n02084071"
+      ],
+      "value": 0.9997989766446019,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n01861778",
+      "label": "mammal",
+      "depth": 3,
+      "parent": "n00015388",
+      "children": [
+        "n02075296",
+        "n01883070"
+      ],
+      "value": 0.9969999579635529,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02075296",
+      "label": "carnivore",
+      "depth": 4,
+      "parent": "n01861778",
+      "children": [
+        "n02083346",
+        "n02131653",
+        "n02120997"
+      ],
+      "value": 0.9969976795139976,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02083346",
+      "label": "canine",
+      "depth": 5,
+      "parent": "n02075296",
+      "children": [
+        "n02114100",
+        "n02118333",
+        "n02115335"
+      ],
+      "value": 0.9968991185669972,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02114100",
+      "label": "wolf",
+      "depth": 6,
+      "parent": "n02083346",
+      "children": [
+        "n02114367",
+        "n02114548",
+        "n02114855",
+        "n02114712"
+      ],
+      "value": 0.9825873895621933,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02114367",
+      "label": "timber wolf",
+      "depth": 7,
+      "parent": "n02114100",
+      "children": [],
+      "value": 0.8841640269727516,
+      "isLeaf": true,
+      "onTop1Path": true,
+      "isTrueLabel": true,
+      "isOther": false,
+      "classId": 269,
+      "rank": 1
+    },
+    {
+      "id": "n02114548",
+      "label": "white wolf",
+      "depth": 7,
+      "parent": "n02114100",
+      "children": [],
+      "value": 0.05326006094713297,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 270,
+      "rank": 2
+    },
+    {
+      "id": "n02114855",
+      "label": "coyote",
+      "depth": 7,
+      "parent": "n02114100",
+      "children": [],
+      "value": 0.04430413398249269,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 272,
+      "rank": 3
+    },
+    {
+      "id": "n02114712",
+      "label": "red wolf",
+      "depth": 7,
+      "parent": "n02114100",
+      "children": [],
+      "value": 0.0008591676598159973,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 271,
+      "rank": 6
+    },
+    {
+      "id": "n02118333",
+      "label": "fox",
+      "depth": 6,
+      "parent": "n02083346",
+      "children": [
+        "n02120079",
+        "n02120505",
+        "n02119022",
+        "n02119789"
+      ],
+      "value": 0.014182020965577845,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02120079",
+      "label": "Arctic fox",
+      "depth": 7,
+      "parent": "n02118333",
+      "children": [],
+      "value": 0.013755298537534745,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 279,
+      "rank": 4
+    },
+    {
+      "id": "n02120505",
+      "label": "grey fox",
+      "depth": 7,
+      "parent": "n02118333",
+      "children": [],
+      "value": 0.0003951000926817873,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 280,
+      "rank": 9
+    },
+    {
+      "id": "n02119022",
+      "label": "red fox",
+      "depth": 7,
+      "parent": "n02118333",
+      "children": [],
+      "value": 1.8832783061422005e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 277,
+      "rank": 17
+    },
+    {
+      "id": "n02119789",
+      "label": "kit fox",
+      "depth": 7,
+      "parent": "n02118333",
+      "children": [],
+      "value": 1.2789552299891445e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 278,
+      "rank": 18
+    },
+    {
+      "id": "n02115335",
+      "label": "wild dog",
+      "depth": 6,
+      "parent": "n02083346",
+      "children": [
+        "n02115913",
+        "n02115641"
+      ],
+      "value": 0.00012970803922607383,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02115913",
+      "label": "dhole",
+      "depth": 7,
+      "parent": "n02115335",
+      "children": [],
+      "value": 9.009784602627195e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 274,
+      "rank": 12
+    },
+    {
+      "id": "n02115641",
+      "label": "dingo",
+      "depth": 7,
+      "parent": "n02115335",
+      "children": [],
+      "value": 3.961019319980189e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 273,
+      "rank": 15
+    },
+    {
+      "id": "n02131653",
+      "label": "bear",
+      "depth": 5,
+      "parent": "n02075296",
+      "children": [
+        "n02134084",
+        "n02132136"
+      ],
+      "value": 5.825174369479577e-05,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02134084",
+      "label": "ice bear",
+      "depth": 6,
+      "parent": "n02131653",
+      "children": [],
+      "value": 5.421475503248125e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 296,
+      "rank": 13
+    },
+    {
+      "id": "n02132136",
+      "label": "brown bear",
+      "depth": 6,
+      "parent": "n02131653",
+      "children": [],
+      "value": 4.036988662314517e-06,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 294,
+      "rank": 20
+    },
+    {
+      "id": "n02120997",
+      "label": "feline",
+      "depth": 5,
+      "parent": "n02075296",
+      "children": [
+        "n02128757",
+        "n02124623"
+      ],
+      "value": 4.030920330561881e-05,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02128757",
+      "label": "snow leopard",
+      "depth": 6,
+      "parent": "n02120997",
+      "children": [],
+      "value": 2.857944175757291e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 289,
+      "rank": 16
+    },
+    {
+      "id": "n02124623",
+      "label": "wildcat",
+      "depth": 6,
+      "parent": "n02120997",
+      "children": [
+        "n02127052",
+        "n02125311"
+      ],
+      "value": 1.1729761548045898e-05,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02127052",
+      "label": "lynx",
+      "depth": 7,
+      "parent": "n02124623",
+      "children": [],
+      "value": 9.844911116414517e-06,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 287,
+      "rank": 19
+    },
+    {
+      "id": "n02125311",
+      "label": "cougar",
+      "depth": 7,
+      "parent": "n02124623",
+      "children": [],
+      "value": 1.8848504316313803e-06,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 286,
+      "rank": 25
+    },
+    {
+      "id": "n01883070",
+      "label": "wombat",
+      "depth": 4,
+      "parent": "n01861778",
+      "children": [],
+      "value": 2.278449555255711e-06,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 106,
+      "rank": 24
+    },
+    {
+      "id": "n02084071",
+      "label": "dog",
+      "depth": 3,
+      "parent": "n00015388",
+      "children": [
+        "n02103406",
+        "n02091467",
+        "n02111626"
+      ],
+      "value": 0.002799018681048984,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02103406",
+      "label": "working dog",
+      "depth": 4,
+      "parent": "n02084071",
+      "children": [
+        "n02109961",
+        "n02109811",
+        "n02106662"
+      ],
+      "value": 0.0021429460483692866,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02109961",
+      "label": "Eskimo dog",
+      "depth": 5,
+      "parent": "n02103406",
+      "children": [],
+      "value": 0.0014507382961447361,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 248,
+      "rank": 5
+    },
+    {
+      "id": "n02109811",
+      "label": "sled dog",
+      "depth": 5,
+      "parent": "n02103406",
+      "children": [
+        "n02110063",
+        "n02110185"
+      ],
+      "value": 0.0006890262645370861,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02110063",
+      "label": "malamute",
+      "depth": 6,
+      "parent": "n02109811",
+      "children": [],
+      "value": 0.0004001147875558214,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 249,
+      "rank": 8
+    },
+    {
+      "id": "n02110185",
+      "label": "Siberian husky",
+      "depth": 6,
+      "parent": "n02109811",
+      "children": [],
+      "value": 0.00028891147698126464,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 250,
+      "rank": 10
+    },
+    {
+      "id": "n02106662",
+      "label": "German shepherd",
+      "depth": 5,
+      "parent": "n02103406",
+      "children": [],
+      "value": 3.1814876874641582e-06,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 235,
+      "rank": 21
+    },
+    {
+      "id": "n02091467",
+      "label": "Norwegian elkhound",
+      "depth": 4,
+      "parent": "n02084071",
+      "children": [],
+      "value": 0.0006073956829533125,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 174,
+      "rank": 7
+    },
+    {
+      "id": "n02111626",
+      "label": "spitz",
+      "depth": 4,
+      "parent": "n02084071",
+      "children": [
+        "n02112350",
+        "n02111889",
+        "n02112137"
+      ],
+      "value": 4.867694972638489e-05,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02112350",
+      "label": "keeshond",
+      "depth": 5,
+      "parent": "n02111626",
+      "children": [],
+      "value": 4.364170275064191e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 261,
+      "rank": 14
+    },
+    {
+      "id": "n02111889",
+      "label": "Samoyed",
+      "depth": 5,
+      "parent": "n02111626",
+      "children": [],
+      "value": 2.633953931012898e-06,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 258,
+      "rank": 22
+    },
+    {
+      "id": "n02112137",
+      "label": "chow",
+      "depth": 5,
+      "parent": "n02111626",
+      "children": [],
+      "value": 2.4012930447300822e-06,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 260,
+      "rank": 23
+    },
+    {
+      "id": "n03218198",
+      "label": "dogsled",
+      "depth": 2,
+      "parent": "n00003553",
+      "children": [],
+      "value": 0.00018619171723934433,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 537,
+      "rank": 11
+    },
+    {
+      "id": "other",
+      "label": "other (classes not shown)",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [],
+      "value": 1.4831638158741e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": true,
+      "classId": null,
+      "rank": null
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "schema": "stark.gradcam/1",
+  "imageId": "clean_retriever",
+  "targetLayer": "conv5_block3_out",
+  "width": 224,
+  "height": 224,
+  "encoding": "png-gray8",
+  "normalization": "per-heatmap: relu(cam) / max(cam) * 255",
+  "classes": [
+    {
+      "classId": 207,
+      "label": "golden retriever",
+      "hasHeatmap": true,
+      "file": "gradcam/207.png",
+      "rawMax": 0.974362071523824
+    },
+    {
+      "classId": 208,
+      "label": "Labrador retriever",
+      "hasHeatmap": true,
+      "file": "gradcam/208.png",
+      "rawMax": 0.8798279804639906
+    },
+    {
+      "classId": 222,
+      "label": "kuvasz",
+      "hasHeatmap": true,
+      "file": "gradcam/222.png",
+      "rawMax": 0.6003420171139183
+    },
+    {
+      "classId": 255,
+      "label": "Leonberg",
+      "hasHeatmap": true,
+      "file": "gradcam/255.png",
+      "rawMax": 0.40109664681324675
+    },
+    {
+      "classId": 852,
+      "label": "tennis ball",
+      "hasHeatmap": true,
+      "file": "gradcam/852.png",
+      "rawMax": 0.5077668048981694
+    },
+    {
+      "classId": 215,
+      "label": "Brittany spaniel",
+      "hasHeatmap": true,
+      "file": "gradcam/215.png",
+      "rawMax": 0.682945210240668
+    },
+    {
+      "classId": 205,
+      "label": "flat-coated retriever",
+      "hasHeatmap": true,
+      "file": "gradcam/205.png",
+      "rawMax": 0.6799872296027759
+    },
+    {
+      "classId": 206,
+      "label": "curly-coated retriever",
+      "hasHeatmap": true,
+      "file": "gradcam/206.png",
+      "rawMax": 0.6165412436860809
+    },
+    {
+      "classId": 159,
+      "label": "Rhodesian ridgeback",
+      "hasHeatmap": true,
+      "file": "gradcam/159.png",
+      "rawMax": 0.5795387494749356
+    },
+    {
+      "classId": 200,
+      "label": "Tibetan terrier",
+      "hasHeatmap": true,
+      "file": "gradcam/200.png",
+      "rawMax": 0.3724232280053228
+    },
+    {
+      "classId": 805,
+      "label": "soccer ball",
+      "hasHeatmap": true,
+      "file": "gradcam/805.png",
+      "rawMax": 0.40194401312232886
+    },
+    {
+      "classId": 256,
+      "label": "Newfoundland",
+      "hasHeatmap": true,
+      "file": "gradcam/256.png",
+      "rawMax": 0.5828859869724328
+    },
+    {
+      "classId": 216,
+      "label": "clumber",
+      "hasHeatmap": true,
+      "file": "gradcam/216.png",
+      "rawMax": 0.4256386941798307
+    },
+    {
+      "classId": 244,
+      "label": "Tibetan mastiff",
+      "hasHeatmap": true,
+      "file": "gradcam/244.png",
+      "rawMax": 0.4898352644499037
+    },
+    {
+      "classId": 220,
+      "label": "Sussex spaniel",
+      "hasHeatmap": true,
+      "file": "gradcam/220.png",
+      "rawMax": 0.38844120885197986
+    },
+    {
+      "classId": 247,
+      "label": "Saint Bernard",
+      "hasHeatmap": true,
+      "file": "gradcam/247.png",
+      "rawMax": 0.3728894407231942
+    },
+    {
+      "classId": 175,
+      "label": "otterhound",
+      "hasHeatmap": true,
+      "file": "gradcam/175.png",
+      "rawMax": 0.4573922689941562
+    },
+    {
+      "classId": 238,
+      "label": "Greater Swiss Mountain dog",
+      "hasHeatmap": true,
+      "file": "gradcam/238.png",
+      "rawMax": 0.5070453550165795
+    },
+    {
+      "classId": 539,
+      "label": "doormat",
+      "hasHeatmap": true,
+      "file": "gradcam/539.png",
+      "rawMax": 0.40848349194590555
+    },
+    {
+      "classId": 214,
+      "label": "Gordon setter",
+      "hasHeatmap": true,
+      "file": "gradcam/214.png",
+      "rawMax": 0.36600225342050297
+    },
+    {
+      "classId": 209,
+      "label": "Chesapeake Bay retriever",
+      "hasHeatmap": true,
+      "file": "gradcam/209.png",
+      "rawMax": 0.7056271655081996
+    },
+    {
+      "classId": 204,
+      "label": "Lhasa",
+      "hasHeatmap": true,
+      "file": "gradcam/204.png",
+      "rawMax": 0.32852281353636525
+    },
+    {
+      "classId": 219,
+      "label": "cocker spaniel",
+      "hasHeatmap": true,
+      "file": "gradcam/219.png",
+      "rawMax": 0.3606788657011428
+    },
+    {
+      "classId": 213,
+      "label": "Irish setter",
+      "hasHeatmap": true,
+      "file": "gradcam/213.png",
+      "rawMax": 0.44141926083617194
+    },
+    {
+      "classId": 257,
+      "label": "Great Pyrenees",
+      "hasHeatmap": true,
+      "file": "gradcam/257.png",
+      "rawMax": 0.414363683326014
+    }
+  ]
+}

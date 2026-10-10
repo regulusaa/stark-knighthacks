@@ -1,0 +1,780 @@
+{
+  "schema": "stark.tree/1",
+  "kind": "wordnet",
+  "scoreKind": "softmax",
+  "model": "resnet50-imagenet-keras",
+  "imageId": "clean_retriever",
+  "rootId": "n00001740",
+  "top1": {
+    "classId": 207,
+    "label": "golden retriever",
+    "score": 0.9688150766088671
+  },
+  "trueClass": {
+    "classId": 207,
+    "label": "golden retriever",
+    "score": 0.9688150766088671,
+    "rank": 1
+  },
+  "otherScore": 0.0017909303483575334,
+  "topK": [
+    {
+      "rank": 1,
+      "classId": 207,
+      "wnid": "n02099601",
+      "label": "golden retriever",
+      "score": 0.9688150766088671
+    },
+    {
+      "rank": 2,
+      "classId": 208,
+      "wnid": "n02099712",
+      "label": "Labrador retriever",
+      "score": 0.014376939354340982
+    },
+    {
+      "rank": 3,
+      "classId": 222,
+      "wnid": "n02104029",
+      "label": "kuvasz",
+      "score": 0.0037937785310247695
+    },
+    {
+      "rank": 4,
+      "classId": 255,
+      "wnid": "n02111129",
+      "label": "Leonberg",
+      "score": 0.0018451932804554865
+    },
+    {
+      "rank": 5,
+      "classId": 852,
+      "wnid": "n04409515",
+      "label": "tennis ball",
+      "score": 0.0012499593985595514
+    },
+    {
+      "rank": 6,
+      "classId": 215,
+      "wnid": "n02101388",
+      "label": "Brittany spaniel",
+      "score": 0.0012062577580193334
+    },
+    {
+      "rank": 7,
+      "classId": 205,
+      "wnid": "n02099267",
+      "label": "flat-coated retriever",
+      "score": 0.0010026766419208904
+    },
+    {
+      "rank": 8,
+      "classId": 206,
+      "wnid": "n02099429",
+      "label": "curly-coated retriever",
+      "score": 0.0009274295477710824
+    },
+    {
+      "rank": 9,
+      "classId": 159,
+      "wnid": "n02087394",
+      "label": "Rhodesian ridgeback",
+      "score": 0.0006465009090910789
+    },
+    {
+      "rank": 10,
+      "classId": 200,
+      "wnid": "n02097474",
+      "label": "Tibetan terrier",
+      "score": 0.0006088258237434282
+    },
+    {
+      "rank": 11,
+      "classId": 805,
+      "wnid": "n04254680",
+      "label": "soccer ball",
+      "score": 0.0005519670235174917
+    },
+    {
+      "rank": 12,
+      "classId": 256,
+      "wnid": "n02111277",
+      "label": "Newfoundland",
+      "score": 0.0005474616575755593
+    },
+    {
+      "rank": 13,
+      "classId": 216,
+      "wnid": "n02101556",
+      "label": "clumber",
+      "score": 0.0005153312642483616
+    },
+    {
+      "rank": 14,
+      "classId": 244,
+      "wnid": "n02108551",
+      "label": "Tibetan mastiff",
+      "score": 0.00041164190977520203
+    },
+    {
+      "rank": 15,
+      "classId": 220,
+      "wnid": "n02102480",
+      "label": "Sussex spaniel",
+      "score": 0.00034482874992351786
+    },
+    {
+      "rank": 16,
+      "classId": 247,
+      "wnid": "n02109525",
+      "label": "Saint Bernard",
+      "score": 0.00024650757034745734
+    },
+    {
+      "rank": 17,
+      "classId": 175,
+      "wnid": "n02091635",
+      "label": "otterhound",
+      "score": 0.0002291590067348559
+    },
+    {
+      "rank": 18,
+      "classId": 238,
+      "wnid": "n02107574",
+      "label": "Greater Swiss Mountain dog",
+      "score": 0.0002060426809128647
+    },
+    {
+      "rank": 19,
+      "classId": 539,
+      "wnid": "n03223299",
+      "label": "doormat",
+      "score": 0.0001225822702658933
+    },
+    {
+      "rank": 20,
+      "classId": 214,
+      "wnid": "n02101006",
+      "label": "Gordon setter",
+      "score": 0.00011263815576534908
+    },
+    {
+      "rank": 21,
+      "classId": 209,
+      "wnid": "n02099849",
+      "label": "Chesapeake Bay retriever",
+      "score": 0.00010944352274324122
+    },
+    {
+      "rank": 22,
+      "classId": 204,
+      "wnid": "n02098413",
+      "label": "Lhasa",
+      "score": 9.301967090690055e-05
+    },
+    {
+      "rank": 23,
+      "classId": 219,
+      "wnid": "n02102318",
+      "label": "cocker spaniel",
+      "score": 8.74226119912515e-05
+    },
+    {
+      "rank": 24,
+      "classId": 213,
+      "wnid": "n02100877",
+      "label": "Irish setter",
+      "score": 8.376298565538389e-05
+    },
+    {
+      "rank": 25,
+      "classId": 257,
+      "wnid": "n02111500",
+      "label": "Great Pyrenees",
+      "score": 7.462271748549016e-05
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n00001740",
+      "label": "entity",
+      "depth": 0,
+      "parent": null,
+      "children": [
+        "n00003553",
+        "other"
+      ],
+      "value": 1.0,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00003553",
+      "label": "whole",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [
+        "n02084071",
+        "n00021939"
+      ],
+      "value": 0.9982090696516426,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02084071",
+      "label": "dog",
+      "depth": 2,
+      "parent": "n00003553",
+      "children": [
+        "n02087122",
+        "n02103406",
+        "n02111129",
+        "n02111277",
+        "n02111500"
+      ],
+      "value": 0.9962845609592996,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02087122",
+      "label": "hunting dog",
+      "depth": 3,
+      "parent": "n02084071",
+      "children": [
+        "n02098550",
+        "n02092468",
+        "n02087394",
+        "n02091635"
+      ],
+      "value": 0.9891593126117227,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02098550",
+      "label": "sporting dog",
+      "depth": 4,
+      "parent": "n02087122",
+      "children": [
+        "n02099029",
+        "n02101108",
+        "n02100399"
+      ],
+      "value": 0.9875818072012464,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02099029",
+      "label": "retriever",
+      "depth": 5,
+      "parent": "n02098550",
+      "children": [
+        "n02099601",
+        "n02099712",
+        "n02099267",
+        "n02099429",
+        "n02099849"
+      ],
+      "value": 0.9852315656756433,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02099601",
+      "label": "golden retriever",
+      "depth": 6,
+      "parent": "n02099029",
+      "children": [],
+      "value": 0.9688150766088671,
+      "isLeaf": true,
+      "onTop1Path": true,
+      "isTrueLabel": true,
+      "isOther": false,
+      "classId": 207,
+      "rank": 1
+    },
+    {
+      "id": "n02099712",
+      "label": "Labrador retriever",
+      "depth": 6,
+      "parent": "n02099029",
+      "children": [],
+      "value": 0.014376939354340982,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 208,
+      "rank": 2
+    },
+    {
+      "id": "n02099267",
+      "label": "flat-coated retriever",
+      "depth": 6,
+      "parent": "n02099029",
+      "children": [],
+      "value": 0.0010026766419208904,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 205,
+      "rank": 7
+    },
+    {
+      "id": "n02099429",
+      "label": "curly-coated retriever",
+      "depth": 6,
+      "parent": "n02099029",
+      "children": [],
+      "value": 0.0009274295477710824,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 206,
+      "rank": 8
+    },
+    {
+      "id": "n02099849",
+      "label": "Chesapeake Bay retriever",
+      "depth": 6,
+      "parent": "n02099029",
+      "children": [],
+      "value": 0.00010944352274324122,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 209,
+      "rank": 21
+    },
+    {
+      "id": "n02101108",
+      "label": "spaniel",
+      "depth": 5,
+      "parent": "n02098550",
+      "children": [
+        "n02101388",
+        "n02101556",
+        "n02102480",
+        "n02102318"
+      ],
+      "value": 0.0021538403841824647,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02101388",
+      "label": "Brittany spaniel",
+      "depth": 6,
+      "parent": "n02101108",
+      "children": [],
+      "value": 0.0012062577580193334,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 215,
+      "rank": 6
+    },
+    {
+      "id": "n02101556",
+      "label": "clumber",
+      "depth": 6,
+      "parent": "n02101108",
+      "children": [],
+      "value": 0.0005153312642483616,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 216,
+      "rank": 13
+    },
+    {
+      "id": "n02102480",
+      "label": "Sussex spaniel",
+      "depth": 6,
+      "parent": "n02101108",
+      "children": [],
+      "value": 0.00034482874992351786,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 220,
+      "rank": 15
+    },
+    {
+      "id": "n02102318",
+      "label": "cocker spaniel",
+      "depth": 6,
+      "parent": "n02101108",
+      "children": [],
+      "value": 8.74226119912515e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 219,
+      "rank": 23
+    },
+    {
+      "id": "n02100399",
+      "label": "setter",
+      "depth": 5,
+      "parent": "n02098550",
+      "children": [
+        "n02101006",
+        "n02100877"
+      ],
+      "value": 0.00019640114142073297,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02101006",
+      "label": "Gordon setter",
+      "depth": 6,
+      "parent": "n02100399",
+      "children": [],
+      "value": 0.00011263815576534908,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 214,
+      "rank": 20
+    },
+    {
+      "id": "n02100877",
+      "label": "Irish setter",
+      "depth": 6,
+      "parent": "n02100399",
+      "children": [],
+      "value": 8.376298565538389e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 213,
+      "rank": 24
+    },
+    {
+      "id": "n02092468",
+      "label": "terrier",
+      "depth": 4,
+      "parent": "n02087122",
+      "children": [
+        "n02097474",
+        "n02098413"
+      ],
+      "value": 0.0007018454946503287,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02097474",
+      "label": "Tibetan terrier",
+      "depth": 5,
+      "parent": "n02092468",
+      "children": [],
+      "value": 0.0006088258237434282,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 200,
+      "rank": 10
+    },
+    {
+      "id": "n02098413",
+      "label": "Lhasa",
+      "depth": 5,
+      "parent": "n02092468",
+      "children": [],
+      "value": 9.301967090690055e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 204,
+      "rank": 22
+    },
+    {
+      "id": "n02087394",
+      "label": "Rhodesian ridgeback",
+      "depth": 4,
+      "parent": "n02087122",
+      "children": [],
+      "value": 0.0006465009090910789,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 159,
+      "rank": 9
+    },
+    {
+      "id": "n02091635",
+      "label": "otterhound",
+      "depth": 4,
+      "parent": "n02087122",
+      "children": [],
+      "value": 0.0002291590067348559,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 175,
+      "rank": 17
+    },
+    {
+      "id": "n02103406",
+      "label": "working dog",
+      "depth": 3,
+      "parent": "n02084071",
+      "children": [
+        "n02104029",
+        "n02108551",
+        "n02109525",
+        "n02107574"
+      ],
+      "value": 0.004657970692060294,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02104029",
+      "label": "kuvasz",
+      "depth": 4,
+      "parent": "n02103406",
+      "children": [],
+      "value": 0.0037937785310247695,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 222,
+      "rank": 3
+    },
+    {
+      "id": "n02108551",
+      "label": "Tibetan mastiff",
+      "depth": 4,
+      "parent": "n02103406",
+      "children": [],
+      "value": 0.00041164190977520203,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 244,
+      "rank": 14
+    },
+    {
+      "id": "n02109525",
+      "label": "Saint Bernard",
+      "depth": 4,
+      "parent": "n02103406",
+      "children": [],
+      "value": 0.00024650757034745734,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 247,
+      "rank": 16
+    },
+    {
+      "id": "n02107574",
+      "label": "Greater Swiss Mountain dog",
+      "depth": 4,
+      "parent": "n02103406",
+      "children": [],
+      "value": 0.0002060426809128647,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 238,
+      "rank": 18
+    },
+    {
+      "id": "n02111129",
+      "label": "Leonberg",
+      "depth": 3,
+      "parent": "n02084071",
+      "children": [],
+      "value": 0.0018451932804554865,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 255,
+      "rank": 4
+    },
+    {
+      "id": "n02111277",
+      "label": "Newfoundland",
+      "depth": 3,
+      "parent": "n02084071",
+      "children": [],
+      "value": 0.0005474616575755593,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 256,
+      "rank": 12
+    },
+    {
+      "id": "n02111500",
+      "label": "Great Pyrenees",
+      "depth": 3,
+      "parent": "n02084071",
+      "children": [],
+      "value": 7.462271748549016e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 257,
+      "rank": 25
+    },
+    {
+      "id": "n00021939",
+      "label": "artifact",
+      "depth": 2,
+      "parent": "n00003553",
+      "children": [
+        "n02778669",
+        "n03223299"
+      ],
+      "value": 0.0019245086923429366,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02778669",
+      "label": "ball",
+      "depth": 3,
+      "parent": "n00021939",
+      "children": [
+        "n04409515",
+        "n04254680"
+      ],
+      "value": 0.0018019264220770432,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n04409515",
+      "label": "tennis ball",
+      "depth": 4,
+      "parent": "n02778669",
+      "children": [],
+      "value": 0.0012499593985595514,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 852,
+      "rank": 5
+    },
+    {
+      "id": "n04254680",
+      "label": "soccer ball",
+      "depth": 4,
+      "parent": "n02778669",
+      "children": [],
+      "value": 0.0005519670235174917,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 805,
+      "rank": 11
+    },
+    {
+      "id": "n03223299",
+      "label": "doormat",
+      "depth": 3,
+      "parent": "n00021939",
+      "children": [],
+      "value": 0.0001225822702658933,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 539,
+      "rank": 19
+    },
+    {
+      "id": "other",
+      "label": "other (classes not shown)",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [],
+      "value": 0.0017909303483575334,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": true,
+      "classId": null,
+      "rank": null
+    }
+  ]
+}

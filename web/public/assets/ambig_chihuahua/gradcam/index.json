@@ -1,0 +1,186 @@
+{
+  "schema": "stark.gradcam/1",
+  "imageId": "ambig_chihuahua",
+  "targetLayer": "conv5_block3_out",
+  "width": 224,
+  "height": 224,
+  "encoding": "png-gray8",
+  "normalization": "per-heatmap: relu(cam) / max(cam) * 255",
+  "classes": [
+    {
+      "classId": 151,
+      "label": "Chihuahua",
+      "hasHeatmap": true,
+      "file": "gradcam/151.png",
+      "rawMax": 1.0192046670712407
+    },
+    {
+      "classId": 158,
+      "label": "toy terrier",
+      "hasHeatmap": true,
+      "file": "gradcam/158.png",
+      "rawMax": 0.7879258462436548
+    },
+    {
+      "classId": 195,
+      "label": "Boston bull",
+      "hasHeatmap": true,
+      "file": "gradcam/195.png",
+      "rawMax": 0.628215788115611
+    },
+    {
+      "classId": 157,
+      "label": "papillon",
+      "hasHeatmap": true,
+      "file": "gradcam/157.png",
+      "rawMax": 0.5950756775729916
+    },
+    {
+      "classId": 152,
+      "label": "Japanese spaniel",
+      "hasHeatmap": true,
+      "file": "gradcam/152.png",
+      "rawMax": 0.6623833688878885
+    },
+    {
+      "classId": 259,
+      "label": "Pomeranian",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 237,
+      "label": "miniature pinscher",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 154,
+      "label": "Pekinese",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 262,
+      "label": "Brabancon griffon",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 852,
+      "label": "tennis ball",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 434,
+      "label": "bath towel",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 156,
+      "label": "Blenheim spaniel",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 808,
+      "label": "sombrero",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 187,
+      "label": "Yorkshire terrier",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 732,
+      "label": "Polaroid camera",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 182,
+      "label": "Border terrier",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 227,
+      "label": "kelpie",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 265,
+      "label": "toy poodle",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 155,
+      "label": "Shih-Tzu",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 383,
+      "label": "Madagascar cat",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 522,
+      "label": "croquet ball",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 232,
+      "label": "Border collie",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 268,
+      "label": "Mexican hairless",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 542,
+      "label": "drumstick",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 797,
+      "label": "sleeping bag",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    }
+  ]
+}

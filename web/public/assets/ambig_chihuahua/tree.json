@@ -1,0 +1,812 @@
+{
+  "schema": "stark.tree/1",
+  "kind": "wordnet",
+  "scoreKind": "softmax",
+  "model": "resnet50-imagenet-keras",
+  "imageId": "ambig_chihuahua",
+  "rootId": "n00001740",
+  "top1": {
+    "classId": 151,
+    "label": "Chihuahua",
+    "score": 0.9765915685906706
+  },
+  "trueClass": {
+    "classId": 151,
+    "label": "Chihuahua",
+    "score": 0.9765915685906706,
+    "rank": 1
+  },
+  "otherScore": 0.0011213057382705172,
+  "topK": [
+    {
+      "rank": 1,
+      "classId": 151,
+      "wnid": "n02085620",
+      "label": "Chihuahua",
+      "score": 0.9765915685906706
+    },
+    {
+      "rank": 2,
+      "classId": 158,
+      "wnid": "n02087046",
+      "label": "toy terrier",
+      "score": 0.015743623456217916
+    },
+    {
+      "rank": 3,
+      "classId": 195,
+      "wnid": "n02096585",
+      "label": "Boston bull",
+      "score": 0.002424443531376383
+    },
+    {
+      "rank": 4,
+      "classId": 157,
+      "wnid": "n02086910",
+      "label": "papillon",
+      "score": 0.0018927251776959604
+    },
+    {
+      "rank": 5,
+      "classId": 152,
+      "wnid": "n02085782",
+      "label": "Japanese spaniel",
+      "score": 0.0004693035647770842
+    },
+    {
+      "rank": 6,
+      "classId": 259,
+      "wnid": "n02112018",
+      "label": "Pomeranian",
+      "score": 0.00040367180279394344
+    },
+    {
+      "rank": 7,
+      "classId": 237,
+      "wnid": "n02107312",
+      "label": "miniature pinscher",
+      "score": 0.00029978793521888994
+    },
+    {
+      "rank": 8,
+      "classId": 154,
+      "wnid": "n02086079",
+      "label": "Pekinese",
+      "score": 0.0002725074488019267
+    },
+    {
+      "rank": 9,
+      "classId": 262,
+      "wnid": "n02112706",
+      "label": "Brabancon griffon",
+      "score": 0.00012314852433192015
+    },
+    {
+      "rank": 10,
+      "classId": 852,
+      "wnid": "n04409515",
+      "label": "tennis ball",
+      "score": 6.919831805002783e-05
+    },
+    {
+      "rank": 11,
+      "classId": 434,
+      "wnid": "n02808304",
+      "label": "bath towel",
+      "score": 6.117268704928425e-05
+    },
+    {
+      "rank": 12,
+      "classId": 156,
+      "wnid": "n02086646",
+      "label": "Blenheim spaniel",
+      "score": 5.8538487191200096e-05
+    },
+    {
+      "rank": 13,
+      "classId": 808,
+      "wnid": "n04259630",
+      "label": "sombrero",
+      "score": 5.148098865939213e-05
+    },
+    {
+      "rank": 14,
+      "classId": 187,
+      "wnid": "n02094433",
+      "label": "Yorkshire terrier",
+      "score": 5.073965109189733e-05
+    },
+    {
+      "rank": 15,
+      "classId": 732,
+      "wnid": "n03976467",
+      "label": "Polaroid camera",
+      "score": 4.891621787358901e-05
+    },
+    {
+      "rank": 16,
+      "classId": 182,
+      "wnid": "n02093754",
+      "label": "Border terrier",
+      "score": 4.447853375117459e-05
+    },
+    {
+      "rank": 17,
+      "classId": 227,
+      "wnid": "n02105412",
+      "label": "kelpie",
+      "score": 4.0416273425962116e-05
+    },
+    {
+      "rank": 18,
+      "classId": 265,
+      "wnid": "n02113624",
+      "label": "toy poodle",
+      "score": 3.9275365348319515e-05
+    },
+    {
+      "rank": 19,
+      "classId": 155,
+      "wnid": "n02086240",
+      "label": "Shih-Tzu",
+      "score": 3.844889943702952e-05
+    },
+    {
+      "rank": 20,
+      "classId": 383,
+      "wnid": "n02497673",
+      "label": "Madagascar cat",
+      "score": 3.799343702329975e-05
+    },
+    {
+      "rank": 21,
+      "classId": 522,
+      "wnid": "n03134739",
+      "label": "croquet ball",
+      "score": 2.930880948428085e-05
+    },
+    {
+      "rank": 22,
+      "classId": 232,
+      "wnid": "n02106166",
+      "label": "Border collie",
+      "score": 2.303930612332144e-05
+    },
+    {
+      "rank": 23,
+      "classId": 268,
+      "wnid": "n02113978",
+      "label": "Mexican hairless",
+      "score": 2.275198328293966e-05
+    },
+    {
+      "rank": 24,
+      "classId": 542,
+      "wnid": "n03250847",
+      "label": "drumstick",
+      "score": 2.1864463381284166e-05
+    },
+    {
+      "rank": 25,
+      "classId": 797,
+      "wnid": "n04235860",
+      "label": "sleeping bag",
+      "score": 2.0290808671659167e-05
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n00001740",
+      "label": "entity",
+      "depth": 0,
+      "parent": null,
+      "children": [
+        "n00003553",
+        "other"
+      ],
+      "value": 0.9999999999999998,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00003553",
+      "label": "whole",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [
+        "n00015388",
+        "n00021939"
+      ],
+      "value": 0.9988786942617293,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00015388",
+      "label": "animal",
+      "depth": 2,
+      "parent": "n00003553",
+      "children": [
+        "n02084071",
+        "n02497673"
+      ],
+      "value": 0.9985764619685598,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02084071",
+      "label": "dog",
+      "depth": 3,
+      "parent": "n00015388",
+      "children": [
+        "n02085374",
+        "n02092468",
+        "n02112018",
+        "n02103406",
+        "n02112706",
+        "n02113624",
+        "n02113978"
+      ],
+      "value": 0.9985384685315365,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02085374",
+      "label": "toy dog",
+      "depth": 4,
+      "parent": "n02084071",
+      "children": [
+        "n02085620",
+        "n02087046",
+        "n02086346",
+        "n02085782",
+        "n02086079",
+        "n02086240"
+      ],
+      "value": 0.9950667156247918,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02085620",
+      "label": "Chihuahua",
+      "depth": 5,
+      "parent": "n02085374",
+      "children": [],
+      "value": 0.9765915685906706,
+      "isLeaf": true,
+      "onTop1Path": true,
+      "isTrueLabel": true,
+      "isOther": false,
+      "classId": 151,
+      "rank": 1
+    },
+    {
+      "id": "n02087046",
+      "label": "toy terrier",
+      "depth": 5,
+      "parent": "n02085374",
+      "children": [],
+      "value": 0.015743623456217916,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 158,
+      "rank": 2
+    },
+    {
+      "id": "n02086346",
+      "label": "toy spaniel",
+      "depth": 5,
+      "parent": "n02085374",
+      "children": [
+        "n02086910",
+        "n02086646"
+      ],
+      "value": 0.0019512636648871605,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02086910",
+      "label": "papillon",
+      "depth": 6,
+      "parent": "n02086346",
+      "children": [],
+      "value": 0.0018927251776959604,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 157,
+      "rank": 4
+    },
+    {
+      "id": "n02086646",
+      "label": "Blenheim spaniel",
+      "depth": 6,
+      "parent": "n02086346",
+      "children": [],
+      "value": 5.8538487191200096e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 156,
+      "rank": 12
+    },
+    {
+      "id": "n02085782",
+      "label": "Japanese spaniel",
+      "depth": 5,
+      "parent": "n02085374",
+      "children": [],
+      "value": 0.0004693035647770842,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 152,
+      "rank": 5
+    },
+    {
+      "id": "n02086079",
+      "label": "Pekinese",
+      "depth": 5,
+      "parent": "n02085374",
+      "children": [],
+      "value": 0.0002725074488019267,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 154,
+      "rank": 8
+    },
+    {
+      "id": "n02086240",
+      "label": "Shih-Tzu",
+      "depth": 5,
+      "parent": "n02085374",
+      "children": [],
+      "value": 3.844889943702952e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 155,
+      "rank": 19
+    },
+    {
+      "id": "n02092468",
+      "label": "terrier",
+      "depth": 4,
+      "parent": "n02084071",
+      "children": [
+        "n02096585",
+        "n02094433",
+        "n02093754"
+      ],
+      "value": 0.0025196617162194547,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02096585",
+      "label": "Boston bull",
+      "depth": 5,
+      "parent": "n02092468",
+      "children": [],
+      "value": 0.002424443531376383,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 195,
+      "rank": 3
+    },
+    {
+      "id": "n02094433",
+      "label": "Yorkshire terrier",
+      "depth": 5,
+      "parent": "n02092468",
+      "children": [],
+      "value": 5.073965109189733e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 187,
+      "rank": 14
+    },
+    {
+      "id": "n02093754",
+      "label": "Border terrier",
+      "depth": 5,
+      "parent": "n02092468",
+      "children": [],
+      "value": 4.447853375117459e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 182,
+      "rank": 16
+    },
+    {
+      "id": "n02112018",
+      "label": "Pomeranian",
+      "depth": 4,
+      "parent": "n02084071",
+      "children": [],
+      "value": 0.00040367180279394344,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 259,
+      "rank": 6
+    },
+    {
+      "id": "n02103406",
+      "label": "working dog",
+      "depth": 4,
+      "parent": "n02084071",
+      "children": [
+        "n02107312",
+        "n02104523"
+      ],
+      "value": 0.00036324351476817347,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02107312",
+      "label": "miniature pinscher",
+      "depth": 5,
+      "parent": "n02103406",
+      "children": [],
+      "value": 0.00029978793521888994,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 237,
+      "rank": 7
+    },
+    {
+      "id": "n02104523",
+      "label": "shepherd dog",
+      "depth": 5,
+      "parent": "n02103406",
+      "children": [
+        "n02105412",
+        "n02106166"
+      ],
+      "value": 6.345557954928356e-05,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02105412",
+      "label": "kelpie",
+      "depth": 6,
+      "parent": "n02104523",
+      "children": [],
+      "value": 4.0416273425962116e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 227,
+      "rank": 17
+    },
+    {
+      "id": "n02106166",
+      "label": "Border collie",
+      "depth": 6,
+      "parent": "n02104523",
+      "children": [],
+      "value": 2.303930612332144e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 232,
+      "rank": 22
+    },
+    {
+      "id": "n02112706",
+      "label": "Brabancon griffon",
+      "depth": 4,
+      "parent": "n02084071",
+      "children": [],
+      "value": 0.00012314852433192015,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 262,
+      "rank": 9
+    },
+    {
+      "id": "n02113624",
+      "label": "toy poodle",
+      "depth": 4,
+      "parent": "n02084071",
+      "children": [],
+      "value": 3.9275365348319515e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 265,
+      "rank": 18
+    },
+    {
+      "id": "n02113978",
+      "label": "Mexican hairless",
+      "depth": 4,
+      "parent": "n02084071",
+      "children": [],
+      "value": 2.275198328293966e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 268,
+      "rank": 23
+    },
+    {
+      "id": "n02497673",
+      "label": "Madagascar cat",
+      "depth": 3,
+      "parent": "n00015388",
+      "children": [],
+      "value": 3.799343702329975e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 383,
+      "rank": 20
+    },
+    {
+      "id": "n00021939",
+      "label": "artifact",
+      "depth": 2,
+      "parent": "n00003553",
+      "children": [
+        "n03575240",
+        "n03076708"
+      ],
+      "value": 0.00030223229316951735,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03575240",
+      "label": "instrumentality",
+      "depth": 3,
+      "parent": "n00021939",
+      "children": [
+        "n03294048",
+        "n03250847",
+        "n04235860"
+      ],
+      "value": 0.000189578617460841,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03294048",
+      "label": "equipment",
+      "depth": 4,
+      "parent": "n03575240",
+      "children": [
+        "n02778669",
+        "n03976467"
+      ],
+      "value": 0.0001474233454078977,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02778669",
+      "label": "ball",
+      "depth": 5,
+      "parent": "n03294048",
+      "children": [
+        "n04409515",
+        "n03134739"
+      ],
+      "value": 9.850712753430867e-05,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n04409515",
+      "label": "tennis ball",
+      "depth": 6,
+      "parent": "n02778669",
+      "children": [],
+      "value": 6.919831805002783e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 852,
+      "rank": 10
+    },
+    {
+      "id": "n03134739",
+      "label": "croquet ball",
+      "depth": 6,
+      "parent": "n02778669",
+      "children": [],
+      "value": 2.930880948428085e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 522,
+      "rank": 21
+    },
+    {
+      "id": "n03976467",
+      "label": "Polaroid camera",
+      "depth": 5,
+      "parent": "n03294048",
+      "children": [],
+      "value": 4.891621787358901e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 732,
+      "rank": 15
+    },
+    {
+      "id": "n03250847",
+      "label": "drumstick",
+      "depth": 4,
+      "parent": "n03575240",
+      "children": [],
+      "value": 2.1864463381284166e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 542,
+      "rank": 24
+    },
+    {
+      "id": "n04235860",
+      "label": "sleeping bag",
+      "depth": 4,
+      "parent": "n03575240",
+      "children": [],
+      "value": 2.0290808671659167e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 797,
+      "rank": 25
+    },
+    {
+      "id": "n03076708",
+      "label": "commodity",
+      "depth": 3,
+      "parent": "n00021939",
+      "children": [
+        "n02808304",
+        "n04259630"
+      ],
+      "value": 0.00011265367570867637,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02808304",
+      "label": "bath towel",
+      "depth": 4,
+      "parent": "n03076708",
+      "children": [],
+      "value": 6.117268704928425e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 434,
+      "rank": 11
+    },
+    {
+      "id": "n04259630",
+      "label": "sombrero",
+      "depth": 4,
+      "parent": "n03076708",
+      "children": [],
+      "value": 5.148098865939213e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 808,
+      "rank": 13
+    },
+    {
+      "id": "other",
+      "label": "other (classes not shown)",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [],
+      "value": 0.0011213057382705172,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": true,
+      "classId": null,
+      "rank": null
+    }
+  ]
+}
