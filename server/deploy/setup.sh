@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # One-time provisioning of a fresh Ubuntu 24.04 Vultr server for Stark (master plan 12.2). Run as root:
 #   bash setup.sh [hostname]      hostname defaults to <public-ip-with-dashes>.sslip.io
+#   STARK_BRANCH=agent/claude-core bash setup.sh    deploy a branch other than main (saved for update.sh)
 # Installs Node 20, git and Caddy; clones the repo into /opt/stark as the "stark" user; installs the systemd
 # unit and the Caddyfile; opens only 22/80/443. It never writes secrets: create /etc/stark.env yourself.
 set -euo pipefail
 
 REPO=https://github.com/regulusaa/stark-knighthacks.git
 APP=/opt/stark
+BRANCH="${STARK_BRANCH:-main}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
 [ "$(id -u)" = 0 ] || { echo "run as root" >&2; exit 1; }
@@ -38,8 +40,9 @@ fi
 echo "==> user and app"
 id stark >/dev/null 2>&1 || useradd --system --create-home --home-dir /home/stark --shell /usr/sbin/nologin stark
 if [ ! -d "$APP/.git" ]; then
-  git clone --branch main "$REPO" "$APP"
+  git clone --branch "$BRANCH" "$REPO" "$APP"
 fi
+echo "$BRANCH" > /etc/stark.branch
 chown -R stark:stark "$APP"
 sudo -u stark -H bash -c "cd $APP && npm ci --omit=dev"
 

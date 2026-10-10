@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-# Pull main, reinstall dependencies, restart, and check /health. Run as root on the server:
+# Pull the deployed branch (main unless /etc/stark.branch or STARK_BRANCH says otherwise), reinstall dependencies, restart, and check /health. Run as root on the server:
 #   bash /opt/stark/server/deploy/update.sh
 set -euo pipefail
 APP=/opt/stark
+BRANCH="${STARK_BRANCH:-$(cat /etc/stark.branch 2>/dev/null || echo main)}"
+echo "$BRANCH" > /etc/stark.branch
 cd "$APP"
-sudo -u stark -H git -C "$APP" pull --ff-only origin main
+sudo -u stark -H git -C "$APP" fetch origin "$BRANCH"
+sudo -u stark -H git -C "$APP" checkout -B "$BRANCH" "origin/$BRANCH"
 sudo -u stark -H bash -c "cd $APP && npm ci --omit=dev"
 systemctl restart stark
 
