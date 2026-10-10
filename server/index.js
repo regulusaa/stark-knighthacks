@@ -73,13 +73,14 @@ export function start({
         port: actual, io, http, rooms, hostKey,
         close: () => new Promise((done) => { rooms.close(); io.close(() => done()); }),
       });
-      if (log === console.log) printUrls(actual, publicUrl, generatedKey ? hostKey : null, rooms.fixedRoom);
+      if (log === console.log) printUrls(actual, host, publicUrl, generatedKey ? hostKey : null, rooms.fixedRoom);
     });
   });
 }
 
-function printUrls(port, publicUrl, generatedKey, fixedRoom) {
-  const lan = Object.values(networkInterfaces()).flat()
+function printUrls(port, host, publicUrl, generatedKey, fixedRoom) {
+  const loopbackOnly = host === '127.0.0.1' || host === 'localhost'; // behind Caddy: LAN addresses can't reach it
+  const lan = loopbackOnly ? [] : Object.values(networkInterfaces()).flat()
     .filter((a) => a && a.family === 'IPv4' && !a.internal).map((a) => a.address);
   console.log(`stark server on port ${port}`);
   console.log(`  this machine:  http://localhost:${port}/display`);
