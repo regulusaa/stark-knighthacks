@@ -19,6 +19,7 @@ echo "==> hostname: $HOST"
 
 echo "==> packages"
 export DEBIAN_FRONTEND=noninteractive
+rm -f /etc/apt/sources.list.d/caddy-stable.list  # left by an older version of this script
 apt-get update -q
 apt-get install -yq git curl ufw ca-certificates gnupg
 
