@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#050208">
+  <title>Stark · Gesture Lab</title>
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <style>
+    body { min-height: 100dvh; overflow-x: hidden; }
+    .shell { width: min(100%, 1500px); min-height: 100dvh; margin: auto; padding: calc(var(--safe-top) + 24px) calc(var(--safe-right) + 24px) calc(var(--safe-bottom) + 24px) calc(var(--safe-left) + 24px); display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 32px; }
+    .main { min-width: 0; display: flex; flex-direction: column; }
+    .eyebrow { margin: 0 0 8px; color: var(--inferno-5); font-size: var(--type-small); font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1.05; letter-spacing: -.05em; }
+    .intro { max-width: 660px; margin: 12px 0 24px; color: var(--color-text-secondary); line-height: 1.45; }
+    .pad-wrap { position: relative; min-height: 420px; flex: 1; border: 1px solid #493153; border-radius: 24px; padding: 8px; background: linear-gradient(125deg, #26112f, #0e0a14 36%, #17111f 90%); box-shadow: 0 24px 80px #0008, inset 0 1px #ffffff18; }
+    .pad { position: relative; width: 100%; height: 100%; min-height: 404px; overflow: hidden; border: 1px solid #ffffff10; border-radius: 17px; touch-action: none; overscroll-behavior: contain; user-select: none; -webkit-user-select: none; background: radial-gradient(circle at 50% 40%, #781c6d25, transparent 42%), linear-gradient(90deg, #ffffff08 1px, transparent 1px), linear-gradient(#ffffff08 1px, transparent 1px), #0e0a14; background-size: auto, 32px 32px, 32px 32px, auto; }
+    .pad::after { content: ""; position: absolute; inset: 24px; pointer-events: none; border: 1px dashed #ffffff18; border-radius: 12px; }
+    .pad-copy { position: absolute; top: 50%; left: 50%; width: min(80%, 390px); transform: translate(-50%, -50%); pointer-events: none; text-align: center; transition: opacity var(--motion-fast); }
+    .pad.active .pad-copy { opacity: .18; }
+    .pad-icon { display: block; margin-bottom: 8px; color: var(--inferno-5); font-size: 3rem; line-height: 1; }
+    .pad-copy strong { display: block; font-size: var(--type-lg); }
+    .pad-copy span:last-child { display: block; margin-top: 8px; color: var(--color-text-secondary); line-height: 1.4; }
+    .touch { position: absolute; z-index: 2; width: 54px; height: 54px; transform: translate(-50%, -50%); display: none; pointer-events: none; border: 2px solid var(--inferno-6); border-radius: 50%; background: #fbb61a44; box-shadow: 0 0 0 9px #fbb61a18, 0 0 32px #ed692585; }
+    .touch.second { border-color: var(--inferno-3); background: #bc375455; box-shadow: 0 0 0 9px #bc375422, 0 0 32px #bc375488; }
+    .pinch-line { position: absolute; z-index: 1; height: 2px; display: none; transform-origin: left center; pointer-events: none; background: linear-gradient(90deg, var(--inferno-5), var(--inferno-3)); box-shadow: 0 0 12px var(--inferno-4); }
+    .footer-hint { margin: 16px 0 0; color: var(--color-text-secondary); font-size: var(--type-small); }
+    .telemetry { align-self: start; padding: 24px; border: 1px solid #ffffff1b; border-radius: var(--radius); background: var(--color-surface-raised); }
+    .telemetry h2 { margin: 0 0 4px; font-size: var(--type-lg); }
+    .live { display: flex; align-items: center; gap: 8px; margin: 0 0 24px; color: var(--color-text-secondary); font-size: var(--type-small); }
+    .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--inferno-5); box-shadow: 0 0 12px var(--inferno-5); }
+    .stat { padding: 16px 0; border-top: 1px solid #ffffff16; }
+    .stat-label { display: block; color: var(--color-text-secondary); font-size: var(--type-small); }
+    .stat-value { display: block; margin-top: 4px; font-size: var(--type-xl); font-variant-numeric: tabular-nums; letter-spacing: -.035em; }
+    .stat-value small { color: var(--color-text-secondary); font-size: var(--type-small); letter-spacing: 0; }
+    .settings { padding-top: 20px; border-top: 1px solid #ffffff16; }
+    .settings-row { display: flex; justify-content: space-between; gap: 16px; }
+    label { color: var(--color-text); }
+    output { color: var(--inferno-5); font-variant-numeric: tabular-nums; }
+    input[type="range"] { width: 100%; margin: 8px 0 16px; accent-color: var(--inferno-5); }
+    button { width: 100%; min-height: 48px; border: 1px solid #ffffff35; border-radius: var(--radius); background: #ffffff0b; color: var(--color-text); cursor: pointer; }
+    button:active { background: #ffffff20; }
+    button:focus-visible, input:focus-visible { outline: 3px solid var(--color-true-class); outline-offset: 3px; }
+    @media (max-width: 760px) {
+      .shell { min-height: 100dvh; display: flex; flex-direction: column; gap: 16px; padding: calc(var(--safe-top) + 16px) calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 16px) calc(var(--safe-left) + 16px); }
+      h1 { font-size: 2.2rem; }
+      .intro { margin: 8px 0 16px; font-size: var(--type-small); }
+      .pad-wrap { flex: none; min-height: 280px; height: min(35dvh, 330px); padding: 6px; border-radius: 18px; }
+      .pad { min-height: 0; border-radius: 12px; }
+      .pad-copy strong { font-size: var(--type-base); }
+      .pad-icon { font-size: 2.5rem; }
+      .footer-hint { display: none; }
+      .telemetry { padding: 16px; }
+      .telemetry h2 { font-size: var(--type-base); }
+      .live { margin-bottom: 8px; }
+      .stat { display: inline-block; width: 48%; padding: 8px 0; vertical-align: top; }
+      .stat-value { font-size: var(--type-lg); }
+      .settings { padding-top: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="main" aria-label="Gesture test area">
+      <p class="eyebrow">Stark / UI test 01</p>
+      <h1>Gesture lab<span style="color:var(--inferno-5)">.</span></h1>
+      <p class="intro">Drag with one finger to orbit. Pinch with two fingers to zoom. The dots and readings below show exactly what the controller sends.</p>
+      <div class="pad-wrap">
+        <div id="pad" class="pad" aria-label="Gesture trackpad">
+          <div class="pad-copy"><span class="pad-icon" aria-hidden="true">◎</span><strong>Touch anywhere to begin</strong><span>One finger moves the view<br>Two fingers change distance</span></div>
+          <div id="pinch-line" class="pinch-line"></div>
+          <div id="touch-one" class="touch"></div>
+          <div id="touch-two" class="touch second"></div>
+        </div>
+      </div>
+      <p class="footer-hint">This page tests touch input only. It does not connect to the display.</p>
+    </section>
+    <aside class="telemetry" aria-label="Live gesture telemetry">
+      <h2>Live input</h2><p class="live" id="gesture-state">Ready for touch</p>
+      <div class="stat"><span class="stat-label">Pointers down</span><span class="stat-value" id="pointer-count">0</span></div>
+      <div class="stat"><span class="stat-label">Orbit Δ X</span><span class="stat-value" id="orbit-x">+0.000 <small>widths</small></span></div>
+      <div class="stat"><span class="stat-label">Orbit Δ Y</span><span class="stat-value" id="orbit-y">+0.000 <small>heights</small></span></div>
+      <div class="stat"><span class="stat-label">Zoom Δ</span><span class="stat-value" id="zoom">+0.000 <small>log ratio</small></span></div>
+      <div class="settings"><div class="settings-row"><label for="sensitivity">Sensitivity</label><output id="sensitivity-value" for="sensitivity">1.0×</output></div><input id="sensitivity" type="range" min="0.4" max="2.5" step="0.1" value="1"><button id="reset" type="button">Reset readings</button></div>
+    </aside>
+  </main>
+  <script type="module">
+    import { create } from '../gestures.js';
+
+    const pad = document.getElementById('pad');
+    const pointers = new Map();
+    const dots = [document.getElementById('touch-one'), document.getElementById('touch-two')];
+    const line = document.getElementById('pinch-line');
+    const count = document.getElementById('pointer-count');
+    const state = document.getElementById('gesture-state');
+    const values = { x: 0, y: 0, z: 0 };
+    const format = value => `${value >= 0 ? '+' : ''}${value.toFixed(3)}`;
+    const renderValues = () => {
+      document.getElementById('orbit-x').innerHTML = `${format(values.x)} <small>widths</small>`;
+      document.getElementById('orbit-y').innerHTML = `${format(values.y)} <small>heights</small>`;
+      document.getElementById('zoom').innerHTML = `${format(values.z)} <small>log ratio</small>`;
+    };
+    const gesture = create(pad);
+    gesture.onOrbit(({ dx, dy }) => { values.x += dx; values.y += dy; renderValues(); });
+    gesture.onZoom(delta => { values.z += delta; renderValues(); });
+
+    function renderPointers() {
+      const rect = pad.getBoundingClientRect();
+      const active = [...pointers.values()];
+      dots.forEach((dot, index) => {
+        const p = active[index];
+        dot.style.display = p ? 'block' : 'none';
+        if (p) { dot.style.left = `${p.x - rect.left}px`; dot.style.top = `${p.y - rect.top}px`; }
+      });
+      line.style.display = active.length === 2 ? 'block' : 'none';
+      if (active.length === 2) {
+        const [a, b] = active;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        line.style.left = `${a.x - rect.left}px`;
+        line.style.top = `${a.y - rect.top}px`;
+        line.style.width = `${Math.hypot(dx, dy)}px`;
+        line.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+      }
+      count.textContent = String(active.length);
+      state.textContent = active.length === 2 ? 'Pinching · zoom' : active.length === 1 ? 'Dragging · orbit' : 'Ready for touch';
+      pad.classList.toggle('active', active.length > 0);
+    }
+
+    pad.addEventListener('pointerdown', event => { if (pointers.size < 2) pointers.set(event.pointerId, { x: event.clientX, y: event.clientY }); renderPointers(); });
+    pad.addEventListener('pointermove', event => { if (pointers.has(event.pointerId)) { pointers.set(event.pointerId, { x: event.clientX, y: event.clientY }); renderPointers(); } });
+    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(type, event => { pointers.delete(event.pointerId); renderPointers(); });
+    const sensitivity = document.getElementById('sensitivity');
+    sensitivity.addEventListener('input', () => { gesture.setSensitivity(Number(sensitivity.value)); document.getElementById('sensitivity-value').textContent = `${Number(sensitivity.value).toFixed(1)}×`; });
+    document.getElementById('reset').addEventListener('click', () => { values.x = values.y = values.z = 0; renderValues(); });
+    window.__starkReady = true;
+  </script>
+</body>
+</html>
