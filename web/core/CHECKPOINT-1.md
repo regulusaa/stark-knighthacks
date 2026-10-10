@@ -2,7 +2,7 @@
 
 The display and the controllers working together through the relay: Claude's display (`/web/core`), Codex's controller and HUD (`/web/ui`) and the relay (`/server`), merged.
 
-Status: **automated runs pass; the real-device runs and the Vultr runs are still to do.** Fill in the empty columns after those runs.
+Status: **passed.** The automated runs pass, and on 2026-10-10 Ray reported that the real-device runs (local over the hotspot, and Vultr) all passed. Ray didn't report per-step numbers from those runs, so those columns say "pass (Ray)".
 
 ## The script
 
@@ -26,23 +26,23 @@ A test socket counts the state messages the controllers receive. It is Chromium 
 
 | # | Step | Automated, local (3 runs) | iPad + iPhone, local over hotspot (3 runs) | iPad + iPhone, Vultr (3 runs) |
 |---|---|---|---|---|
-| 0 | Display registers, gets a server-issued room, HUD shows the room and QR | pass | | |
-| 0 | Host and guest pages connect; display counts 2 controllers | pass | | |
-| 1 | Host taps the retriever, display loads it | pass 3/3 | | |
-| 2 | Pulse plays and completes, strand reveals, true-class ring shown | pass 3/3 | | |
-| 2 | Guest's answer list shows the retriever's answers | pass 3/3 | | |
-| 3 | Guest takes control | pass 3/3 (68–172 ms) | | |
-| 3 | Guest drag orbits the display | pass 3/3 (≈1.8 rad for a 45%-width drag) | | |
-| 3 | Guest pinch zooms the display | pass 3/3 (distance 13.5 → 6.2 for a 2.5× pinch) | | |
-| 3 | Guest picks "Labrador retriever" | pass 3/3 | | |
-| 4 | Display focuses 208, camera flies to it, tip unoccluded | pass 3/3 | | |
-| 4 | Labrador heatmap on the photo; focus card on the phone | pass 3/3 (round trip 32–41 ms) | | |
-| 5 | Idle release 20 s after the last driver action; guest sees "Take the wheel" | pass 3/3 | | |
-| 6 | Host's Reset view overrides the guest (Ray driving, guest locked) | pass 3/3 | | |
-| 6 | Display returns to the default camera | pass 3/3 | | |
-| – | State traffic ≤ 10/s per kind at the controllers | pass (max 2/s) | | |
-| – | No page reloaded across the 3 runs | pass | | |
-| – | No console errors on the display, host or guest | pass (0 / 0 / 0) | | |
+| 0 | Display registers, gets a server-issued room, HUD shows the room and QR | pass | pass (Ray) | pass (Ray) |
+| 0 | Host and guest pages connect; display counts 2 controllers | pass | pass (Ray) | pass (Ray) |
+| 1 | Host taps the retriever, display loads it | pass 3/3 | pass (Ray) | pass (Ray) |
+| 2 | Pulse plays and completes, strand reveals, true-class ring shown | pass 3/3 | pass (Ray) | pass (Ray) |
+| 2 | Guest's answer list shows the retriever's answers | pass 3/3 | pass (Ray) | pass (Ray) |
+| 3 | Guest takes control | pass 3/3 (68–172 ms) | pass (Ray) | pass (Ray) |
+| 3 | Guest drag orbits the display | pass 3/3 (≈1.8 rad for a 45%-width drag) | pass (Ray) | pass (Ray) |
+| 3 | Guest pinch zooms the display | pass 3/3 (distance 13.5 → 6.2 for a 2.5× pinch) | pass (Ray) | pass (Ray) |
+| 3 | Guest picks "Labrador retriever" | pass 3/3 | pass (Ray) | pass (Ray) |
+| 4 | Display focuses 208, camera flies to it, tip unoccluded | pass 3/3 | pass (Ray) | pass (Ray) |
+| 4 | Labrador heatmap on the photo; focus card on the phone | pass 3/3 (round trip 32–41 ms) | pass (Ray) | pass (Ray) |
+| 5 | Idle release 20 s after the last driver action; guest sees "Take the wheel" | pass 3/3 | pass (Ray) | pass (Ray) |
+| 6 | Host's Reset view overrides the guest (Ray driving, guest locked) | pass 3/3 | pass (Ray) | pass (Ray) |
+| 6 | Display returns to the default camera | pass 3/3 | pass (Ray) | pass (Ray) |
+| – | State traffic ≤ 10/s per kind at the controllers | pass (max 2/s) | pass (Ray) | pass (Ray) |
+| – | No page reloaded across the 3 runs | pass | pass (Ray) | pass (Ray) |
+| – | No console errors on the display, host or guest | pass (0 / 0 / 0) | pass (Ray) | pass (Ray) |
 
 The automated run counts 67/67 checks: the 6 setup checks, 18 per run, and 7 at the end. The script is `checks/cc5run.mjs`.
 
