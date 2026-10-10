@@ -45,6 +45,10 @@ export async function connectRelay(api, { onStatus = () => {}, steer = null } = 
   const lastSent = {};   // event → performance.now() of the last emit
   const lastJson = {};   // event → the last payload emitted, serialized (forgotten on reconnect)
   const sent = { [EVENTS.DISPLAY_STATE]: 0, [EVENTS.FOCUS_STATE]: 0, [EVENTS.STEER_RESULT]: 0, deduped: 0 }; // counters for tests
+  // A steer-result must not reach controllers before the display-state that announces its image (they would drop
+  // it as belonging to another image and then wait for channel data): hold it until that state has gone out.
+  let stateImage = null;
+  let steerHeld = false;
   function send(event, payload, { force = false } = {}) {
     pending[event] = payload;
     if (force) lastJson[event] = undefined;
@@ -53,12 +57,17 @@ export async function connectRelay(api, { onStatus = () => {}, steer = null } = 
     timers[event] = setTimeout(() => {
       timers[event] = null;
       if (!socket.connected || !net.room) return;
+      if (event === EVENTS.STEER_RESULT && pending[event]?.imageId !== stateImage) { steerHeld = true; return; }
       const json = JSON.stringify(pending[event]); // serialized now: the latest state wins
       if (json === lastJson[event]) { sent.deduped += 1; return; }
       lastJson[event] = json;
       lastSent[event] = performance.now();
       sent[event] += 1;
       socket.emit(event, JSON.parse(json));
+      if (event === EVENTS.DISPLAY_STATE) {
+        stateImage = pending[event]?.image?.id ?? null;
+        if (steerHeld) { steerHeld = false; send(EVENTS.STEER_RESULT, pending[EVENTS.STEER_RESULT], { force: true }); }
+      }
     }, wait);
   }
   const withServerFields = (s) => ({ ...s, room: net.room, driver: net.driver, controllerCount: net.controllers.size });
