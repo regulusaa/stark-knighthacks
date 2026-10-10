@@ -1,5 +1,6 @@
 import { EVENTS, ERROR_CODES, ROLES, READY_FLAG } from '/contract/contract.js';
 import { create as createGestures } from '/ui/gestures.js';
+import { createAnswerList } from '/ui/answer-list.js';
 import { connect } from '/ui/transport.js';
 
 const query = new URLSearchParams(location.search);
@@ -29,6 +30,8 @@ let pendingControl = false;
 let noticeTimer = 0;
 let wakeLock = null;
 let wakeRequest = null;
+let queuedFocus = null;
+let optimisticFocus = null;
 
 app.dataset.role = role;
 if (query.get('mock') === '1') {
@@ -65,7 +68,7 @@ function scoreText(answer) {
 }
 
 function isDriving() {
-  return role === ROLES.HOST || (display?.driver?.id && display.driver.id === transport?.status.clientId);
+  return role === ROLES.HOST || (!pendingControl && display?.driver?.id && display.driver.id === transport?.status.clientId);
 }
 
 function setState(next, kind = null) {
@@ -108,9 +111,9 @@ function render() {
   window[READY_FLAG] = true;
   const driving = Boolean(isDriving());
   const guestViewing = role === ROLES.GUEST && !driving;
-  const otherLabel = display?.driver?.label;
-  document.getElementById('driver-label').textContent = role === ROLES.HOST ? 'Host control' : driving ? 'You are driving' : otherLabel ? `${otherLabel} is driving` : 'Ready for a driver';
-  label.textContent = role === ROLES.HOST ? 'Host' : driving ? 'Driving' : otherLabel ? `${otherLabel} driving` : 'Viewing';
+  const otherLabel = display?.driver?.id !== transport?.status.clientId ? display?.driver?.label : null;
+  document.getElementById('driver-label').textContent = role === ROLES.HOST ? 'Host control' : driving ? 'You are driving' : pendingControl ? 'Requesting control' : otherLabel ? `${otherLabel} is driving` : 'Ready for a driver';
+  label.textContent = role === ROLES.HOST ? 'Host' : driving ? 'Driving' : pendingControl ? 'Requesting' : otherLabel ? `${otherLabel} driving` : 'Viewing';
   document.getElementById('image-name').textContent = display?.image?.name || 'Waiting for image';
   document.getElementById('top-answer').textContent = scoreText(display?.top1);
   trackpadFrame.classList.toggle('locked', guestViewing);
@@ -147,11 +150,15 @@ function onStatus(status) {
   } else if (status.phase === 'disconnected') {
     display = null;
     pendingControl = false;
+    queuedFocus = null;
+    optimisticFocus = null;
     releaseWakeLock();
     setState('error', 'offline');
   } else if (status.phase === 'reconnecting') {
     display = null;
     pendingControl = false;
+    queuedFocus = null;
+    optimisticFocus = null;
     releaseWakeLock();
     setState('error', 'reconnecting');
   } else if (status.phase === 'error') {
@@ -161,8 +168,20 @@ function onStatus(status) {
 }
 
 function onDisplayState(value) {
+  const imageChanged = Boolean(display && display.image?.id !== value.image?.id);
   display = value;
-  pendingControl = false;
+  const answersChanged = answerList.setAnswers(value.answers);
+  if (imageChanged) {
+    queuedFocus = null;
+    optimisticFocus = null;
+    answerList.setFocus(null, { scroll: false });
+    answerList.resetScroll();
+  } else if (optimisticFocus && answersChanged) {
+    answerList.setFocus(value.answers.find(answer => answer.classId === optimisticFocus.classId) || null);
+  } else if (!optimisticFocus || (value.focus?.classId ?? null) === optimisticFocus.classId) {
+    optimisticFocus = null;
+    answerList.setFocus(value.focus);
+  }
   setState(role === ROLES.HOST ? 'host' : isDriving() ? 'guest-driving' : 'guest-viewing');
   void acquireWakeLock();
 }
@@ -173,7 +192,25 @@ function onDriverChanged({ driver }) {
   pendingControl = false;
   const driving = Boolean(isDriving());
   setState(role === ROLES.HOST ? 'host' : driving ? 'guest-driving' : 'guest-viewing');
-  if (driving && role === ROLES.GUEST) haptic(12);
+  if (driving && role === ROLES.GUEST) {
+    haptic(12);
+    if (queuedFocus) {
+      const { event, payload } = queuedFocus;
+      queuedFocus = null;
+      transport.emit(event, payload);
+    }
+  } else if (queuedFocus) {
+    queuedFocus = null;
+    optimisticFocus = null;
+    answerList.setFocus(display.focus);
+  }
+}
+
+function onFocusState(value) {
+  if (!display) return;
+  display = { ...display, focus: value };
+  optimisticFocus = null;
+  answerList.setFocus(value);
 }
 
 function onError(error) {
@@ -182,8 +219,11 @@ function onError(error) {
   else if (error.code === ERROR_CODES.BAD_KEY) { releaseWakeLock(); setState('error', 'badKey'); }
   else if (error.code === ERROR_CODES.LOCKED) {
     if (display && error.driver) display = { ...display, driver: error.driver };
+    queuedFocus = null;
+    optimisticFocus = null;
+    answerList.setFocus(display?.focus);
     setState(role === ROLES.HOST ? 'host' : 'guest-viewing');
-    showNotice(error.driver ? `${error.driver.label} is driving. Try again when they stop.` : 'Someone else is driving.');
+    showNotice(error.driver ? `${error.driver.label} is driving · Take control in a moment` : 'Someone else is driving · Take control in a moment');
     if (mockScene === 'error-locked') window.__cx2Ready = true;
     haptic(6);
   } else showNotice(error.message || 'That action did not work. Please try again.');
@@ -194,11 +234,16 @@ function startConnection() {
   releaseWakeLock();
   display = null;
   pendingControl = false;
+  queuedFocus = null;
+  optimisticFocus = null;
+  answerList.setAnswers([]);
+  answerList.setFocus(null);
   window[READY_FLAG] = false;
   setState('connecting');
   transport = connect({ room, role, key });
   transport.on(EVENTS.DISPLAY_STATE, onDisplayState);
   transport.on(EVENTS.DRIVER_CHANGED, onDriverChanged);
+  transport.on(EVENTS.FOCUS_STATE, onFocusState);
   transport.on(EVENTS.ERROR, onError);
   transport.on(EVENTS.PEER_LEFT, peer => {
     if (peer.role === ROLES.DISPLAY) {
@@ -224,6 +269,37 @@ function resetView() {
   showNotice('Reset view sent to the display.');
   haptic();
 }
+
+function requestFocus(event, payload, answer) {
+  if (!display) return;
+  const otherDriver = role === ROLES.GUEST && display.driver && display.driver.id !== transport?.status.clientId;
+  if (otherDriver) {
+    showNotice(`${display.driver.label} is driving · Take control in a moment`);
+    haptic(6);
+    return;
+  }
+  optimisticFocus = { classId: answer?.classId ?? null };
+  answerList.setFocus(answer);
+  haptic();
+  if (isDriving()) {
+    transport.emit(event, payload);
+  } else {
+    queuedFocus = { event, payload };
+    if (!pendingControl) takeControl();
+  }
+}
+
+function selectAnswer(answer) { requestFocus(EVENTS.FOCUS_TIP, { classId: answer.classId }, answer); }
+function clearFocus() {
+  if (answerList.hasFocus()) requestFocus(EVENTS.CLEAR_FOCUS, {}, null);
+}
+
+const answerList = createAnswerList({
+  root: document.getElementById('answers-panel'),
+  onSelect: selectAnswer,
+  onClear: clearFocus,
+  onLongLabel: showNotice,
+});
 
 takeCenter.addEventListener('click', takeControl);
 takeBottom.addEventListener('click', takeControl);

@@ -8,6 +8,8 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
   const params = new URLSearchParams(location.search);
   const mock = params.get('mock') === '1';
   const scene = params.get('scene') || '';
+  const longAnswers = params.get('answers') === 'long';
+  const initialFocusId = Number(params.get('focus'));
   const listeners = new Map();
   const statusListeners = new Set();
   const timers = new Set();
@@ -63,6 +65,31 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
     return response.json();
   }
 
+  function longAnswerDisplay(base) {
+    const original = new Map(base.answers.map(answer => [answer.classId, answer]));
+    const top1 = { ...original.get(852), rank: 1, score: 0.41, isTop1: true, isTrueClass: false };
+    const entries = [
+      top1,
+      { ...original.get(208), rank: 2, score: 0.11 },
+      { ...original.get(205), rank: 3, score: 0.05 },
+      { ...original.get(222), rank: 4, score: 0.03 },
+      { ...original.get(257), rank: 5, score: 0.025 },
+      { classId: 209, label: 'Chesapeake Bay retriever', score: 0.02, rank: 6, hasHeatmap: true },
+      { classId: 206, label: 'curly-coated retriever', score: 0.015, rank: 7, hasHeatmap: false },
+      { classId: 213, label: 'Irish setter', score: 0.012, rank: 8, hasHeatmap: true },
+      { classId: 212, label: 'English setter', score: 0.009, rank: 9, hasHeatmap: false },
+      { classId: 210, label: 'German short-haired pointer', score: 0.007, rank: 10, hasHeatmap: false },
+      { ...original.get(207), rank: 12, score: 0.004, isTop1: false, isTrueClass: true },
+    ].map(answer => ({ isTop1: false, isTrueClass: false, ...answer }));
+    return {
+      ...base,
+      image: { id: 'adv_retriever', name: 'Adversarial retriever', category: 'adversarial' },
+      top1,
+      trueClass: entries.at(-1),
+      answers: entries,
+    };
+  }
+
   async function beginMock() {
     try {
       [displayState, manifest, fixtureError, fgsm] = await Promise.all([
@@ -98,11 +125,13 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
       currentDriver = scene === 'guest-driving' ? { id: status.clientId, label: status.label, isHost: false }
         : scene === 'guest-viewing' || scene === 'error-locked' ? otherGuest : null;
       displayState = structuredClone(displayState);
+      if (longAnswers) displayState = longAnswerDisplay(displayState);
       displayState.room = room;
       displayState.driver = currentDriver;
-      displayState.focus = null;
+      displayState.focus = displayState.answers.find(answer => answer.classId === initialFocusId) || null;
       deliver(EVENTS.PEER_JOINED, { clientId: 'd_mock', role: ROLES.DISPLAY, label: 'Display' });
       deliver(EVENTS.DISPLAY_STATE, structuredClone(displayState));
+      if (displayState.focus) deliver(EVENTS.FOCUS_STATE, structuredClone(displayState.focus));
       if (scene === 'error-locked') {
         later(400, () => mockError(ERROR_CODES.LOCKED, fixtureError.message, { event: EVENTS.TAKE_CONTROL, driver: otherGuest }));
       }

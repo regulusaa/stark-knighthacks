@@ -46,10 +46,20 @@
 
         <aside id="side-panel" class="side-panel">
           <div class="current-image"><span class="eyebrow">ON DISPLAY</span><strong id="image-name">Waiting for image</strong><span id="top-answer">Model score will appear here</span></div>
-          <div class="slot"><div><span class="slot-index">01</span><h3>Answers</h3></div><p>The answer list arrives in CX-3.</p></div>
+          <section id="answers-panel" class="answers-panel" aria-label="Model answers">
+            <div class="answers-heading"><div><span class="slot-index">01</span><h3>Answers</h3></div><span id="answer-count" class="answer-count">0</span></div>
+            <div id="focus-card" class="focus-card" hidden>
+              <div class="focus-card-top"><span class="eyebrow">FOCUSED ANSWER</span><button id="clear-focus" class="clear-chip" type="button">Clear</button></div>
+              <strong id="focus-label" class="focus-label"></strong>
+              <div class="focus-meta"><span id="focus-score"></span><span id="focus-rank"></span></div>
+              <p id="focus-heatmap" class="focus-heatmap"></p>
+              <p class="focus-caption">Highlights image regions associated with this class score.</p>
+            </div>
+            <div id="answer-list" class="answer-list" role="group" aria-label="Answers ranked by model score"></div>
+          </section>
           <div id="host-slots" class="host-slots" hidden>
-            <div class="slot"><div><span class="slot-index">02</span><h3>Gallery</h3></div><p>Image picker arrives in CX-3.</p></div>
-            <div class="slot"><div><span class="slot-index">03</span><h3>Playback &amp; modes</h3></div><p>Controls arrive in CX-4.</p></div>
+            <div class="slot"><div><span class="slot-index">02</span><h3>Gallery</h3></div><p>Image picker will appear here.</p></div>
+            <div class="slot"><div><span class="slot-index">03</span><h3>Playback &amp; modes</h3></div><p>Playback controls will appear here.</p></div>
             <button id="host-reset" class="secondary-button" type="button">Reset view</button>
           </div>
         </aside>
