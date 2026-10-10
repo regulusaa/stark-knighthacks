@@ -15,11 +15,33 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
-        "atlas": false,
-        "stability": false,
+        "atlas": true,
+        "stability": true,
         "fgsm": false,
         "medical": false
-      }
+      },
+      "steerable": true
+    },
+    {
+      "id": "adv_retriever",
+      "name": "Golden retriever (adversarial)",
+      "category": "adversarial",
+      "order": 2,
+      "trueClass": {
+        "classId": 207,
+        "label": "golden retriever"
+      },
+      "folder": "assets/adv_retriever/",
+      "files": {
+        "crop": true,
+        "tree": true,
+        "gradcam": true,
+        "atlas": true,
+        "stability": false,
+        "fgsm": true,
+        "medical": false
+      },
+      "steerable": true
     },
     {
       "id": "ambig_cat",
@@ -35,11 +57,33 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
+        "atlas": true,
+        "stability": true,
+        "fgsm": false,
+        "medical": false
+      },
+      "steerable": true
+    },
+    {
+      "id": "med_xray_pneumonia",
+      "name": "Chest X-ray (pneumonia)",
+      "category": "medical",
+      "order": 4,
+      "trueClass": {
+        "classId": 8,
+        "label": "Pneumonia"
+      },
+      "folder": "assets/med_xray_pneumonia/",
+      "files": {
+        "crop": true,
+        "tree": true,
+        "gradcam": true,
         "atlas": false,
         "stability": false,
         "fgsm": false,
-        "medical": false
-      }
+        "medical": true
+      },
+      "steerable": false
     },
     {
       "id": "ambig_wolf",
@@ -55,11 +99,12 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
-        "atlas": false,
-        "stability": false,
+        "atlas": true,
+        "stability": true,
         "fgsm": false,
         "medical": false
-      }
+      },
+      "steerable": true
     },
     {
       "id": "clean_sportscar",
@@ -75,11 +120,12 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
-        "atlas": false,
+        "atlas": true,
         "stability": false,
         "fgsm": false,
         "medical": false
-      }
+      },
+      "steerable": true
     },
     {
       "id": "clean_monarch",
@@ -95,11 +141,12 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
-        "atlas": false,
+        "atlas": true,
         "stability": false,
         "fgsm": false,
         "medical": false
-      }
+      },
+      "steerable": true
     },
     {
       "id": "ambig_chihuahua",
@@ -115,11 +162,30 @@
         "crop": true,
         "tree": true,
         "gradcam": true,
-        "atlas": false,
+        "atlas": true,
         "stability": false,
         "fgsm": false,
         "medical": false
-      }
+      },
+      "steerable": true
+    },
+    {
+      "id": "med_xray_normal",
+      "name": "Chest X-ray (normal)",
+      "category": "medical",
+      "order": 9,
+      "trueClass": null,
+      "folder": "assets/med_xray_normal/",
+      "files": {
+        "crop": true,
+        "tree": true,
+        "gradcam": true,
+        "atlas": false,
+        "stability": false,
+        "fgsm": false,
+        "medical": true
+      },
+      "steerable": false
     }
   ]
 }

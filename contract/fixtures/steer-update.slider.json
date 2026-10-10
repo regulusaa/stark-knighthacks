@@ -1,0 +1,14 @@
+{
+  "seq": 12,
+  "set": [
+    {
+      "channel": 87,
+      "scale": 0
+    },
+    {
+      "channel": 1187,
+      "scale": 2
+    }
+  ],
+  "probe": 1187
+}

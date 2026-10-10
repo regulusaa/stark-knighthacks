@@ -3,6 +3,7 @@
 // have a faint twin drawn only where tissue hides them, so the chosen answer is never lost behind the brain.
 import * as THREE from 'three';
 import { inferno } from './inferno.js';
+import { retireLater } from './scene.js';
 
 export const TIPS = {
   radiusBase: 0.08,
@@ -47,12 +48,13 @@ export function createTips() {
   let focused = null;
 
   function dispose() {
+    const old = [];
     for (const t of tips) {
       group.remove(t.mesh, t.pick);
-      if (t.halo) { group.remove(t.halo); t.halo.material.dispose(); }
-      t.mesh.material.dispose();
-      t.twin.material.dispose();
+      if (t.halo) { group.remove(t.halo); old.push(t.halo.material); }
+      old.push(t.mesh.material, t.twin.material);
     }
+    retireLater(old);
     tips = [];
     byClass.clear();
     hovered = null;

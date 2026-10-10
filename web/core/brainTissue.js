@@ -6,12 +6,12 @@ import { INFERNO_GLSL, infernoTexture } from './inferno.js';
 
 export const TISSUE = {
   color: 0x74345f,           // dark plum crowns (sRGB); sulci are darkened by the baked cavity colours
-  roughness: 0.52,
+  roughness: 0.62,
   sheen: 0.6,
   sheenColor: 0xb89ad8,      // lavender bounce at grazing angles
   sheenRoughness: 0.42,
-  clearcoat: 0.3,            // a thin wet layer: satin highlights on the gyrus crowns
-  clearcoatRoughness: 0.34,
+  clearcoat: 0.1,            // a thin wet layer: satin highlights on the gyrus crowns
+  clearcoatRoughness: 0.5,
   glowRadius: 0.55,          // under-cortex path glow falloff (world units)
   glowStrength: 0.9,
 };

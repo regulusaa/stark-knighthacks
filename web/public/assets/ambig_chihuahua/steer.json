@@ -1,0 +1,367 @@
+{
+  "version": 1,
+  "imageId": "ambig_chihuahua",
+  "layer": "conv5_block3_out",
+  "grid": 7,
+  "channels": 2048,
+  "identityMaxAbsErr": 2.164646723201713e-06,
+  "classes": [
+    {
+      "classId": 151,
+      "label": "Chihuahua",
+      "rank": 1,
+      "logit": 14.927196502685547,
+      "top": [
+        {
+          "channel": 1593,
+          "contribution": 1.446778742445423,
+          "pooled": 8.632394031602509
+        },
+        {
+          "channel": 1901,
+          "contribution": 1.0590674369725737,
+          "pooled": 5.942084781977595
+        },
+        {
+          "channel": 1204,
+          "contribution": 0.8983909786349853,
+          "pooled": 4.775993916453148
+        },
+        {
+          "channel": 586,
+          "contribution": 0.766360632809826,
+          "pooled": 4.849633434597327
+        },
+        {
+          "channel": 1107,
+          "contribution": 0.6348563194449537,
+          "pooled": 5.84919178120944
+        },
+        {
+          "channel": 1055,
+          "contribution": 0.6005540582517055,
+          "pooled": 2.803783287807387
+        },
+        {
+          "channel": 387,
+          "contribution": 0.5424569580118264,
+          "pooled": 5.653464552091092
+        },
+        {
+          "channel": 1577,
+          "contribution": 0.5028238050986015,
+          "pooled": 2.8167729499388714
+        },
+        {
+          "channel": 1129,
+          "contribution": 0.5009109946915916,
+          "pooled": 3.9946334872926985
+        },
+        {
+          "channel": 1850,
+          "contribution": 0.4857574247351285,
+          "pooled": 3.8124581113153573
+        }
+      ]
+    },
+    {
+      "classId": 158,
+      "label": "toy terrier",
+      "rank": 2,
+      "logit": 10.79956340789795,
+      "top": [
+        {
+          "channel": 1901,
+          "contribution": 1.532858214905154,
+          "pooled": 5.942084781977595
+        },
+        {
+          "channel": 1593,
+          "contribution": 1.3535621014952277,
+          "pooled": 8.632394031602509
+        },
+        {
+          "channel": 1107,
+          "contribution": 0.7474022612746409,
+          "pooled": 5.84919178120944
+        },
+        {
+          "channel": 586,
+          "contribution": 0.6774896499612197,
+          "pooled": 4.849633434597327
+        },
+        {
+          "channel": 1010,
+          "contribution": 0.64122117657989,
+          "pooled": 2.945744335955503
+        },
+        {
+          "channel": 1495,
+          "contribution": 0.5420954987468475,
+          "pooled": 3.071858075200295
+        },
+        {
+          "channel": 1055,
+          "contribution": 0.5261129158784145,
+          "pooled": 2.803783287807387
+        },
+        {
+          "channel": 1602,
+          "contribution": 0.4834305274959761,
+          "pooled": 1.7369882792842632
+        },
+        {
+          "channel": 387,
+          "contribution": 0.3991987655476492,
+          "pooled": 5.653464552091092
+        },
+        {
+          "channel": 135,
+          "contribution": 0.33042081626509584,
+          "pooled": 2.5644289303799064
+        }
+      ]
+    },
+    {
+      "classId": 195,
+      "label": "Boston bull",
+      "rank": 3,
+      "logit": 8.928730010986328,
+      "top": [
+        {
+          "channel": 1593,
+          "contribution": 0.9175388139625957,
+          "pooled": 8.632394031602509
+        },
+        {
+          "channel": 1901,
+          "contribution": 0.7737675425756261,
+          "pooled": 5.942084781977595
+        },
+        {
+          "channel": 465,
+          "contribution": 0.7286418739369055,
+          "pooled": 2.5521224062053527
+        },
+        {
+          "channel": 387,
+          "contribution": 0.6038381865066544,
+          "pooled": 5.653464552091092
+        },
+        {
+          "channel": 1398,
+          "contribution": 0.44461437485325017,
+          "pooled": 4.854118994912323
+        },
+        {
+          "channel": 1204,
+          "contribution": 0.39033184459482884,
+          "pooled": 4.775993916453148
+        },
+        {
+          "channel": 728,
+          "contribution": 0.3757763139664885,
+          "pooled": 3.167826294898987
+        },
+        {
+          "channel": 424,
+          "contribution": 0.3602100069179568,
+          "pooled": 2.152908629300643
+        },
+        {
+          "channel": 17,
+          "contribution": 0.357810169171309,
+          "pooled": 1.5183742539006837
+        },
+        {
+          "channel": 1055,
+          "contribution": 0.2955953503838286,
+          "pooled": 2.803783287807387
+        }
+      ]
+    },
+    {
+      "classId": 157,
+      "label": "papillon",
+      "rank": 4,
+      "logit": 8.681145668029785,
+      "top": [
+        {
+          "channel": 1593,
+          "contribution": 1.7401232878988664,
+          "pooled": 8.632394031602509
+        },
+        {
+          "channel": 1338,
+          "contribution": 0.8242022841949596,
+          "pooled": 2.821651612009321
+        },
+        {
+          "channel": 1901,
+          "contribution": 0.8029777533035337,
+          "pooled": 5.942084781977595
+        },
+        {
+          "channel": 1107,
+          "contribution": 0.6444482063069666,
+          "pooled": 5.84919178120944
+        },
+        {
+          "channel": 451,
+          "contribution": 0.37278576653648593,
+          "pooled": 2.9702791145869663
+        },
+        {
+          "channel": 771,
+          "contribution": 0.3716709760837391,
+          "pooled": 1.9512835789699943
+        },
+        {
+          "channel": 1204,
+          "contribution": 0.31989726738107993,
+          "pooled": 4.775993916453148
+        },
+        {
+          "channel": 586,
+          "contribution": 0.3183089215538063,
+          "pooled": 4.849633434597327
+        },
+        {
+          "channel": 1495,
+          "contribution": 0.30040598159877047,
+          "pooled": 3.071858075200295
+        },
+        {
+          "channel": 1928,
+          "contribution": 0.24041553172783944,
+          "pooled": 1.0973931338105882
+        }
+      ]
+    },
+    {
+      "classId": 152,
+      "label": "Japanese spaniel",
+      "rank": 5,
+      "logit": 7.286622524261475,
+      "top": [
+        {
+          "channel": 1593,
+          "contribution": 1.16459192558496,
+          "pooled": 8.632394031602509
+        },
+        {
+          "channel": 1338,
+          "contribution": 0.6173794143212927,
+          "pooled": 2.821651612009321
+        },
+        {
+          "channel": 722,
+          "contribution": 0.4708248808238982,
+          "pooled": 2.798022438981095
+        },
+        {
+          "channel": 1204,
+          "contribution": 0.44220452856451337,
+          "pooled": 4.775993916453148
+        },
+        {
+          "channel": 465,
+          "contribution": 0.3952656122043396,
+          "pooled": 2.5521224062053527
+        },
+        {
+          "channel": 124,
+          "contribution": 0.35138226679253365,
+          "pooled": 2.0680651543091755
+        },
+        {
+          "channel": 771,
+          "contribution": 0.34063960470356464,
+          "pooled": 1.9512835789699943
+        },
+        {
+          "channel": 1568,
+          "contribution": 0.3274605307767142,
+          "pooled": 1.7143651709264638
+        },
+        {
+          "channel": 1850,
+          "contribution": 0.3116832137148475,
+          "pooled": 3.8124581113153573
+        },
+        {
+          "channel": 1058,
+          "contribution": 0.26887716135288947,
+          "pooled": 1.3979841038888814
+        }
+      ]
+    }
+  ],
+  "favoring": {
+    "for": 151,
+    "against": 158,
+    "top": [
+      {
+        "channel": 1204,
+        "margin": 0.9812609998609816
+      },
+      {
+        "channel": 1129,
+        "margin": 0.7100178533829258
+      },
+      {
+        "channel": 1338,
+        "margin": 0.32169172977415
+      },
+      {
+        "channel": 2014,
+        "margin": 0.28777811780307033
+      },
+      {
+        "channel": 771,
+        "margin": 0.277228778682358
+      },
+      {
+        "channel": 1084,
+        "margin": 0.23608048032831425
+      },
+      {
+        "channel": 1850,
+        "margin": 0.23355035966257343
+      },
+      {
+        "channel": 1577,
+        "margin": 0.23021697474503247
+      },
+      {
+        "channel": 1012,
+        "margin": 0.2291934529492816
+      },
+      {
+        "channel": 951,
+        "margin": 0.21934834213833876
+      }
+    ]
+  },
+  "flip": {
+    "from": 151,
+    "to": 158,
+    "toLabel": "toy terrier",
+    "toScore": 0.437360062880527,
+    "n": 12,
+    "channels": [
+      1204,
+      1129,
+      1338,
+      2014,
+      771,
+      1084,
+      1850,
+      1577,
+      1012,
+      951,
+      1398,
+      1282
+    ]
+  }
+}

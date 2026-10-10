@@ -1,0 +1,372 @@
+{
+  "version": 1,
+  "imageId": "clean_monarch",
+  "layer": "conv5_block3_out",
+  "grid": 7,
+  "channels": 2048,
+  "identityMaxAbsErr": 8.679665885580334e-06,
+  "classes": [
+    {
+      "classId": 323,
+      "label": "monarch",
+      "rank": 1,
+      "logit": 22.785795211791992,
+      "top": [
+        {
+          "channel": 1012,
+          "contribution": 2.2989411295801565,
+          "pooled": 9.484681484650592
+        },
+        {
+          "channel": 1738,
+          "contribution": 1.5967410772962662,
+          "pooled": 7.536951138048756
+        },
+        {
+          "channel": 364,
+          "contribution": 1.2854556851826184,
+          "pooled": 5.718015940821901
+        },
+        {
+          "channel": 938,
+          "contribution": 1.197167238991984,
+          "pooled": 5.929627832101316
+        },
+        {
+          "channel": 1519,
+          "contribution": 1.1416694339728106,
+          "pooled": 6.214106194827021
+        },
+        {
+          "channel": 1452,
+          "contribution": 1.1366879477154483,
+          "pooled": 5.76279818768404
+        },
+        {
+          "channel": 1296,
+          "contribution": 1.025381227227722,
+          "pooled": 7.1568851179006145
+        },
+        {
+          "channel": 1770,
+          "contribution": 1.0056846761596925,
+          "pooled": 6.617781839808639
+        },
+        {
+          "channel": 228,
+          "contribution": 0.6658189946960479,
+          "pooled": 5.218335334135562
+        },
+        {
+          "channel": 635,
+          "contribution": 0.6569932741983063,
+          "pooled": 5.940077299974402
+        }
+      ]
+    },
+    {
+      "classId": 322,
+      "label": "ringlet",
+      "rank": 2,
+      "logit": 12.610645294189453,
+      "top": [
+        {
+          "channel": 228,
+          "contribution": 2.3130380256397207,
+          "pooled": 5.218335334135562
+        },
+        {
+          "channel": 1738,
+          "contribution": 2.261260184569947,
+          "pooled": 7.536951138048756
+        },
+        {
+          "channel": 938,
+          "contribution": 1.591610797778162,
+          "pooled": 5.929627832101316
+        },
+        {
+          "channel": 364,
+          "contribution": 1.2506045080530732,
+          "pooled": 5.718015940821901
+        },
+        {
+          "channel": 38,
+          "contribution": 0.7145125649245221,
+          "pooled": 4.061798000822262
+        },
+        {
+          "channel": 1770,
+          "contribution": 0.4420382317488595,
+          "pooled": 6.617781839808639
+        },
+        {
+          "channel": 1296,
+          "contribution": 0.3610588352315335,
+          "pooled": 7.1568851179006145
+        },
+        {
+          "channel": 856,
+          "contribution": 0.3394777543655056,
+          "pooled": 1.9135834173280366
+        },
+        {
+          "channel": 1260,
+          "contribution": 0.31862781017418307,
+          "pooled": 2.57796626066675
+        },
+        {
+          "channel": 1175,
+          "contribution": 0.3162139533050958,
+          "pooled": 3.012011233641177
+        }
+      ]
+    },
+    {
+      "classId": 325,
+      "label": "sulphur butterfly",
+      "rank": 3,
+      "logit": 11.636116981506348,
+      "top": [
+        {
+          "channel": 228,
+          "contribution": 2.898304263087272,
+          "pooled": 5.218335334135562
+        },
+        {
+          "channel": 1296,
+          "contribution": 1.0915801758575956,
+          "pooled": 7.1568851179006145
+        },
+        {
+          "channel": 938,
+          "contribution": 1.081161750931418,
+          "pooled": 5.929627832101316
+        },
+        {
+          "channel": 1012,
+          "contribution": 0.7392826638245903,
+          "pooled": 9.484681484650592
+        },
+        {
+          "channel": 38,
+          "contribution": 0.6558502148516174,
+          "pooled": 4.061798000822262
+        },
+        {
+          "channel": 364,
+          "contribution": 0.6310170863648524,
+          "pooled": 5.718015940821901
+        },
+        {
+          "channel": 1175,
+          "contribution": 0.5374021684303419,
+          "pooled": 3.012011233641177
+        },
+        {
+          "channel": 1452,
+          "contribution": 0.4059239578615548,
+          "pooled": 5.76279818768404
+        },
+        {
+          "channel": 540,
+          "contribution": 0.3013148107495533,
+          "pooled": 4.423285941688382
+        },
+        {
+          "channel": 486,
+          "contribution": 0.30017772549253835,
+          "pooled": 2.1081262486321584
+        }
+      ]
+    },
+    {
+      "classId": 326,
+      "label": "lycaenid",
+      "rank": 4,
+      "logit": 11.371814727783203,
+      "top": [
+        {
+          "channel": 1738,
+          "contribution": 3.2834634863610983,
+          "pooled": 7.536951138048756
+        },
+        {
+          "channel": 228,
+          "contribution": 1.3484912194956364,
+          "pooled": 5.218335334135562
+        },
+        {
+          "channel": 364,
+          "contribution": 1.2864845364903297,
+          "pooled": 5.718015940821901
+        },
+        {
+          "channel": 938,
+          "contribution": 0.9753392081392795,
+          "pooled": 5.929627832101316
+        },
+        {
+          "channel": 856,
+          "contribution": 0.5210563416559659,
+          "pooled": 1.9135834173280366
+        },
+        {
+          "channel": 1296,
+          "contribution": 0.4877987143155236,
+          "pooled": 7.1568851179006145
+        },
+        {
+          "channel": 1670,
+          "contribution": 0.42044193183416273,
+          "pooled": 2.3297501510503342
+        },
+        {
+          "channel": 423,
+          "contribution": 0.3936663475845348,
+          "pooled": 5.353142308945558
+        },
+        {
+          "channel": 1519,
+          "contribution": 0.38197662885246386,
+          "pooled": 6.214106194827021
+        },
+        {
+          "channel": 706,
+          "contribution": 0.29739549556403794,
+          "pooled": 1.0717085867511982
+        }
+      ]
+    },
+    {
+      "classId": 321,
+      "label": "admiral",
+      "rank": 5,
+      "logit": 10.939634323120117,
+      "top": [
+        {
+          "channel": 1738,
+          "contribution": 2.8554057079925133,
+          "pooled": 7.536951138048756
+        },
+        {
+          "channel": 938,
+          "contribution": 1.9754263503365983,
+          "pooled": 5.929627832101316
+        },
+        {
+          "channel": 364,
+          "contribution": 1.7710038898742773,
+          "pooled": 5.718015940821901
+        },
+        {
+          "channel": 1012,
+          "contribution": 0.8305859637333591,
+          "pooled": 9.484681484650592
+        },
+        {
+          "channel": 228,
+          "contribution": 0.6828170125342186,
+          "pooled": 5.218335334135562
+        },
+        {
+          "channel": 1296,
+          "contribution": 0.5190920870115414,
+          "pooled": 7.1568851179006145
+        },
+        {
+          "channel": 699,
+          "contribution": 0.4776826788688598,
+          "pooled": 4.557635124848813
+        },
+        {
+          "channel": 667,
+          "contribution": 0.360961903129786,
+          "pooled": 2.5733267001959743
+        },
+        {
+          "channel": 693,
+          "contribution": 0.3332320001414475,
+          "pooled": 2.1595262714794705
+        },
+        {
+          "channel": 540,
+          "contribution": 0.3067256006898977,
+          "pooled": 4.423285941688382
+        }
+      ]
+    }
+  ],
+  "favoring": {
+    "for": 323,
+    "against": 322,
+    "top": [
+      {
+        "channel": 1012,
+        "margin": 2.457412615327356
+      },
+      {
+        "channel": 1452,
+        "margin": 1.1626741469633604
+      },
+      {
+        "channel": 1519,
+        "margin": 1.1600262590258639
+      },
+      {
+        "channel": 1296,
+        "margin": 0.6643223919961887
+      },
+      {
+        "channel": 1770,
+        "margin": 0.5636464444108329
+      },
+      {
+        "channel": 1246,
+        "margin": 0.536940336283517
+      },
+      {
+        "channel": 1006,
+        "margin": 0.5321543669775846
+      },
+      {
+        "channel": 699,
+        "margin": 0.522399305068061
+      },
+      {
+        "channel": 635,
+        "margin": 0.4739962416429212
+      },
+      {
+        "channel": 423,
+        "margin": 0.35849875411346466
+      }
+    ]
+  },
+  "flip": {
+    "from": 323,
+    "to": 322,
+    "toLabel": "ringlet",
+    "toScore": 0.4292367838829164,
+    "n": 17,
+    "channels": [
+      1012,
+      1452,
+      1519,
+      1296,
+      1770,
+      1246,
+      1006,
+      699,
+      635,
+      423,
+      399,
+      429,
+      667,
+      1503,
+      1340,
+      1805,
+      1133
+    ]
+  }
+}

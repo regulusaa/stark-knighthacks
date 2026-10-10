@@ -1,0 +1,252 @@
+{
+  "schema": "stark.stability/1",
+  "imageId": "ambig_cat",
+  "method": "test-time augmentation",
+  "runs": 30,
+  "seed": 1337,
+  "transforms": {
+    "cropAreaFrac": [
+      0.85,
+      1.0
+    ],
+    "aspectRatio": [
+      0.9,
+      1.1
+    ],
+    "hflipProb": 0.5,
+    "brightnessDelta": 0.15
+  },
+  "perRun": [
+    {
+      "run": 0,
+      "top1ClassId": 281,
+      "top1Score": 0.5057561026260871
+    },
+    {
+      "run": 1,
+      "top1ClassId": 281,
+      "top1Score": 0.5656982285227252
+    },
+    {
+      "run": 2,
+      "top1ClassId": 282,
+      "top1Score": 0.4903646973087361
+    },
+    {
+      "run": 3,
+      "top1ClassId": 282,
+      "top1Score": 0.45107949602063013
+    },
+    {
+      "run": 4,
+      "top1ClassId": 281,
+      "top1Score": 0.456529165753945
+    },
+    {
+      "run": 5,
+      "top1ClassId": 281,
+      "top1Score": 0.4573731780876876
+    },
+    {
+      "run": 6,
+      "top1ClassId": 281,
+      "top1Score": 0.49168938161921066
+    },
+    {
+      "run": 7,
+      "top1ClassId": 282,
+      "top1Score": 0.4027645005252407
+    },
+    {
+      "run": 8,
+      "top1ClassId": 281,
+      "top1Score": 0.41789037796254364
+    },
+    {
+      "run": 9,
+      "top1ClassId": 282,
+      "top1Score": 0.38224162573572046
+    },
+    {
+      "run": 10,
+      "top1ClassId": 282,
+      "top1Score": 0.4383267136964432
+    },
+    {
+      "run": 11,
+      "top1ClassId": 282,
+      "top1Score": 0.47380118914718267
+    },
+    {
+      "run": 12,
+      "top1ClassId": 282,
+      "top1Score": 0.40218416063589646
+    },
+    {
+      "run": 13,
+      "top1ClassId": 282,
+      "top1Score": 0.5943890035639283
+    },
+    {
+      "run": 14,
+      "top1ClassId": 282,
+      "top1Score": 0.4274359400994177
+    },
+    {
+      "run": 15,
+      "top1ClassId": 281,
+      "top1Score": 0.418771521045672
+    },
+    {
+      "run": 16,
+      "top1ClassId": 282,
+      "top1Score": 0.38876045824670286
+    },
+    {
+      "run": 17,
+      "top1ClassId": 282,
+      "top1Score": 0.3937043319084617
+    },
+    {
+      "run": 18,
+      "top1ClassId": 282,
+      "top1Score": 0.45367215623233276
+    },
+    {
+      "run": 19,
+      "top1ClassId": 281,
+      "top1Score": 0.4815705751833608
+    },
+    {
+      "run": 20,
+      "top1ClassId": 281,
+      "top1Score": 0.46990177908679065
+    },
+    {
+      "run": 21,
+      "top1ClassId": 282,
+      "top1Score": 0.4185072379798415
+    },
+    {
+      "run": 22,
+      "top1ClassId": 282,
+      "top1Score": 0.5091807447130061
+    },
+    {
+      "run": 23,
+      "top1ClassId": 281,
+      "top1Score": 0.467792700081504
+    },
+    {
+      "run": 24,
+      "top1ClassId": 282,
+      "top1Score": 0.4337048010830476
+    },
+    {
+      "run": 25,
+      "top1ClassId": 281,
+      "top1Score": 0.44922428662719505
+    },
+    {
+      "run": 26,
+      "top1ClassId": 282,
+      "top1Score": 0.5018691526080524
+    },
+    {
+      "run": 27,
+      "top1ClassId": 282,
+      "top1Score": 0.4041781899087153
+    },
+    {
+      "run": 28,
+      "top1ClassId": 282,
+      "top1Score": 0.48824949552027924
+    },
+    {
+      "run": 29,
+      "top1ClassId": 281,
+      "top1Score": 0.4406011025346862
+    }
+  ],
+  "winners": [
+    {
+      "classId": 282,
+      "label": "tiger cat",
+      "count": 18
+    },
+    {
+      "classId": 281,
+      "label": "tabby",
+      "count": 12
+    }
+  ],
+  "distinctWinners": 2,
+  "classes": [
+    {
+      "classId": 282,
+      "label": "tiger cat",
+      "mean": 0.4203305215308958,
+      "std": 0.06103149946675254
+    },
+    {
+      "classId": 281,
+      "label": "tabby",
+      "mean": 0.3772344955454703,
+      "std": 0.08419426362158534
+    },
+    {
+      "classId": 287,
+      "label": "lynx",
+      "mean": 0.1037334753072363,
+      "std": 0.053600189042501696
+    },
+    {
+      "classId": 283,
+      "label": "Persian cat",
+      "mean": 0.020091797570541,
+      "std": 0.008714308710520636
+    },
+    {
+      "classId": 285,
+      "label": "Egyptian cat",
+      "mean": 0.01950481959762216,
+      "std": 0.007441860103395051
+    },
+    {
+      "classId": 728,
+      "label": "plastic bag",
+      "mean": 0.009971883065308535,
+      "std": 0.0030721775086847225
+    },
+    {
+      "classId": 457,
+      "label": "bow tie",
+      "mean": 0.006392885952783719,
+      "std": 0.0030242081584310747
+    },
+    {
+      "classId": 622,
+      "label": "lens cap",
+      "mean": 0.0032833916754058806,
+      "std": 0.0007796283938738252
+    },
+    {
+      "classId": 896,
+      "label": "washbasin",
+      "mean": 0.0027264250380676985,
+      "std": 0.0010218924071020562
+    },
+    {
+      "classId": 620,
+      "label": "laptop",
+      "mean": 0.0025886300168998563,
+      "std": 0.0007815593500532975
+    }
+  ],
+  "cleanTop1": {
+    "classId": 281,
+    "label": "tabby",
+    "score": 0.43834890432483214
+  },
+  "matchFraction": 0.4
+}

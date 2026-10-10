@@ -1,0 +1,348 @@
+{
+  "schema": "stark.layers/1",
+  "layers": [
+    {
+      "index": 0,
+      "name": "conv1_relu",
+      "stage": "conv1",
+      "full": true,
+      "reduced": true
+    },
+    {
+      "index": 1,
+      "name": "conv2_block1_1_relu",
+      "stage": "conv2",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 2,
+      "name": "conv2_block1_2_relu",
+      "stage": "conv2",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 3,
+      "name": "conv2_block1_out",
+      "stage": "conv2",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 4,
+      "name": "conv2_block2_1_relu",
+      "stage": "conv2",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 5,
+      "name": "conv2_block2_2_relu",
+      "stage": "conv2",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 6,
+      "name": "conv2_block2_out",
+      "stage": "conv2",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 7,
+      "name": "conv2_block3_1_relu",
+      "stage": "conv2",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 8,
+      "name": "conv2_block3_2_relu",
+      "stage": "conv2",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 9,
+      "name": "conv2_block3_out",
+      "stage": "conv2",
+      "full": true,
+      "reduced": true
+    },
+    {
+      "index": 10,
+      "name": "conv3_block1_1_relu",
+      "stage": "conv3",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 11,
+      "name": "conv3_block1_2_relu",
+      "stage": "conv3",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 12,
+      "name": "conv3_block1_out",
+      "stage": "conv3",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 13,
+      "name": "conv3_block2_1_relu",
+      "stage": "conv3",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 14,
+      "name": "conv3_block2_2_relu",
+      "stage": "conv3",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 15,
+      "name": "conv3_block2_out",
+      "stage": "conv3",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 16,
+      "name": "conv3_block3_1_relu",
+      "stage": "conv3",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 17,
+      "name": "conv3_block3_2_relu",
+      "stage": "conv3",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 18,
+      "name": "conv3_block3_out",
+      "stage": "conv3",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 19,
+      "name": "conv3_block4_1_relu",
+      "stage": "conv3",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 20,
+      "name": "conv3_block4_2_relu",
+      "stage": "conv3",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 21,
+      "name": "conv3_block4_out",
+      "stage": "conv3",
+      "full": true,
+      "reduced": true
+    },
+    {
+      "index": 22,
+      "name": "conv4_block1_1_relu",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 23,
+      "name": "conv4_block1_2_relu",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 24,
+      "name": "conv4_block1_out",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 25,
+      "name": "conv4_block2_1_relu",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 26,
+      "name": "conv4_block2_2_relu",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 27,
+      "name": "conv4_block2_out",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 28,
+      "name": "conv4_block3_1_relu",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 29,
+      "name": "conv4_block3_2_relu",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 30,
+      "name": "conv4_block3_out",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 31,
+      "name": "conv4_block4_1_relu",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 32,
+      "name": "conv4_block4_2_relu",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 33,
+      "name": "conv4_block4_out",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 34,
+      "name": "conv4_block5_1_relu",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 35,
+      "name": "conv4_block5_2_relu",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 36,
+      "name": "conv4_block5_out",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 37,
+      "name": "conv4_block6_1_relu",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 38,
+      "name": "conv4_block6_2_relu",
+      "stage": "conv4",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 39,
+      "name": "conv4_block6_out",
+      "stage": "conv4",
+      "full": true,
+      "reduced": true
+    },
+    {
+      "index": 40,
+      "name": "conv5_block1_1_relu",
+      "stage": "conv5",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 41,
+      "name": "conv5_block1_2_relu",
+      "stage": "conv5",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 42,
+      "name": "conv5_block1_out",
+      "stage": "conv5",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 43,
+      "name": "conv5_block2_1_relu",
+      "stage": "conv5",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 44,
+      "name": "conv5_block2_2_relu",
+      "stage": "conv5",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 45,
+      "name": "conv5_block2_out",
+      "stage": "conv5",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 46,
+      "name": "conv5_block3_1_relu",
+      "stage": "conv5",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 47,
+      "name": "conv5_block3_2_relu",
+      "stage": "conv5",
+      "full": true,
+      "reduced": false
+    },
+    {
+      "index": 48,
+      "name": "conv5_block3_out",
+      "stage": "conv5",
+      "full": true,
+      "reduced": true
+    }
+  ]
+}

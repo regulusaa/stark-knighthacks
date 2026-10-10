@@ -1,0 +1,2 @@
+med_xray_pneumonia.jpg: "X-ray lung consolidation.jpg", Malvinder S Parmar, BMC Infectious Diseases 2005, 5:30 (doi:10.1186/1471-2334-5-30), CC BY 2.0 (https://creativecommons.org/licenses/by/2.0/), via Wikimedia Commons: https://commons.wikimedia.org/wiki/File:X-ray_lung_consolidation.jpg. Unmodified source file; the pipeline center-crops and resizes it to 224x224 for the model.
+med_xray_normal.jpg: source and licence not yet recorded (supplied by Ray).

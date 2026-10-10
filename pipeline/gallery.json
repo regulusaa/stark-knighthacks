@@ -1,15 +1,18 @@
 {
-  "_comment": "Gallery inputs for python -m pipeline.run. Files are matched by stem in pipeline/inputs/ (any extension). trueLabel is looked up in imagenet_class_index.json. Order follows master plan 17.2; slots 2 (adversarial) and 4 (medical) arrive with later stages.",
+  "_comment": "Gallery inputs for python -m pipeline.run. Files are matched by stem in pipeline/inputs/ (any extension). trueLabel is looked up in imagenet_class_index.json. Order follows master plan 17.2; slot 2 is the FGSM image made by the fgsm stage; slot 4 (medical) arrives with the medical stage. stability: true runs the TTA stage; fgsmFrom names the source of an FGSM image.",
   "images": [
     { "id": "clean_retriever", "file": "clean_retriever", "backup": "clean_retriever_b",
       "name": "Golden retriever", "category": "clean", "order": 1,
-      "trueLabel": "golden retriever", "gradcam": "all" },
+      "trueLabel": "golden retriever", "gradcam": "all", "stability": true },
+    { "id": "adv_retriever", "generated": "fgsm/adv_retriever.png", "preprocessed": true, "fgsmFrom": "clean_retriever",
+      "name": "Golden retriever (adversarial)", "category": "adversarial", "order": 2,
+      "trueLabel": "golden retriever" },
     { "id": "ambig_cat", "file": "ambig_cat", "backup": null,
       "name": "Tabby cat", "category": "ambiguous", "order": 3,
-      "trueLabel": "tabby" },
+      "trueLabel": "tabby", "stability": true },
     { "id": "ambig_wolf", "file": "ambig_wolf", "backup": null,
       "name": "Wolf in snow", "category": "ambiguous", "order": 5,
-      "trueLabel": "timber wolf" },
+      "trueLabel": "timber wolf", "stability": true },
     { "id": "clean_sportscar", "file": "clean_sportscar", "backup": null,
       "name": "Sports car", "category": "clean", "order": 6,
       "trueLabel": "sports car" },
@@ -18,6 +21,13 @@
       "trueLabel": "monarch" },
     { "id": "ambig_chihuahua", "file": "ambig_chihuahua", "backup": "ambig_chihuahua_b",
       "name": "Chihuahua", "category": "ambiguous", "order": 8,
-      "trueLabel": "Chihuahua" }
+      "trueLabel": "Chihuahua" },
+    { "id": "med_xray_pneumonia", "file": "med_xray_pneumonia", "backup": null,
+      "name": "Chest X-ray (pneumonia)", "category": "medical", "order": 4,
+      "trueLabel": null, "trueFinding": "Pneumonia",
+      "trueSource": "Parmar MS, BMC Infect Dis 2005;5:30, \"Overwhelming Blastomycosis pneumonia\": initial PA film, consolidation in the right mid and both lower lobes" },
+    { "id": "med_xray_normal", "file": "med_xray_normal", "backup": null,
+      "name": "Chest X-ray (normal)", "category": "medical", "order": 9,
+      "trueLabel": null, "trueFinding": null }
   ]
 }

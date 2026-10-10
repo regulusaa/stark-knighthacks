@@ -1,6 +1,6 @@
-# Stark contract v1
+# Stark contract v2
 
-**Status: DRAFT v1, waiting for Ray's approval.** This file is authoritative. `contract.js` mirrors it, and `fixtures/` holds one valid example of every shape. If they ever disagree, this file wins. Fix the other two instead.
+**Status: v2.** v2 is Ray's CONTRACT CHANGE v2, which moves Steer onto the display. Claude Code applied it in CC-6 Part A as a one-time exception to the ownership rule; the v2 changes are marked **(v2)**. It replaces master plan section 9.1 (the live-inference service) and `/pipeline/live`, neither of which will exist. This file is authoritative. `contract.js` mirrors it, and `fixtures/` holds one valid example of every shape. If they ever disagree, this file wins. Fix the other two instead.
 
 Owner: Ray. Agents read this file but never edit it. A proposed change goes to Ray, and Ray sends it to both agents in the same message.
 
@@ -33,9 +33,13 @@ assets/
     gradcam/index.json
     gradcam/<classId>.png 224×224 8-bit grayscale, one per explained class
     atlas.json + atlas.bin  ResNet50 images only
+    conv5.bin + steer.json  ResNet50 images only (v2, section 2.9)
     mc.json                 stability (TTA) images only
-    fgsm.json               adv_retriever only
+    fgsm.json               adv_retriever only (plus noise_x50.png)
     medical.json            medical images only
+  steer/                    (v2, section 2.9)
+    head.bin + head.json    ResNet50's dense layer
+    reference.json          expected outputs from the real Keras layers, for testing the display's maths
 ```
 
 ### 2.1 `manifest.json`: the gallery (fixture: `manifest.json`)
@@ -54,7 +58,8 @@ assets/
       "files": {                               // which optional files exist; capabilities are derived from these
         "crop": true, "tree": true, "gradcam": true,
         "atlas": true, "stability": true, "fgsm": false, "medical": false
-      }
+      },
+      "steerable": true                        // (v2) true for ResNet50 images (conv5.bin + steer.json written), false for medical
     }
   ]
 }
@@ -214,6 +219,43 @@ This measures stability under the listed transforms. It is **not** calibrated un
 
 A medical image also writes a `tree.json` with `kind: "fan"` and a `gradcam/index.json`, so the renderer uses one code path. Its `trueClass` is the `sourceLabel`.
 
+### 2.9 Steer data (v2)
+
+Steer works on ResNet50's last convolutional layer, `conv5_block3_out` (7×7×2048). After that layer the network does only global average pooling and one dense layer, so scaling channels and running the rest of the network is exactly:
+
+```
+logits'[k] = b[k] + Σ_c W[c][k] · s_c · p_c        p_c = mean of channel c over the 7×7 grid, s_c = the channel's scale
+cam'_k[i][j] = ReLU( Σ_c W[c][k] · s_c · A[i][j][c] )   Grad-CAM at that layer, up to the constant factor 1/49
+```
+
+The display computes both from the files below, in under 5 ms. No Python runs at runtime and no user code is ever executed.
+
+| File | Contents |
+|---|---|
+| `steer/head.bin` | float32 little-endian. `W[2048][1000]` row-major (`W[c][k]` at index `c*1000+k`), then `b[1000]`. Exactly 8,196,000 bytes. |
+| `steer/head.json` | `{layer:"predictions", inputs:2048, outputs:1000, dtype:"float32", layout:"W[c][k] row-major, then b[k]", bytes, sha256}` |
+| `steer/reference.json` | Expected outputs computed with the real Keras layers (not the closed form) for fixed test interventions. The display's maths is tested against it. |
+| `<id>/conv5.bin` | float32 little-endian `conv5_block3_out` activations, HWC row-major, index `(i*7+j)*2048+c`. Exactly 401,408 bytes. |
+| `<id>/steer.json` | Per-image Steer data, below. |
+
+```jsonc
+{
+  "version": 1,
+  "imageId": "clean_retriever",
+  "layer": "conv5_block3_out", "grid": 7, "channels": 2048,
+  "identityMaxAbsErr": 0.00002,      // max |b + Wᵀp − Keras logits| over all 1000 classes; must be < 1e-3
+  "classes": [                       // top 5 classes + the true class
+    { "classId": 207, "label": "golden retriever", "rank": 1, "logit": 17.3,
+      "top": [ { "channel": 1187, "contribution": 0.91, "pooled": 3.2 } ] }   // 10 channels, contribution descending
+  ],                                 // contribution = W[c][k] · p_c; over all 2048 channels they sum exactly to logit_k − b_k
+  "favoring": { "for": 207, "against": 208,            // top-1 vs top-2
+                "top": [ { "channel": 1187, "margin": 0.44 } ] },  // margin = contribution_for − contribution_against; 10 channels
+  "flip": { "from": 207, "to": 208, "toLabel": "Labrador retriever", "toScore": 0.41,
+            "n": 6, "channels": [1187, 311, 87, 1402, 12, 640] }  // the smallest n channels (in margin order) whose zeroing
+                                                                    // changes the global top-1; null if n > 64
+}
+```
+
 ---
 
 ## 3. Shared runtime shapes
@@ -228,7 +270,8 @@ The single item shape used by the answer list, `focus-state`, `top1`, `trueClass
   "label": "Labrador retriever",
   "score": 0.11,          // model score; read it with display-state.scoreKind
   "rank": 2,
-  "hasHeatmap": true,     // from gradcam/index.json, never guessed
+  "hasHeatmap": true,     // from gradcam/index.json, never guessed; equals heatmapSource !== null
+  "heatmapSource": "precomputed",  // (v2) "precomputed" (gradcam/<id>.png) | "live" (computed by Steer on the display) | null
   "isTop1": false,
   "isTrueClass": false
 }
@@ -254,8 +297,10 @@ The single item shape used by the answer list, `focus-state`, `top1`, `trueClass
     "trunkInterior": true,                  // this image has an atlas and the renderer loaded it
     "layerModes": true,                     // full/reduced switch available
     "bloom": true,                          // glow is on (the display may turn it off for fps)
-    "steer": false                          // batch 2
+    "steer": true                           // (v2) true only when head.bin and this image's conv5.bin are loaded AND the
+                                            // identity check passed (all-ones scales reproduce tree.json's scores)
   },
+  "steer": { "active": true, "changedCount": 3, "top1Changed": false },  // (v2) null when Steer is unavailable
   "answers": [ /* Answer[] */ ]             // top ANSWER_LIST (10) by rank, plus the true class appended if outside them
 }
 ```
@@ -266,24 +311,33 @@ Who writes what: the **display** emits `display-state`. The **server** overwrite
 
 An `Answer`, or `null`. The display emits it after each `focus-tip` / `clear-focus` / image change. The server caches and rebroadcasts it the same way as display-state.
 
-### 3.4 `steerState` (built in batch 2; fixture: `steer-state.json`)
+### 3.4 `SteerState`: payload of `steer-result` (v2; fixtures: `steer-result.*.json`)
 
 ```jsonc
 {
-  "active": true,
-  "layer": "conv5_block3_out",
-  "mode": "slider",                     // slider | code
-  "channels": [
-    { "channelIndex": 1187, "label": "channel 1187", "baseWeight": 0.034, "scale": 1.5 }  // scale 1 = unchanged, 0 = ablated
-  ],
-  "code": null,                         // the source text when mode = "code"
-  "result": {                           // null until the first result arrives
-    "answers": [ /* Answer[], same shape and rules as display-state.answers */ ],
-    "treeValues": { "n02099601": 0.55 } // updated node id → value; nodes not listed keep their tree.json value
+  "seq": 12,                          // the steer-update seq this answers (0 after steer-reset or select-image)
+  "imageId": "clean_retriever",
+  "active": true,                     // false when every scale is 1
+  "source": "slider",                 // slider | code | null (nothing applied)
+  "scales": [ { "channel": 87, "scale": 0 }, { "channel": 1187, "scale": 2 } ],  // only scale ≠ 1, sorted by channel
+  "code": "channel[87] = 0\nchannel[1187] = 2",   // canonical program for the current scales (steer-dsl format()); null if none
+  "sets": {                           // 5 channels each, from the UNSTEERED image, so slider rows never reorder
+    "top1": { "classId": 207, "label": "golden retriever", "channels": [ { "channel": 1187, "contribution": 0.91 } ] },
+    "top2": { "classId": 208, "label": "Labrador retriever", "channels": [ { "channel": 640, "contribution": 0.52 } ] }
   },
-  "error": null                         // human-readable message, or null
+  "result": {
+    "answers": [ /* Answer[], same rules as display-state.answers, recomputed */ ],
+    "top1": { /* Answer */ },
+    "baselineTop1": { /* Answer: the unsteered top-1 */ },
+    "top1Changed": false,
+    "outsideBrain": null              // the steered top-1 when it is not one of the classes drawn in the Brain
+  },
+  "probe": null,                      // channel being probed (its 7×7 map shown on the photo), or null
+  "error": null                       // {line, col, message} when a program failed to parse or resolve
 }
 ```
+
+The display emits `steer-result` at most `STEER_SEND_HZ` (15) times per second. The server caches the latest per room and sends it to controllers that join. `select-image` clears steering on the display.
 
 ### 3.5 `error` (fixture: `error.json`)
 
@@ -342,12 +396,17 @@ Permission key: **display** = the display socket only; **host** = the host contr
 | `play-pulse` | host → server → display | `{speed?, skipToEnd?}`: speed 0.25–4 (default 1), skipToEnd jumps to the finished state | host | 5/s |
 | `set-mode` | host → server → display | `{mode?, layerMode?}`, at least one, each valid only if its capability is true | host | 5/s |
 | `display-state` | display → server → controllers | `DisplayState` (server fills `room`, `driver`, `controllerCount`) | display | 20/s |
-| `steer-update` | controller → server | `{layer, mode, channels:[{channelIndex, scale}], code}` | driver-or-host | 5/s |
-| `steer-result` | server → room | `SteerState` | server only | n/a |
-| `steer-reset` | controller → server | `{}` | driver-or-host | 2/s |
+| `steer-update` | controller → server → display | (v2) `{seq, set:[{channel, scale}], probe?}` or `{seq, code, probe?:null}`. See below. | driver-or-host | 20/s |
+| `steer-reset` | controller → server → display | `{}` | driver-or-host | 2/s |
+| `steer-result` | display → server → controllers | (v2) `SteerState` (section 3.4) | display | 15/s |
 | `error` | server → one client | `StarkError` (section 3.5) | server only | n/a |
 
 Every event payload is an object (or `null` for `focus-state`). Unknown extra fields are ignored. Missing or invalid fields produce `BAD_PAYLOAD`. Examples for every event are in `fixtures/events.json`.
+
+**Steer events (v2).** All are driver-or-host and ignored by the display unless `capabilities.steer` is true.
+- `steer-update` slider form: `seq` is an integer ≥ 0; `set` is the COMPLETE list of changed channels and replaces the previous one (≤ `STEER_MAX_CHANNELS` entries, `channel` an integer 0–2047, `scale` a number 0–3); `probe` is a channel or null.
+- `steer-update` code form: `seq`, and `code`, a string of at most `STEER_CODE_MAX` (600) characters in the Steer language (section 11); `probe` must be null or absent.
+- The server validates types and ranges, and checks that `code` passes `steer-dsl` `parse()` (syntax only). Anything else gets `BAD_PAYLOAD`, with the parse error attached for code.
 
 **Not in the contract:** `control-tap`, `mark-region` and `clear-region` (removed). There is no tap-to-aim: answers are chosen from the list.
 
@@ -392,6 +451,10 @@ The HUD reads only through `api`. It never opens its own socket or touches the T
 | `DRIVER_IDLE_MS` | 20000 | Driver idle release |
 | `TOP_K` | 25 | Tree tips per image (plus the true class) |
 | `ANSWER_LIST` | 10 | Answers in display-state (plus the true class) |
+| `STEER_MAX_CHANNELS` | 64 | (v2) Distinct channels in one intervention |
+| `STEER_MAX_SCALE` | 3 | (v2) Scales are clamped to 0–3 |
+| `STEER_CODE_MAX` | 600 | (v2) Characters in a Steer program |
+| `STEER_SEND_HZ` | 15 | (v2) Max `steer-result` messages per second |
 
 ## 9. Ready flag
 
@@ -399,4 +462,30 @@ Each page sets `window.__starkReady = true` once it is usable. The display sets 
 
 ## 10. Fixtures
 
-`fixtures/` has one small valid example per file type and per runtime state. Labels and WordNet paths are real. **Scores are synthetic and are not model output.** Fixtures with arrays shorter than production sizes (topK, runs) are still valid against the rules above.
+`fixtures/` has one small valid example per file type and per runtime state. v2 adds `steer-update.slider.json`, `steer-update.code.json`, `steer-result.{active,flipped,outside-brain,parse-error}.json` (`steer-state.json` is the same as `steer-result.active.json`), `display-state.steer.json` and `answer.live.json`. Labels and WordNet paths are real. **Scores are synthetic and are not model output.** Fixtures with arrays shorter than production sizes (topK, runs) are still valid against the rules above.
+
+## 11. The Steer language (v2): `/contract/steer-dsl.js`
+
+A pure ES module with no dependencies that runs in the browser and in Node. Its tokenizer is hand-written. It never uses `eval`, `new Function`, dynamic import of user text, or any other code execution.
+
+```
+reset
+channel[SEL] *= NUMBER
+channel[SEL] = NUMBER
+
+SEL    := INT | INT, INT, ... | top(N, "class label")
+INT    0–2047        N   1–20        NUMBER  decimal ≥ 0 (0, 0.5, .5, 2, 2.0; no sign, exponent or hex)
+```
+
+- **Statements:** one per line, or several on a line separated by `;`. `#` starts a comment. Whitespace is free.
+- **Semantics:** a program starts from a fresh baseline (every scale 1) and applies its statements in order. The result is the complete intervention; it is not added to the previous one. Every resulting scale is clamped to 0–3.
+- **Limits:** 600 characters, 20 statements, 64 distinct channels.
+- **Exports:**
+  - `parse(text)` returns `{ok:true, statements}` or `{ok:false, error:{line, col, message}}`.
+  - `resolve(statements, resolver)` returns `{ok:true, scales: Map<channel, scale>}` or `{ok:false, error}`. The display supplies `resolver.findClass(label)` and `resolver.topChannels(classId, n)`. Labels match case-insensitively: an exact match first, then a unique prefix; otherwise the error names the closest label.
+  - `format(scales)` returns the canonical program text. Channels are grouped by equal scale and written in the `=` form, sorted, with scales rounded to 3 decimals. Channels whose scale is 1 are left out. For example:
+
+    ```
+    channel[87, 311, 1402] = 0
+    channel[12] = 2
+    ```

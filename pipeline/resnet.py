@@ -31,11 +31,13 @@ class ResNet:
         # Passing the file path (not "imagenet") guarantees Keras never tries to download.
         base = ResNet50(weights=str(config.RESNET_WEIGHTS), classifier_activation=None)
         self.tf = tf
+        self.keras = keras
+        self.base = base
         self.preprocess_input = preprocess_input
         self.features = keras.Model(base.input, base.get_layer(config.GRADCAM_LAYER).output)
         self._pool = base.get_layer("avg_pool")
         self._dense = base.get_layer("predictions")
-        self.dense_kernel = self._dense.get_weights()[0]  # (2048, 1000)
+        self.dense_kernel, self.dense_bias = self._dense.get_weights()  # (2048, 1000), (1000,)
 
     def head(self, feats):
         return self._dense(self._pool(feats))
@@ -46,6 +48,15 @@ class ResNet:
         feats = self.features(x, training=False)
         logits = self.head(feats)
         return feats.numpy(), logits.numpy()
+
+    def head_model(self):
+        """The real Keras head as its own model: Input(7,7,2048) -> avg_pool -> predictions (the loaded layers)."""
+        x = self.keras.Input((7, 7, 2048))
+        return self.keras.Model(x, self._dense(self._pool(x)))
+
+    def logits_from_pixels(self, x_0_255):
+        """Differentiable: float32 RGB 0-255 tensor -> logits, with preprocess_input inside (for FGSM's tape)."""
+        return self.head(self.features(self.preprocess_input(x_0_255), training=False))
 
     def logit_grads(self, feats, class_ids):
         """d logit[c] / d features for each class, shape (n, 7, 7, 2048). Only the head is re-run, not the backbone."""

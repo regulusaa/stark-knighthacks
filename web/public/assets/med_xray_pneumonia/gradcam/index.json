@@ -1,0 +1,137 @@
+{
+  "schema": "stark.gradcam/1",
+  "imageId": "med_xray_pneumonia",
+  "targetLayer": "features.denseblock4",
+  "width": 224,
+  "height": 224,
+  "encoding": "png-gray8",
+  "normalization": "per-heatmap: pytorch-grad-cam scale_cam_image (cam - min) / max, * 255",
+  "classes": [
+    {
+      "classId": 16,
+      "label": "Lung Opacity",
+      "hasHeatmap": true,
+      "file": "gradcam/16.png",
+      "rawMax": 0.005727019197464146
+    },
+    {
+      "classId": 8,
+      "label": "Pneumonia",
+      "hasHeatmap": true,
+      "file": "gradcam/8.png",
+      "rawMax": 0.019128063353026376
+    },
+    {
+      "classId": 12,
+      "label": "Mass",
+      "hasHeatmap": true,
+      "file": "gradcam/12.png",
+      "rawMax": 0.019675911108198725
+    },
+    {
+      "classId": 2,
+      "label": "Infiltration",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 1,
+      "label": "Consolidation",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 7,
+      "label": "Effusion",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 11,
+      "label": "Nodule",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 17,
+      "label": "Enlarged Cardiomediastinum",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 4,
+      "label": "Edema",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 9,
+      "label": "Pleural Thickening",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 0,
+      "label": "Atelectasis",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 6,
+      "label": "Fibrosis",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 3,
+      "label": "Pneumothorax",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 5,
+      "label": "Emphysema",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 15,
+      "label": "Fracture",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 10,
+      "label": "Cardiomegaly",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 14,
+      "label": "Lung Lesion",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 13,
+      "label": "Hernia",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    }
+  ]
+}

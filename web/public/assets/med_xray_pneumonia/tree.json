@@ -1,0 +1,435 @@
+{
+  "schema": "stark.tree/1",
+  "kind": "fan",
+  "scoreKind": "independent",
+  "model": "torchxrayvision densenet121-res224-all",
+  "imageId": "med_xray_pneumonia",
+  "rootId": "root",
+  "top1": {
+    "classId": 16,
+    "label": "Lung Opacity",
+    "score": 0.9714586138725281
+  },
+  "trueClass": {
+    "classId": 8,
+    "label": "Pneumonia",
+    "score": 0.8422489166259766,
+    "rank": 2
+  },
+  "otherScore": null,
+  "topK": [
+    {
+      "rank": 1,
+      "classId": 16,
+      "wnid": null,
+      "label": "Lung Opacity",
+      "score": 0.9714586138725281
+    },
+    {
+      "rank": 2,
+      "classId": 8,
+      "wnid": null,
+      "label": "Pneumonia",
+      "score": 0.8422489166259766
+    },
+    {
+      "rank": 3,
+      "classId": 12,
+      "wnid": null,
+      "label": "Mass",
+      "score": 0.7610113024711609
+    },
+    {
+      "rank": 4,
+      "classId": 2,
+      "wnid": null,
+      "label": "Infiltration",
+      "score": 0.749855101108551
+    },
+    {
+      "rank": 5,
+      "classId": 1,
+      "wnid": null,
+      "label": "Consolidation",
+      "score": 0.7191736698150635
+    },
+    {
+      "rank": 6,
+      "classId": 7,
+      "wnid": null,
+      "label": "Effusion",
+      "score": 0.6558221578598022
+    },
+    {
+      "rank": 7,
+      "classId": 11,
+      "wnid": null,
+      "label": "Nodule",
+      "score": 0.5752127766609192
+    },
+    {
+      "rank": 8,
+      "classId": 17,
+      "wnid": null,
+      "label": "Enlarged Cardiomediastinum",
+      "score": 0.5682556629180908
+    },
+    {
+      "rank": 9,
+      "classId": 4,
+      "wnid": null,
+      "label": "Edema",
+      "score": 0.5445512533187866
+    },
+    {
+      "rank": 10,
+      "classId": 9,
+      "wnid": null,
+      "label": "Pleural Thickening",
+      "score": 0.5304603576660156
+    },
+    {
+      "rank": 11,
+      "classId": 0,
+      "wnid": null,
+      "label": "Atelectasis",
+      "score": 0.5268598794937134
+    },
+    {
+      "rank": 12,
+      "classId": 6,
+      "wnid": null,
+      "label": "Fibrosis",
+      "score": 0.5238348841667175
+    },
+    {
+      "rank": 13,
+      "classId": 3,
+      "wnid": null,
+      "label": "Pneumothorax",
+      "score": 0.5233898162841797
+    },
+    {
+      "rank": 14,
+      "classId": 5,
+      "wnid": null,
+      "label": "Emphysema",
+      "score": 0.5018916130065918
+    },
+    {
+      "rank": 15,
+      "classId": 15,
+      "wnid": null,
+      "label": "Fracture",
+      "score": 0.17370495200157166
+    },
+    {
+      "rank": 16,
+      "classId": 10,
+      "wnid": null,
+      "label": "Cardiomegaly",
+      "score": 0.11436861753463745
+    },
+    {
+      "rank": 17,
+      "classId": 14,
+      "wnid": null,
+      "label": "Lung Lesion",
+      "score": 0.10271084308624268
+    },
+    {
+      "rank": 18,
+      "classId": 13,
+      "wnid": null,
+      "label": "Hernia",
+      "score": 0.001830778201110661
+    }
+  ],
+  "nodes": [
+    {
+      "id": "root",
+      "label": "chest X-ray findings",
+      "depth": 0,
+      "parent": null,
+      "children": [
+        "f16",
+        "f8",
+        "f12",
+        "f2",
+        "f1",
+        "f7",
+        "f11",
+        "f17",
+        "f4",
+        "f9",
+        "f0",
+        "f6",
+        "f3",
+        "f5",
+        "f15",
+        "f10",
+        "f14",
+        "f13"
+      ],
+      "value": null,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "f16",
+      "label": "Lung Opacity",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.9714586138725281,
+      "isLeaf": true,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 16,
+      "rank": 1
+    },
+    {
+      "id": "f8",
+      "label": "Pneumonia",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.8422489166259766,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": true,
+      "isOther": false,
+      "classId": 8,
+      "rank": 2
+    },
+    {
+      "id": "f12",
+      "label": "Mass",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.7610113024711609,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 12,
+      "rank": 3
+    },
+    {
+      "id": "f2",
+      "label": "Infiltration",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.749855101108551,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 2,
+      "rank": 4
+    },
+    {
+      "id": "f1",
+      "label": "Consolidation",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.7191736698150635,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 1,
+      "rank": 5
+    },
+    {
+      "id": "f7",
+      "label": "Effusion",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.6558221578598022,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 7,
+      "rank": 6
+    },
+    {
+      "id": "f11",
+      "label": "Nodule",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.5752127766609192,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 11,
+      "rank": 7
+    },
+    {
+      "id": "f17",
+      "label": "Enlarged Cardiomediastinum",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.5682556629180908,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 17,
+      "rank": 8
+    },
+    {
+      "id": "f4",
+      "label": "Edema",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.5445512533187866,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 4,
+      "rank": 9
+    },
+    {
+      "id": "f9",
+      "label": "Pleural Thickening",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.5304603576660156,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 9,
+      "rank": 10
+    },
+    {
+      "id": "f0",
+      "label": "Atelectasis",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.5268598794937134,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 0,
+      "rank": 11
+    },
+    {
+      "id": "f6",
+      "label": "Fibrosis",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.5238348841667175,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 6,
+      "rank": 12
+    },
+    {
+      "id": "f3",
+      "label": "Pneumothorax",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.5233898162841797,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 3,
+      "rank": 13
+    },
+    {
+      "id": "f5",
+      "label": "Emphysema",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.5018916130065918,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 5,
+      "rank": 14
+    },
+    {
+      "id": "f15",
+      "label": "Fracture",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.17370495200157166,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 15,
+      "rank": 15
+    },
+    {
+      "id": "f10",
+      "label": "Cardiomegaly",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.11436861753463745,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 10,
+      "rank": 16
+    },
+    {
+      "id": "f14",
+      "label": "Lung Lesion",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.10271084308624268,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 14,
+      "rank": 17
+    },
+    {
+      "id": "f13",
+      "label": "Hernia",
+      "depth": 1,
+      "parent": "root",
+      "children": [],
+      "value": 0.001830778201110661,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 13,
+      "rank": 18
+    }
+  ]
+}

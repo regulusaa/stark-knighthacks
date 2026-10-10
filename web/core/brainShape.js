@@ -137,6 +137,27 @@ export function rayHit(sdf, from, dir, maxT = 9, step = 0.08, bisect = 24) {
   return (lo + hi) / 2;
 }
 
+/**
+ * rayHit by sphere tracing: steps inward from maxT by a fraction of the distance bound, so the crossing it brackets
+ * is the same outer skin, found in far fewer evaluations (the mesher's hot loop). Bisects to about 1e-5.
+ */
+export function traceHit(sdf, from, dir, maxT, bisect = 10, k = 0.8, minStep = 0.01) {
+  const at = (t) => sdf(from[0] + dir[0] * t, from[1] + dir[1] * t, from[2] + dir[2] * t);
+  let hi = maxT;
+  let d = at(hi);
+  if (d <= 0) return null;
+  let lo = hi;
+  for (;;) {
+    lo = Math.max(0, hi - Math.max(minStep, d * k));
+    d = at(lo);
+    if (d <= 0) break;
+    hi = lo;
+    if (lo === 0) return null;
+  }
+  for (let i = 0; i < bisect; i++) { const m = (lo + hi) / 2; if (at(m) <= 0) lo = m; else hi = m; }
+  return (lo + hi) / 2;
+}
+
 /** Point on the cortex cap (no folds, fissure bridged) seen from the core along `dir`, and its outward normal. */
 export function surfacePoint(dir, from = CORE) {
   const t = rayHit(capSdf, from, dir);

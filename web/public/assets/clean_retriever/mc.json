@@ -1,0 +1,247 @@
+{
+  "schema": "stark.stability/1",
+  "imageId": "clean_retriever",
+  "method": "test-time augmentation",
+  "runs": 30,
+  "seed": 1337,
+  "transforms": {
+    "cropAreaFrac": [
+      0.85,
+      1.0
+    ],
+    "aspectRatio": [
+      0.9,
+      1.1
+    ],
+    "hflipProb": 0.5,
+    "brightnessDelta": 0.15
+  },
+  "perRun": [
+    {
+      "run": 0,
+      "top1ClassId": 207,
+      "top1Score": 0.9710505598719027
+    },
+    {
+      "run": 1,
+      "top1ClassId": 207,
+      "top1Score": 0.9648274835415821
+    },
+    {
+      "run": 2,
+      "top1ClassId": 207,
+      "top1Score": 0.9657842851802847
+    },
+    {
+      "run": 3,
+      "top1ClassId": 207,
+      "top1Score": 0.9411841158553786
+    },
+    {
+      "run": 4,
+      "top1ClassId": 207,
+      "top1Score": 0.9597242875888332
+    },
+    {
+      "run": 5,
+      "top1ClassId": 207,
+      "top1Score": 0.9219741841759557
+    },
+    {
+      "run": 6,
+      "top1ClassId": 207,
+      "top1Score": 0.9618887680414299
+    },
+    {
+      "run": 7,
+      "top1ClassId": 207,
+      "top1Score": 0.9541171457606729
+    },
+    {
+      "run": 8,
+      "top1ClassId": 207,
+      "top1Score": 0.9680532560855498
+    },
+    {
+      "run": 9,
+      "top1ClassId": 207,
+      "top1Score": 0.9742610001284259
+    },
+    {
+      "run": 10,
+      "top1ClassId": 207,
+      "top1Score": 0.9571948084567298
+    },
+    {
+      "run": 11,
+      "top1ClassId": 207,
+      "top1Score": 0.9523160997349436
+    },
+    {
+      "run": 12,
+      "top1ClassId": 207,
+      "top1Score": 0.950991487043664
+    },
+    {
+      "run": 13,
+      "top1ClassId": 207,
+      "top1Score": 0.9535081376029632
+    },
+    {
+      "run": 14,
+      "top1ClassId": 207,
+      "top1Score": 0.9453223793160044
+    },
+    {
+      "run": 15,
+      "top1ClassId": 207,
+      "top1Score": 0.9615767194818349
+    },
+    {
+      "run": 16,
+      "top1ClassId": 207,
+      "top1Score": 0.9667146599078542
+    },
+    {
+      "run": 17,
+      "top1ClassId": 207,
+      "top1Score": 0.9591307319425496
+    },
+    {
+      "run": 18,
+      "top1ClassId": 207,
+      "top1Score": 0.9787122982029467
+    },
+    {
+      "run": 19,
+      "top1ClassId": 207,
+      "top1Score": 0.9534237230182057
+    },
+    {
+      "run": 20,
+      "top1ClassId": 207,
+      "top1Score": 0.9681063695988227
+    },
+    {
+      "run": 21,
+      "top1ClassId": 207,
+      "top1Score": 0.9712280741605968
+    },
+    {
+      "run": 22,
+      "top1ClassId": 207,
+      "top1Score": 0.9528377308949216
+    },
+    {
+      "run": 23,
+      "top1ClassId": 207,
+      "top1Score": 0.9616949672370512
+    },
+    {
+      "run": 24,
+      "top1ClassId": 207,
+      "top1Score": 0.9602903386634161
+    },
+    {
+      "run": 25,
+      "top1ClassId": 207,
+      "top1Score": 0.9723575806796867
+    },
+    {
+      "run": 26,
+      "top1ClassId": 207,
+      "top1Score": 0.9081718056430726
+    },
+    {
+      "run": 27,
+      "top1ClassId": 207,
+      "top1Score": 0.961106297858225
+    },
+    {
+      "run": 28,
+      "top1ClassId": 207,
+      "top1Score": 0.9548932905241241
+    },
+    {
+      "run": 29,
+      "top1ClassId": 207,
+      "top1Score": 0.969180287315476
+    }
+  ],
+  "winners": [
+    {
+      "classId": 207,
+      "label": "golden retriever",
+      "count": 30
+    }
+  ],
+  "distinctWinners": 1,
+  "classes": [
+    {
+      "classId": 207,
+      "label": "golden retriever",
+      "mean": 0.9580540957837701,
+      "std": 0.01439400449800945
+    },
+    {
+      "classId": 208,
+      "label": "Labrador retriever",
+      "mean": 0.012767344497418499,
+      "std": 0.006954504283393841
+    },
+    {
+      "classId": 222,
+      "label": "kuvasz",
+      "mean": 0.007098039075045859,
+      "std": 0.003233804457575817
+    },
+    {
+      "classId": 255,
+      "label": "Leonberg",
+      "mean": 0.0024466263826494,
+      "std": 0.0007673202122934761
+    },
+    {
+      "classId": 215,
+      "label": "Brittany spaniel",
+      "mean": 0.002388568024903111,
+      "std": 0.0013183063567626444
+    },
+    {
+      "classId": 852,
+      "label": "tennis ball",
+      "mean": 0.002076663772942929,
+      "std": 0.0007298454836561139
+    },
+    {
+      "classId": 206,
+      "label": "curly-coated retriever",
+      "mean": 0.001984319324798178,
+      "std": 0.001015069416759217
+    },
+    {
+      "classId": 205,
+      "label": "flat-coated retriever",
+      "mean": 0.001234444745671626,
+      "std": 0.00048418706457683793
+    },
+    {
+      "classId": 220,
+      "label": "Sussex spaniel",
+      "mean": 0.000965371008658771,
+      "std": 0.00047380349224054413
+    },
+    {
+      "classId": 805,
+      "label": "soccer ball",
+      "mean": 0.0008318182297920664,
+      "std": 0.0003443319586948193
+    }
+  ],
+  "cleanTop1": {
+    "classId": 207,
+    "label": "golden retriever",
+    "score": 0.9688150766088671
+  },
+  "matchFraction": 1.0
+}

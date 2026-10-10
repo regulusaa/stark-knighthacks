@@ -1,0 +1,186 @@
+{
+  "schema": "stark.gradcam/1",
+  "imageId": "adv_retriever",
+  "targetLayer": "conv5_block3_out",
+  "width": 224,
+  "height": 224,
+  "encoding": "png-gray8",
+  "normalization": "per-heatmap: relu(cam) / max(cam) * 255",
+  "classes": [
+    {
+      "classId": 208,
+      "label": "Labrador retriever",
+      "hasHeatmap": true,
+      "file": "gradcam/208.png",
+      "rawMax": 0.7289288945539535
+    },
+    {
+      "classId": 207,
+      "label": "golden retriever",
+      "hasHeatmap": true,
+      "file": "gradcam/207.png",
+      "rawMax": 0.5917034365331004
+    },
+    {
+      "classId": 222,
+      "label": "kuvasz",
+      "hasHeatmap": true,
+      "file": "gradcam/222.png",
+      "rawMax": 0.42037396812299055
+    },
+    {
+      "classId": 852,
+      "label": "tennis ball",
+      "hasHeatmap": true,
+      "file": "gradcam/852.png",
+      "rawMax": 0.4543630869407939
+    },
+    {
+      "classId": 206,
+      "label": "curly-coated retriever",
+      "hasHeatmap": true,
+      "file": "gradcam/206.png",
+      "rawMax": 0.5048425787898831
+    },
+    {
+      "classId": 159,
+      "label": "Rhodesian ridgeback",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 238,
+      "label": "Greater Swiss Mountain dog",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 805,
+      "label": "soccer ball",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 209,
+      "label": "Chesapeake Bay retriever",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 200,
+      "label": "Tibetan terrier",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 247,
+      "label": "Saint Bernard",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 215,
+      "label": "Brittany spaniel",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 255,
+      "label": "Leonberg",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 539,
+      "label": "doormat",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 175,
+      "label": "otterhound",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 267,
+      "label": "standard poodle",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 463,
+      "label": "bucket",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 429,
+      "label": "baseball",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 256,
+      "label": "Newfoundland",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 574,
+      "label": "golf ball",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 167,
+      "label": "English foxhound",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 243,
+      "label": "bull mastiff",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 241,
+      "label": "EntleBucher",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 216,
+      "label": "clumber",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 211,
+      "label": "vizsla",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    }
+  ]
+}

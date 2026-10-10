@@ -3,6 +3,7 @@
 // Overlapping labels: the lower-priority one is hidden. A label that would rise into the HUD band at the top of the
 // screen hangs below its tip instead.
 import * as THREE from 'three';
+import { retireLater } from './scene.js';
 
 export const LABELS = {
   fontPx: 64,
@@ -55,7 +56,8 @@ export function createLabels({ isHidden = () => false } = {}) {
   const order = [];   // reused: labels sorted by priority
 
   function dispose() {
-    for (const l of labels) { group.remove(l.sprite); l.sprite.material.map.dispose(); l.sprite.material.dispose(); }
+    for (const l of labels) group.remove(l.sprite);
+    retireLater(labels.flatMap((l) => [l.sprite.material.map, l.sprite.material]));
     labels = [];
   }
 
