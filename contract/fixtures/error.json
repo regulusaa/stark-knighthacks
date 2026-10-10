@@ -1,0 +1,6 @@
+{
+  "code": "LOCKED",
+  "message": "Guest 2 is driving. Try again when they stop, or ask the host.",
+  "event": "take-control",
+  "driver": { "id": "c_3f9a", "label": "Guest 2", "isHost": false }
+}

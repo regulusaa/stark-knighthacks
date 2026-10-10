@@ -1,0 +1,26 @@
+{
+  "schema": "stark.stability/1",
+  "imageId": "ambig_husky",
+  "method": "test-time augmentation",
+  "runs": 5,
+  "seed": 1234,
+  "transforms": { "cropAreaFrac": [0.85, 1.0], "hflipProb": 0.5, "brightnessDelta": 0.15 },
+  "perRun": [
+    { "run": 0, "top1ClassId": 250, "top1Score": 0.48 },
+    { "run": 1, "top1ClassId": 248, "top1Score": 0.44 },
+    { "run": 2, "top1ClassId": 250, "top1Score": 0.51 },
+    { "run": 3, "top1ClassId": 269, "top1Score": 0.39 },
+    { "run": 4, "top1ClassId": 250, "top1Score": 0.46 }
+  ],
+  "winners": [
+    { "classId": 250, "label": "Siberian husky", "count": 3 },
+    { "classId": 248, "label": "Eskimo dog", "count": 1 },
+    { "classId": 269, "label": "timber wolf", "count": 1 }
+  ],
+  "distinctWinners": 3,
+  "classes": [
+    { "classId": 250, "label": "Siberian husky", "mean": 0.43, "std": 0.07 },
+    { "classId": 248, "label": "Eskimo dog", "mean": 0.31, "std": 0.08 },
+    { "classId": 269, "label": "timber wolf", "mean": 0.12, "std": 0.09 }
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "schema": "stark.gradcam/1",
+  "imageId": "ambig_cat",
+  "targetLayer": "conv5_block3_out",
+  "width": 224,
+  "height": 224,
+  "encoding": "png-gray8",
+  "normalization": "per-heatmap: relu(cam) / max(cam) * 255",
+  "classes": [
+    {
+      "classId": 281,
+      "label": "tabby",
+      "hasHeatmap": true,
+      "file": "gradcam/281.png",
+      "rawMax": 0.5104757079517593
+    },
+    {
+      "classId": 282,
+      "label": "tiger cat",
+      "hasHeatmap": true,
+      "file": "gradcam/282.png",
+      "rawMax": 0.6213067444875533
+    },
+    {
+      "classId": 287,
+      "label": "lynx",
+      "hasHeatmap": true,
+      "file": "gradcam/287.png",
+      "rawMax": 0.4606543495815648
+    },
+    {
+      "classId": 285,
+      "label": "Egyptian cat",
+      "hasHeatmap": true,
+      "file": "gradcam/285.png",
+      "rawMax": 0.3781563864772908
+    },
+    {
+      "classId": 283,
+      "label": "Persian cat",
+      "hasHeatmap": true,
+      "file": "gradcam/283.png",
+      "rawMax": 0.596800058421714
+    },
+    {
+      "classId": 728,
+      "label": "plastic bag",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 622,
+      "label": "lens cap",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 457,
+      "label": "bow tie",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 896,
+      "label": "washbasin",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 508,
+      "label": "computer keyboard",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 620,
+      "label": "laptop",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 552,
+      "label": "feather boa",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 722,
+      "label": "ping-pong ball",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 904,
+      "label": "window screen",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 478,
+      "label": "carton",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 918,
+      "label": "crossword puzzle",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 761,
+      "label": "remote control",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 811,
+      "label": "space heater",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 852,
+      "label": "tennis ball",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 968,
+      "label": "cup",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 840,
+      "label": "swab",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 909,
+      "label": "wok",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 929,
+      "label": "ice lolly",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 434,
+      "label": "bath towel",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 845,
+      "label": "syringe",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    }
+  ]
+}

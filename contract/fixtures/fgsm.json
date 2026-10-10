@@ -1,0 +1,13 @@
+{
+  "schema": "stark.fgsm/1",
+  "sourceImageId": "clean_retriever",
+  "adversarialImageId": "adv_retriever",
+  "epsilon": 0.00784,
+  "epsilon255": 2,
+  "epsilonsTried255": [1, 2],
+  "pixelSpace": "[0,1] RGB before Keras preprocessing",
+  "original": { "classId": 207, "label": "golden retriever", "score": 0.62 },
+  "adversarial": { "classId": 852, "label": "tennis ball", "score": 0.41 },
+  "trueClass": { "classId": 207, "label": "golden retriever", "adversarialScore": 0.08 },
+  "noiseFile": null
+}

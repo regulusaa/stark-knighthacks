@@ -1,0 +1,796 @@
+{
+  "schema": "stark.tree/1",
+  "kind": "wordnet",
+  "scoreKind": "softmax",
+  "model": "resnet50-imagenet-keras",
+  "imageId": "clean_monarch",
+  "rootId": "n00001740",
+  "top1": {
+    "classId": 323,
+    "label": "monarch",
+    "score": 0.9999269215075458
+  },
+  "trueClass": {
+    "classId": 323,
+    "label": "monarch",
+    "score": 0.9999269215075458,
+    "rank": 1
+  },
+  "otherScore": 4.3854654441233265e-07,
+  "topK": [
+    {
+      "rank": 1,
+      "classId": 323,
+      "wnid": "n02279972",
+      "label": "monarch",
+      "score": 0.9999269215075458
+    },
+    {
+      "rank": 2,
+      "classId": 322,
+      "wnid": "n02277742",
+      "label": "ringlet",
+      "score": 3.810279195851662e-05
+    },
+    {
+      "rank": 3,
+      "classId": 325,
+      "wnid": "n02281406",
+      "label": "sulphur butterfly",
+      "score": 1.4378862503917319e-05
+    },
+    {
+      "rank": 4,
+      "classId": 326,
+      "wnid": "n02281787",
+      "label": "lycaenid",
+      "score": 1.1039248775018644e-05
+    },
+    {
+      "rank": 5,
+      "classId": 321,
+      "wnid": "n02276258",
+      "label": "admiral",
+      "score": 7.1654910116998355e-06
+    },
+    {
+      "rank": 6,
+      "classId": 318,
+      "wnid": "n02264363",
+      "label": "lacewing",
+      "score": 1.0935330697503736e-06
+    },
+    {
+      "rank": 7,
+      "classId": 324,
+      "wnid": "n02280649",
+      "label": "cabbage butterfly",
+      "score": 2.99683639064773e-07
+    },
+    {
+      "rank": 8,
+      "classId": 309,
+      "wnid": "n02206856",
+      "label": "bee",
+      "score": 1.1350434876776264e-07
+    },
+    {
+      "rank": 9,
+      "classId": 946,
+      "wnid": "n07730033",
+      "label": "cardoon",
+      "score": 6.127236053351372e-08
+    },
+    {
+      "rank": 10,
+      "classId": 311,
+      "wnid": "n02226429",
+      "label": "grasshopper",
+      "score": 5.589992129241767e-08
+    },
+    {
+      "rank": 11,
+      "classId": 110,
+      "wnid": "n01924916",
+      "label": "flatworm",
+      "score": 5.4636255183629813e-08
+    },
+    {
+      "rank": 12,
+      "classId": 304,
+      "wnid": "n02169497",
+      "label": "leaf beetle",
+      "score": 4.289995022318877e-08
+    },
+    {
+      "rank": 13,
+      "classId": 303,
+      "wnid": "n02168699",
+      "label": "long-horned beetle",
+      "score": 3.174539017288579e-08
+    },
+    {
+      "rank": 14,
+      "classId": 317,
+      "wnid": "n02259212",
+      "label": "leafhopper",
+      "score": 2.7668878796888853e-08
+    },
+    {
+      "rank": 15,
+      "classId": 73,
+      "wnid": "n01773549",
+      "label": "barn spider",
+      "score": 2.279067407502593e-08
+    },
+    {
+      "rank": 16,
+      "classId": 723,
+      "wnid": "n03944341",
+      "label": "pinwheel",
+      "score": 2.1998219544314658e-08
+    },
+    {
+      "rank": 17,
+      "classId": 315,
+      "wnid": "n02236044",
+      "label": "mantis",
+      "score": 2.0737880045984084e-08
+    },
+    {
+      "rank": 18,
+      "classId": 113,
+      "wnid": "n01944390",
+      "label": "snail",
+      "score": 1.8807552633368527e-08
+    },
+    {
+      "rank": 19,
+      "classId": 319,
+      "wnid": "n02268443",
+      "label": "dragonfly",
+      "score": 1.7952428840367054e-08
+    },
+    {
+      "rank": 20,
+      "classId": 779,
+      "wnid": "n04146614",
+      "label": "school bus",
+      "score": 1.416726870724042e-08
+    },
+    {
+      "rank": 21,
+      "classId": 74,
+      "wnid": "n01773797",
+      "label": "garden spider",
+      "score": 1.1945428477689314e-08
+    },
+    {
+      "rank": 22,
+      "classId": 307,
+      "wnid": "n02177972",
+      "label": "weevil",
+      "score": 1.1633268063619502e-08
+    },
+    {
+      "rank": 23,
+      "classId": 70,
+      "wnid": "n01770081",
+      "label": "harvestman",
+      "score": 1.1382390387171245e-08
+    },
+    {
+      "rank": 24,
+      "classId": 775,
+      "wnid": "n04136333",
+      "label": "sarong",
+      "score": 1.118747653149842e-08
+    },
+    {
+      "rank": 25,
+      "classId": 985,
+      "wnid": "n11939491",
+      "label": "daisy",
+      "score": 1.0105259754904884e-08
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n00001740",
+      "label": "entity",
+      "depth": 0,
+      "parent": null,
+      "children": [
+        "n00001930",
+        "other"
+      ],
+      "value": 1.0,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00001930",
+      "label": "physical entity",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [
+        "n00003553",
+        "n07730033"
+      ],
+      "value": 0.9999995614534556,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00003553",
+      "label": "whole",
+      "depth": 2,
+      "parent": "n00001930",
+      "children": [
+        "n00004475",
+        "n00021939"
+      ],
+      "value": 0.9999995001810951,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00004475",
+      "label": "organism",
+      "depth": 3,
+      "parent": "n00003553",
+      "children": [
+        "n01905661",
+        "n11939491"
+      ],
+      "value": 0.9999994528281303,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n01905661",
+      "label": "invertebrate",
+      "depth": 4,
+      "parent": "n00004475",
+      "children": [
+        "n01767661",
+        "n01924916",
+        "n01944390"
+      ],
+      "value": 0.9999994427228706,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n01767661",
+      "label": "arthropod",
+      "depth": 5,
+      "parent": "n01905661",
+      "children": [
+        "n02159955",
+        "n01769347"
+      ],
+      "value": 0.9999993692790627,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02159955",
+      "label": "insect",
+      "depth": 6,
+      "parent": "n01767661",
+      "children": [
+        "n02274259",
+        "n02264363",
+        "n02206856",
+        "n02164464",
+        "n02226429",
+        "n02259212",
+        "n02236044",
+        "n02268443"
+      ],
+      "value": 0.9999993231605698,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02274259",
+      "label": "butterfly",
+      "depth": 7,
+      "parent": "n02159955",
+      "children": [
+        "n02279972",
+        "n02277742",
+        "n02281406",
+        "n02281787",
+        "n02276258",
+        "n02280649"
+      ],
+      "value": 0.9999979075854338,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02279972",
+      "label": "monarch",
+      "depth": 8,
+      "parent": "n02274259",
+      "children": [],
+      "value": 0.9999269215075458,
+      "isLeaf": true,
+      "onTop1Path": true,
+      "isTrueLabel": true,
+      "isOther": false,
+      "classId": 323,
+      "rank": 1
+    },
+    {
+      "id": "n02277742",
+      "label": "ringlet",
+      "depth": 8,
+      "parent": "n02274259",
+      "children": [],
+      "value": 3.810279195851662e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 322,
+      "rank": 2
+    },
+    {
+      "id": "n02281406",
+      "label": "sulphur butterfly",
+      "depth": 8,
+      "parent": "n02274259",
+      "children": [],
+      "value": 1.4378862503917319e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 325,
+      "rank": 3
+    },
+    {
+      "id": "n02281787",
+      "label": "lycaenid",
+      "depth": 8,
+      "parent": "n02274259",
+      "children": [],
+      "value": 1.1039248775018644e-05,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 326,
+      "rank": 4
+    },
+    {
+      "id": "n02276258",
+      "label": "admiral",
+      "depth": 8,
+      "parent": "n02274259",
+      "children": [],
+      "value": 7.1654910116998355e-06,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 321,
+      "rank": 5
+    },
+    {
+      "id": "n02280649",
+      "label": "cabbage butterfly",
+      "depth": 8,
+      "parent": "n02274259",
+      "children": [],
+      "value": 2.99683639064773e-07,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 324,
+      "rank": 7
+    },
+    {
+      "id": "n02264363",
+      "label": "lacewing",
+      "depth": 7,
+      "parent": "n02159955",
+      "children": [],
+      "value": 1.0935330697503736e-06,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 318,
+      "rank": 6
+    },
+    {
+      "id": "n02206856",
+      "label": "bee",
+      "depth": 7,
+      "parent": "n02159955",
+      "children": [],
+      "value": 1.1350434876776264e-07,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 309,
+      "rank": 8
+    },
+    {
+      "id": "n02164464",
+      "label": "beetle",
+      "depth": 7,
+      "parent": "n02159955",
+      "children": [
+        "n02169497",
+        "n02168699",
+        "n02177972"
+      ],
+      "value": 8.627860845969408e-08,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02169497",
+      "label": "leaf beetle",
+      "depth": 8,
+      "parent": "n02164464",
+      "children": [],
+      "value": 4.289995022318877e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 304,
+      "rank": 12
+    },
+    {
+      "id": "n02168699",
+      "label": "long-horned beetle",
+      "depth": 8,
+      "parent": "n02164464",
+      "children": [],
+      "value": 3.174539017288579e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 303,
+      "rank": 13
+    },
+    {
+      "id": "n02177972",
+      "label": "weevil",
+      "depth": 8,
+      "parent": "n02164464",
+      "children": [],
+      "value": 1.1633268063619502e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 307,
+      "rank": 22
+    },
+    {
+      "id": "n02226429",
+      "label": "grasshopper",
+      "depth": 7,
+      "parent": "n02159955",
+      "children": [],
+      "value": 5.589992129241767e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 311,
+      "rank": 10
+    },
+    {
+      "id": "n02259212",
+      "label": "leafhopper",
+      "depth": 7,
+      "parent": "n02159955",
+      "children": [],
+      "value": 2.7668878796888853e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 317,
+      "rank": 14
+    },
+    {
+      "id": "n02236044",
+      "label": "mantis",
+      "depth": 7,
+      "parent": "n02159955",
+      "children": [],
+      "value": 2.0737880045984084e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 315,
+      "rank": 17
+    },
+    {
+      "id": "n02268443",
+      "label": "dragonfly",
+      "depth": 7,
+      "parent": "n02159955",
+      "children": [],
+      "value": 1.7952428840367054e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 319,
+      "rank": 19
+    },
+    {
+      "id": "n01769347",
+      "label": "arachnid",
+      "depth": 6,
+      "parent": "n01767661",
+      "children": [
+        "n01772222",
+        "n01770081"
+      ],
+      "value": 4.611849293988649e-08,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n01772222",
+      "label": "spider",
+      "depth": 7,
+      "parent": "n01769347",
+      "children": [
+        "n01773549",
+        "n01773797"
+      ],
+      "value": 3.473610255271524e-08,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n01773549",
+      "label": "barn spider",
+      "depth": 8,
+      "parent": "n01772222",
+      "children": [],
+      "value": 2.279067407502593e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 73,
+      "rank": 15
+    },
+    {
+      "id": "n01773797",
+      "label": "garden spider",
+      "depth": 8,
+      "parent": "n01772222",
+      "children": [],
+      "value": 1.1945428477689314e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 74,
+      "rank": 21
+    },
+    {
+      "id": "n01770081",
+      "label": "harvestman",
+      "depth": 7,
+      "parent": "n01769347",
+      "children": [],
+      "value": 1.1382390387171245e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 70,
+      "rank": 23
+    },
+    {
+      "id": "n01924916",
+      "label": "flatworm",
+      "depth": 5,
+      "parent": "n01905661",
+      "children": [],
+      "value": 5.4636255183629813e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 110,
+      "rank": 11
+    },
+    {
+      "id": "n01944390",
+      "label": "snail",
+      "depth": 5,
+      "parent": "n01905661",
+      "children": [],
+      "value": 1.8807552633368527e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 113,
+      "rank": 18
+    },
+    {
+      "id": "n11939491",
+      "label": "daisy",
+      "depth": 4,
+      "parent": "n00004475",
+      "children": [],
+      "value": 1.0105259754904884e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 985,
+      "rank": 25
+    },
+    {
+      "id": "n00021939",
+      "label": "artifact",
+      "depth": 3,
+      "parent": "n00003553",
+      "children": [
+        "n03575240",
+        "n04136333"
+      ],
+      "value": 4.7352964783053494e-08,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03575240",
+      "label": "instrumentality",
+      "depth": 4,
+      "parent": "n00021939",
+      "children": [
+        "n03944341",
+        "n04146614"
+      ],
+      "value": 3.616548825155508e-08,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03944341",
+      "label": "pinwheel",
+      "depth": 5,
+      "parent": "n03575240",
+      "children": [],
+      "value": 2.1998219544314658e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 723,
+      "rank": 16
+    },
+    {
+      "id": "n04146614",
+      "label": "school bus",
+      "depth": 5,
+      "parent": "n03575240",
+      "children": [],
+      "value": 1.416726870724042e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 779,
+      "rank": 20
+    },
+    {
+      "id": "n04136333",
+      "label": "sarong",
+      "depth": 4,
+      "parent": "n00021939",
+      "children": [],
+      "value": 1.118747653149842e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 775,
+      "rank": 24
+    },
+    {
+      "id": "n07730033",
+      "label": "cardoon",
+      "depth": 2,
+      "parent": "n00001930",
+      "children": [],
+      "value": 6.127236053351372e-08,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 946,
+      "rank": 9
+    },
+    {
+      "id": "other",
+      "label": "other (classes not shown)",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [],
+      "value": 4.3854654441233265e-07,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": true,
+      "classId": null,
+      "rank": null
+    }
+  ]
+}

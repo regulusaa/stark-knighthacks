@@ -1,0 +1,186 @@
+{
+  "schema": "stark.gradcam/1",
+  "imageId": "clean_monarch",
+  "targetLayer": "conv5_block3_out",
+  "width": 224,
+  "height": 224,
+  "encoding": "png-gray8",
+  "normalization": "per-heatmap: relu(cam) / max(cam) * 255",
+  "classes": [
+    {
+      "classId": 323,
+      "label": "monarch",
+      "hasHeatmap": true,
+      "file": "gradcam/323.png",
+      "rawMax": 1.2363393099782232
+    },
+    {
+      "classId": 322,
+      "label": "ringlet",
+      "hasHeatmap": true,
+      "file": "gradcam/322.png",
+      "rawMax": 0.4923344805842368
+    },
+    {
+      "classId": 325,
+      "label": "sulphur butterfly",
+      "hasHeatmap": true,
+      "file": "gradcam/325.png",
+      "rawMax": 0.556283977013257
+    },
+    {
+      "classId": 326,
+      "label": "lycaenid",
+      "hasHeatmap": true,
+      "file": "gradcam/326.png",
+      "rawMax": 0.5470830241134529
+    },
+    {
+      "classId": 321,
+      "label": "admiral",
+      "hasHeatmap": true,
+      "file": "gradcam/321.png",
+      "rawMax": 0.5261670986268303
+    },
+    {
+      "classId": 318,
+      "label": "lacewing",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 324,
+      "label": "cabbage butterfly",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 309,
+      "label": "bee",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 946,
+      "label": "cardoon",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 311,
+      "label": "grasshopper",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 110,
+      "label": "flatworm",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 304,
+      "label": "leaf beetle",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 303,
+      "label": "long-horned beetle",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 317,
+      "label": "leafhopper",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 73,
+      "label": "barn spider",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 723,
+      "label": "pinwheel",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 315,
+      "label": "mantis",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 113,
+      "label": "snail",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 319,
+      "label": "dragonfly",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 779,
+      "label": "school bus",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 74,
+      "label": "garden spider",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 307,
+      "label": "weevil",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 70,
+      "label": "harvestman",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 775,
+      "label": "sarong",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 985,
+      "label": "daisy",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "schema": "stark.medical/1",
+  "imageId": "med_xray_pneumonia",
+  "model": "torchxrayvision densenet121-res224-all",
+  "scoreKind": "independent",
+  "caveat": "Independent per-finding model scores; not mutually exclusive, need not sum to 1, not validated diagnostic probabilities.",
+  "gradcamTargetLayer": "features.denseblock4",
+  "sourceLabel": {
+    "classId": 8,
+    "label": "Pneumonia",
+    "source": "Wikimedia Commons file caption (lobar pneumonia, right middle lobe)"
+  },
+  "findings": [
+    {
+      "classId": 0,
+      "label": "Atelectasis",
+      "score": 0.41,
+      "rank": 5,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 1,
+      "label": "Consolidation",
+      "score": 0.58,
+      "rank": 3,
+      "hasHeatmap": true,
+      "file": "gradcam/1.png"
+    },
+    {
+      "classId": 2,
+      "label": "Infiltration",
+      "score": 0.47,
+      "rank": 4,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 3,
+      "label": "Pneumothorax",
+      "score": 0.08,
+      "rank": 13,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 4,
+      "label": "Edema",
+      "score": 0.22,
+      "rank": 7,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 5,
+      "label": "Emphysema",
+      "score": 0.05,
+      "rank": 16,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 6,
+      "label": "Fibrosis",
+      "score": 0.07,
+      "rank": 14,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 7,
+      "label": "Effusion",
+      "score": 0.31,
+      "rank": 6,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 8,
+      "label": "Pneumonia",
+      "score": 0.66,
+      "rank": 2,
+      "hasHeatmap": true,
+      "file": "gradcam/8.png"
+    },
+    {
+      "classId": 9,
+      "label": "Pleural_Thickening",
+      "score": 0.12,
+      "rank": 11,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 10,
+      "label": "Cardiomegaly",
+      "score": 0.18,
+      "rank": 9,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 11,
+      "label": "Nodule",
+      "score": 0.09,
+      "rank": 12,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 12,
+      "label": "Mass",
+      "score": 0.06,
+      "rank": 15,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 13,
+      "label": "Hernia",
+      "score": 0.01,
+      "rank": 18,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 14,
+      "label": "Lung Lesion",
+      "score": 0.14,
+      "rank": 10,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 15,
+      "label": "Fracture",
+      "score": 0.04,
+      "rank": 17,
+      "hasHeatmap": false,
+      "file": null
+    },
+    {
+      "classId": 16,
+      "label": "Lung Opacity",
+      "score": 0.71,
+      "rank": 1,
+      "hasHeatmap": true,
+      "file": "gradcam/16.png"
+    },
+    {
+      "classId": 17,
+      "label": "Enlarged Cardiomediastinum",
+      "score": 0.2,
+      "rank": 8,
+      "hasHeatmap": false,
+      "file": null
+    }
+  ]
+}

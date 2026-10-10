@@ -1,0 +1,53 @@
+{
+  "schema": "stark.gradcam/1",
+  "imageId": "clean_retriever",
+  "targetLayer": "conv5_block3_out",
+  "width": 224,
+  "height": 224,
+  "encoding": "png-gray8",
+  "normalization": "per-heatmap: relu(cam) / max(cam) * 255",
+  "classes": [
+    {
+      "classId": 207,
+      "label": "golden retriever",
+      "hasHeatmap": true,
+      "file": "gradcam/207.png",
+      "rawMax": 0.0123
+    },
+    {
+      "classId": 208,
+      "label": "Labrador retriever",
+      "hasHeatmap": true,
+      "file": "gradcam/208.png",
+      "rawMax": 0.00615
+    },
+    {
+      "classId": 205,
+      "label": "flat-coated retriever",
+      "hasHeatmap": true,
+      "file": "gradcam/205.png",
+      "rawMax": 0.0041
+    },
+    {
+      "classId": 222,
+      "label": "kuvasz",
+      "hasHeatmap": true,
+      "file": "gradcam/222.png",
+      "rawMax": 0.003075
+    },
+    {
+      "classId": 852,
+      "label": "tennis ball",
+      "hasHeatmap": true,
+      "file": "gradcam/852.png",
+      "rawMax": 0.00246
+    },
+    {
+      "classId": 257,
+      "label": "Great Pyrenees",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    }
+  ]
+}

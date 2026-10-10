@@ -1,0 +1,186 @@
+{
+  "schema": "stark.gradcam/1",
+  "imageId": "clean_sportscar",
+  "targetLayer": "conv5_block3_out",
+  "width": 224,
+  "height": 224,
+  "encoding": "png-gray8",
+  "normalization": "per-heatmap: relu(cam) / max(cam) * 255",
+  "classes": [
+    {
+      "classId": 817,
+      "label": "sports car",
+      "hasHeatmap": true,
+      "file": "gradcam/817.png",
+      "rawMax": 1.438117409546991
+    },
+    {
+      "classId": 670,
+      "label": "motor scooter",
+      "hasHeatmap": true,
+      "file": "gradcam/670.png",
+      "rawMax": 0.8731898936642184
+    },
+    {
+      "classId": 802,
+      "label": "snowmobile",
+      "hasHeatmap": true,
+      "file": "gradcam/802.png",
+      "rawMax": 0.9631935494516694
+    },
+    {
+      "classId": 751,
+      "label": "racer",
+      "hasHeatmap": true,
+      "file": "gradcam/751.png",
+      "rawMax": 1.2570371366654733
+    },
+    {
+      "classId": 573,
+      "label": "go-kart",
+      "hasHeatmap": true,
+      "file": "gradcam/573.png",
+      "rawMax": 0.9048178150988757
+    },
+    {
+      "classId": 518,
+      "label": "crash helmet",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 479,
+      "label": "car wheel",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 511,
+      "label": "convertible",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 665,
+      "label": "moped",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 595,
+      "label": "harvester",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 581,
+      "label": "grille",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 717,
+      "label": "pickup",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 621,
+      "label": "lawn mower",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 625,
+      "label": "lifeboat",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 866,
+      "label": "tractor",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 889,
+      "label": "violin",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 814,
+      "label": "speedboat",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 450,
+      "label": "bobsled",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 561,
+      "label": "forklift",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 575,
+      "label": "golfcart",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 656,
+      "label": "minivan",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 535,
+      "label": "disk brake",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 681,
+      "label": "notebook",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 476,
+      "label": "carousel",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    },
+    {
+      "classId": 408,
+      "label": "amphibian",
+      "hasHeatmap": false,
+      "file": null,
+      "rawMax": null
+    }
+  ]
+}

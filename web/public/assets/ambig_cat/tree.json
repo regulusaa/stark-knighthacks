@@ -1,0 +1,844 @@
+{
+  "schema": "stark.tree/1",
+  "kind": "wordnet",
+  "scoreKind": "softmax",
+  "model": "resnet50-imagenet-keras",
+  "imageId": "ambig_cat",
+  "rootId": "n00001740",
+  "top1": {
+    "classId": 281,
+    "label": "tabby",
+    "score": 0.43834890432483214
+  },
+  "trueClass": {
+    "classId": 281,
+    "label": "tabby",
+    "score": 0.43834890432483214,
+    "rank": 1
+  },
+  "otherScore": 0.014465226068243187,
+  "topK": [
+    {
+      "rank": 1,
+      "classId": 281,
+      "wnid": "n02123045",
+      "label": "tabby",
+      "score": 0.43834890432483214
+    },
+    {
+      "rank": 2,
+      "classId": 282,
+      "wnid": "n02123159",
+      "label": "tiger cat",
+      "score": 0.4185004858253259
+    },
+    {
+      "rank": 3,
+      "classId": 287,
+      "wnid": "n02127052",
+      "label": "lynx",
+      "score": 0.07728416578891077
+    },
+    {
+      "rank": 4,
+      "classId": 285,
+      "wnid": "n02124075",
+      "label": "Egyptian cat",
+      "score": 0.020003486161253834
+    },
+    {
+      "rank": 5,
+      "classId": 283,
+      "wnid": "n02123394",
+      "label": "Persian cat",
+      "score": 0.0071985117663015885
+    },
+    {
+      "rank": 6,
+      "classId": 728,
+      "wnid": "n03958227",
+      "label": "plastic bag",
+      "score": 0.006172255197537935
+    },
+    {
+      "rank": 7,
+      "classId": 622,
+      "wnid": "n03657121",
+      "label": "lens cap",
+      "score": 0.003157267865036992
+    },
+    {
+      "rank": 8,
+      "classId": 457,
+      "wnid": "n02883205",
+      "label": "bow tie",
+      "score": 0.0027259900206803023
+    },
+    {
+      "rank": 9,
+      "classId": 896,
+      "wnid": "n04553703",
+      "label": "washbasin",
+      "score": 0.001472669280606384
+    },
+    {
+      "rank": 10,
+      "classId": 508,
+      "wnid": "n03085013",
+      "label": "computer keyboard",
+      "score": 0.001336576849063084
+    },
+    {
+      "rank": 11,
+      "classId": 620,
+      "wnid": "n03642806",
+      "label": "laptop",
+      "score": 0.0011781174167632303
+    },
+    {
+      "rank": 12,
+      "classId": 552,
+      "wnid": "n03325584",
+      "label": "feather boa",
+      "score": 0.0011574242425362025
+    },
+    {
+      "rank": 13,
+      "classId": 722,
+      "wnid": "n03942813",
+      "label": "ping-pong ball",
+      "score": 0.0011486881935470858
+    },
+    {
+      "rank": 14,
+      "classId": 904,
+      "wnid": "n04589890",
+      "label": "window screen",
+      "score": 0.0009757868343513629
+    },
+    {
+      "rank": 15,
+      "classId": 478,
+      "wnid": "n02971356",
+      "label": "carton",
+      "score": 0.0008798336202212487
+    },
+    {
+      "rank": 16,
+      "classId": 918,
+      "wnid": "n06785654",
+      "label": "crossword puzzle",
+      "score": 0.0007337714306086833
+    },
+    {
+      "rank": 17,
+      "classId": 761,
+      "wnid": "n04074963",
+      "label": "remote control",
+      "score": 0.0005398165532027882
+    },
+    {
+      "rank": 18,
+      "classId": 811,
+      "wnid": "n04265275",
+      "label": "space heater",
+      "score": 0.0005072805000990987
+    },
+    {
+      "rank": 19,
+      "classId": 852,
+      "wnid": "n04409515",
+      "label": "tennis ball",
+      "score": 0.00043486543709860074
+    },
+    {
+      "rank": 20,
+      "classId": 968,
+      "wnid": "n07930864",
+      "label": "cup",
+      "score": 0.00042065961090645757
+    },
+    {
+      "rank": 21,
+      "classId": 840,
+      "wnid": "n04367480",
+      "label": "swab",
+      "score": 0.0002907460434188367
+    },
+    {
+      "rank": 22,
+      "classId": 909,
+      "wnid": "n04596742",
+      "label": "wok",
+      "score": 0.00027364425448571947
+    },
+    {
+      "rank": 23,
+      "classId": 929,
+      "wnid": "n07615774",
+      "label": "ice lolly",
+      "score": 0.00026575402081321854
+    },
+    {
+      "rank": 24,
+      "classId": 434,
+      "wnid": "n02808304",
+      "label": "bath towel",
+      "score": 0.00026417269930137946
+    },
+    {
+      "rank": 25,
+      "classId": 845,
+      "wnid": "n04376876",
+      "label": "syringe",
+      "score": 0.00026389999485414275
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n00001740",
+      "label": "entity",
+      "depth": 0,
+      "parent": null,
+      "children": [
+        "n00001930",
+        "other"
+      ],
+      "value": 1.0,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00001930",
+      "label": "physical entity",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [
+        "n00003553",
+        "n07930864",
+        "n07615774"
+      ],
+      "value": 0.9855347739317569,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00003553",
+      "label": "whole",
+      "depth": 2,
+      "parent": "n00001930",
+      "children": [
+        "n00015388",
+        "n00021939"
+      ],
+      "value": 0.9848483603000373,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00015388",
+      "label": "animal",
+      "depth": 3,
+      "parent": "n00003553",
+      "children": [
+        "n02121808",
+        "n02127052"
+      ],
+      "value": 0.9613355538666242,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02121808",
+      "label": "domestic cat",
+      "depth": 4,
+      "parent": "n00015388",
+      "children": [
+        "n02123045",
+        "n02123159",
+        "n02124075",
+        "n02123394"
+      ],
+      "value": 0.8840513880777134,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02123045",
+      "label": "tabby",
+      "depth": 5,
+      "parent": "n02121808",
+      "children": [],
+      "value": 0.43834890432483214,
+      "isLeaf": true,
+      "onTop1Path": true,
+      "isTrueLabel": true,
+      "isOther": false,
+      "classId": 281,
+      "rank": 1
+    },
+    {
+      "id": "n02123159",
+      "label": "tiger cat",
+      "depth": 5,
+      "parent": "n02121808",
+      "children": [],
+      "value": 0.4185004858253259,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 282,
+      "rank": 2
+    },
+    {
+      "id": "n02124075",
+      "label": "Egyptian cat",
+      "depth": 5,
+      "parent": "n02121808",
+      "children": [],
+      "value": 0.020003486161253834,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 285,
+      "rank": 4
+    },
+    {
+      "id": "n02123394",
+      "label": "Persian cat",
+      "depth": 5,
+      "parent": "n02121808",
+      "children": [],
+      "value": 0.0071985117663015885,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 283,
+      "rank": 5
+    },
+    {
+      "id": "n02127052",
+      "label": "lynx",
+      "depth": 4,
+      "parent": "n00015388",
+      "children": [],
+      "value": 0.07728416578891077,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 287,
+      "rank": 3
+    },
+    {
+      "id": "n00021939",
+      "label": "artifact",
+      "depth": 3,
+      "parent": "n00003553",
+      "children": [
+        "n03575240",
+        "n03076708",
+        "n04014297"
+      ],
+      "value": 0.02351280643341308,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03575240",
+      "label": "instrumentality",
+      "depth": 4,
+      "parent": "n00021939",
+      "children": [
+        "n03094503",
+        "n03294048",
+        "n03183080",
+        "n03563967"
+      ],
+      "value": 0.015232164771506839,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03094503",
+      "label": "container",
+      "depth": 5,
+      "parent": "n03575240",
+      "children": [
+        "n03958227",
+        "n04553703",
+        "n02971356"
+      ],
+      "value": 0.008524758098365568,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03958227",
+      "label": "plastic bag",
+      "depth": 6,
+      "parent": "n03094503",
+      "children": [],
+      "value": 0.006172255197537935,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 728,
+      "rank": 6
+    },
+    {
+      "id": "n04553703",
+      "label": "washbasin",
+      "depth": 6,
+      "parent": "n03094503",
+      "children": [],
+      "value": 0.001472669280606384,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 896,
+      "rank": 9
+    },
+    {
+      "id": "n02971356",
+      "label": "carton",
+      "depth": 6,
+      "parent": "n03094503",
+      "children": [],
+      "value": 0.0008798336202212487,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 478,
+      "rank": 15
+    },
+    {
+      "id": "n03294048",
+      "label": "equipment",
+      "depth": 5,
+      "parent": "n03575240",
+      "children": [
+        "n03414162",
+        "n03085013"
+      ],
+      "value": 0.003653901910317454,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03414162",
+      "label": "game equipment",
+      "depth": 6,
+      "parent": "n03294048",
+      "children": [
+        "n02778669",
+        "n06785654"
+      ],
+      "value": 0.00231732506125437,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02778669",
+      "label": "ball",
+      "depth": 7,
+      "parent": "n03414162",
+      "children": [
+        "n03942813",
+        "n04409515"
+      ],
+      "value": 0.0015835536306456866,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03942813",
+      "label": "ping-pong ball",
+      "depth": 8,
+      "parent": "n02778669",
+      "children": [],
+      "value": 0.0011486881935470858,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 722,
+      "rank": 13
+    },
+    {
+      "id": "n04409515",
+      "label": "tennis ball",
+      "depth": 8,
+      "parent": "n02778669",
+      "children": [],
+      "value": 0.00043486543709860074,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 852,
+      "rank": 19
+    },
+    {
+      "id": "n06785654",
+      "label": "crossword puzzle",
+      "depth": 7,
+      "parent": "n03414162",
+      "children": [],
+      "value": 0.0007337714306086833,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 918,
+      "rank": 16
+    },
+    {
+      "id": "n03085013",
+      "label": "computer keyboard",
+      "depth": 6,
+      "parent": "n03294048",
+      "children": [],
+      "value": 0.001336576849063084,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 508,
+      "rank": 10
+    },
+    {
+      "id": "n03183080",
+      "label": "device",
+      "depth": 5,
+      "parent": "n03575240",
+      "children": [
+        "n03642806",
+        "n04074963",
+        "n04265275",
+        "n04376876"
+      ],
+      "value": 0.00248911446491926,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03642806",
+      "label": "laptop",
+      "depth": 6,
+      "parent": "n03183080",
+      "children": [],
+      "value": 0.0011781174167632303,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 620,
+      "rank": 11
+    },
+    {
+      "id": "n04074963",
+      "label": "remote control",
+      "depth": 6,
+      "parent": "n03183080",
+      "children": [],
+      "value": 0.0005398165532027882,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 761,
+      "rank": 17
+    },
+    {
+      "id": "n04265275",
+      "label": "space heater",
+      "depth": 6,
+      "parent": "n03183080",
+      "children": [],
+      "value": 0.0005072805000990987,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 811,
+      "rank": 18
+    },
+    {
+      "id": "n04376876",
+      "label": "syringe",
+      "depth": 6,
+      "parent": "n03183080",
+      "children": [],
+      "value": 0.00026389999485414275,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 845,
+      "rank": 25
+    },
+    {
+      "id": "n03563967",
+      "label": "implement",
+      "depth": 5,
+      "parent": "n03575240",
+      "children": [
+        "n04367480",
+        "n04596742"
+      ],
+      "value": 0.0005643902979045562,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n04367480",
+      "label": "swab",
+      "depth": 6,
+      "parent": "n03563967",
+      "children": [],
+      "value": 0.0002907460434188367,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 840,
+      "rank": 21
+    },
+    {
+      "id": "n04596742",
+      "label": "wok",
+      "depth": 6,
+      "parent": "n03563967",
+      "children": [],
+      "value": 0.00027364425448571947,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 909,
+      "rank": 22
+    },
+    {
+      "id": "n03076708",
+      "label": "commodity",
+      "depth": 4,
+      "parent": "n00021939",
+      "children": [
+        "n03419014",
+        "n02808304"
+      ],
+      "value": 0.004147586962517885,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03419014",
+      "label": "garment",
+      "depth": 5,
+      "parent": "n03076708",
+      "children": [
+        "n02883205",
+        "n03325584"
+      ],
+      "value": 0.003883414263216505,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02883205",
+      "label": "bow tie",
+      "depth": 6,
+      "parent": "n03419014",
+      "children": [],
+      "value": 0.0027259900206803023,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 457,
+      "rank": 8
+    },
+    {
+      "id": "n03325584",
+      "label": "feather boa",
+      "depth": 6,
+      "parent": "n03419014",
+      "children": [],
+      "value": 0.0011574242425362025,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 552,
+      "rank": 12
+    },
+    {
+      "id": "n02808304",
+      "label": "bath towel",
+      "depth": 5,
+      "parent": "n03076708",
+      "children": [],
+      "value": 0.00026417269930137946,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 434,
+      "rank": 24
+    },
+    {
+      "id": "n04014297",
+      "label": "protective covering",
+      "depth": 4,
+      "parent": "n00021939",
+      "children": [
+        "n03657121",
+        "n04589890"
+      ],
+      "value": 0.004133054699388355,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03657121",
+      "label": "lens cap",
+      "depth": 5,
+      "parent": "n04014297",
+      "children": [],
+      "value": 0.003157267865036992,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 622,
+      "rank": 7
+    },
+    {
+      "id": "n04589890",
+      "label": "window screen",
+      "depth": 5,
+      "parent": "n04014297",
+      "children": [],
+      "value": 0.0009757868343513629,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 904,
+      "rank": 14
+    },
+    {
+      "id": "n07930864",
+      "label": "cup",
+      "depth": 2,
+      "parent": "n00001930",
+      "children": [],
+      "value": 0.00042065961090645757,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 968,
+      "rank": 20
+    },
+    {
+      "id": "n07615774",
+      "label": "ice lolly",
+      "depth": 2,
+      "parent": "n00001930",
+      "children": [],
+      "value": 0.00026575402081321854,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 929,
+      "rank": 23
+    },
+    {
+      "id": "other",
+      "label": "other (classes not shown)",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [],
+      "value": 0.014465226068243187,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": true,
+      "classId": null,
+      "rank": null
+    }
+  ]
+}

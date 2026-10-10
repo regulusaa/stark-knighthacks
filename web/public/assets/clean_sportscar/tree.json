@@ -1,0 +1,780 @@
+{
+  "schema": "stark.tree/1",
+  "kind": "wordnet",
+  "scoreKind": "softmax",
+  "model": "resnet50-imagenet-keras",
+  "imageId": "clean_sportscar",
+  "rootId": "n00001740",
+  "top1": {
+    "classId": 817,
+    "label": "sports car",
+    "score": 0.5637473175661346
+  },
+  "trueClass": {
+    "classId": 817,
+    "label": "sports car",
+    "score": 0.5637473175661346,
+    "rank": 1
+  },
+  "otherScore": 0.0038916367805382768,
+  "topK": [
+    {
+      "rank": 1,
+      "classId": 817,
+      "wnid": "n04285008",
+      "label": "sports car",
+      "score": 0.5637473175661346
+    },
+    {
+      "rank": 2,
+      "classId": 670,
+      "wnid": "n03791053",
+      "label": "motor scooter",
+      "score": 0.18988704688706143
+    },
+    {
+      "rank": 3,
+      "classId": 802,
+      "wnid": "n04252077",
+      "label": "snowmobile",
+      "score": 0.13449812452901436
+    },
+    {
+      "rank": 4,
+      "classId": 751,
+      "wnid": "n04037443",
+      "label": "racer",
+      "score": 0.03279507022160096
+    },
+    {
+      "rank": 5,
+      "classId": 573,
+      "wnid": "n03444034",
+      "label": "go-kart",
+      "score": 0.019254734106491662
+    },
+    {
+      "rank": 6,
+      "classId": 518,
+      "wnid": "n03127747",
+      "label": "crash helmet",
+      "score": 0.018362065251568246
+    },
+    {
+      "rank": 7,
+      "classId": 479,
+      "wnid": "n02974003",
+      "label": "car wheel",
+      "score": 0.01696423155897229
+    },
+    {
+      "rank": 8,
+      "classId": 511,
+      "wnid": "n03100240",
+      "label": "convertible",
+      "score": 0.009259612428412223
+    },
+    {
+      "rank": 9,
+      "classId": 665,
+      "wnid": "n03785016",
+      "label": "moped",
+      "score": 0.0026889017614155817
+    },
+    {
+      "rank": 10,
+      "classId": 595,
+      "wnid": "n03496892",
+      "label": "harvester",
+      "score": 0.001862082491392479
+    },
+    {
+      "rank": 11,
+      "classId": 581,
+      "wnid": "n03459775",
+      "label": "grille",
+      "score": 0.001134937764182091
+    },
+    {
+      "rank": 12,
+      "classId": 717,
+      "wnid": "n03930630",
+      "label": "pickup",
+      "score": 0.0009298952139110543
+    },
+    {
+      "rank": 13,
+      "classId": 621,
+      "wnid": "n03649909",
+      "label": "lawn mower",
+      "score": 0.0008662911538552648
+    },
+    {
+      "rank": 14,
+      "classId": 625,
+      "wnid": "n03662601",
+      "label": "lifeboat",
+      "score": 0.0008228223224914208
+    },
+    {
+      "rank": 15,
+      "classId": 866,
+      "wnid": "n04465501",
+      "label": "tractor",
+      "score": 0.0005410242216468843
+    },
+    {
+      "rank": 16,
+      "classId": 889,
+      "wnid": "n04536866",
+      "label": "violin",
+      "score": 0.0005136485847252293
+    },
+    {
+      "rank": 17,
+      "classId": 814,
+      "wnid": "n04273569",
+      "label": "speedboat",
+      "score": 0.00045762948638972876
+    },
+    {
+      "rank": 18,
+      "classId": 450,
+      "wnid": "n02860847",
+      "label": "bobsled",
+      "score": 0.0002785897039342321
+    },
+    {
+      "rank": 19,
+      "classId": 561,
+      "wnid": "n03384352",
+      "label": "forklift",
+      "score": 0.00021906832312572797
+    },
+    {
+      "rank": 20,
+      "classId": 575,
+      "wnid": "n03445924",
+      "label": "golfcart",
+      "score": 0.00021700861169066322
+    },
+    {
+      "rank": 21,
+      "classId": 656,
+      "wnid": "n03770679",
+      "label": "minivan",
+      "score": 0.0001894562512971948
+    },
+    {
+      "rank": 22,
+      "classId": 535,
+      "wnid": "n03208938",
+      "label": "disk brake",
+      "score": 0.00017195804426061486
+    },
+    {
+      "rank": 23,
+      "classId": 681,
+      "wnid": "n03832673",
+      "label": "notebook",
+      "score": 0.0001607026646845241
+    },
+    {
+      "rank": 24,
+      "classId": 476,
+      "wnid": "n02966193",
+      "label": "carousel",
+      "score": 0.00015920606280337563
+    },
+    {
+      "rank": 25,
+      "classId": 408,
+      "wnid": "n02704792",
+      "label": "amphibian",
+      "score": 0.00012693800839978114
+    }
+  ],
+  "nodes": [
+    {
+      "id": "n00001740",
+      "label": "entity",
+      "depth": 0,
+      "parent": null,
+      "children": [
+        "n00021939",
+        "other"
+      ],
+      "value": 1.0,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n00021939",
+      "label": "artifact",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [
+        "n03575240",
+        "n03127747",
+        "n03459775"
+      ],
+      "value": 0.9961083632194617,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03575240",
+      "label": "instrumentality",
+      "depth": 2,
+      "parent": "n00021939",
+      "children": [
+        "n04576211",
+        "n03183080",
+        "n04524313",
+        "n03649909",
+        "n03445924"
+      ],
+      "value": 0.9766113602037114,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n04576211",
+      "label": "wheeled vehicle",
+      "depth": 3,
+      "parent": "n03575240",
+      "children": [
+        "n04170037",
+        "n03791053"
+      ],
+      "value": 0.9541371895185116,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n04170037",
+      "label": "self-propelled vehicle",
+      "depth": 4,
+      "parent": "n04576211",
+      "children": [
+        "n03791235",
+        "n04252077",
+        "n04465501",
+        "n03384352"
+      ],
+      "value": 0.7642501426314501,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03791235",
+      "label": "motor vehicle",
+      "depth": 5,
+      "parent": "n04170037",
+      "children": [
+        "n02958343",
+        "n03444034",
+        "n03785016",
+        "n03930630",
+        "n02704792"
+      ],
+      "value": 0.6289919255576631,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02958343",
+      "label": "car",
+      "depth": 6,
+      "parent": "n03791235",
+      "children": [
+        "n04285008",
+        "n04037443",
+        "n03100240",
+        "n03770679"
+      ],
+      "value": 0.605991456467445,
+      "isLeaf": false,
+      "onTop1Path": true,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n04285008",
+      "label": "sports car",
+      "depth": 7,
+      "parent": "n02958343",
+      "children": [],
+      "value": 0.5637473175661346,
+      "isLeaf": true,
+      "onTop1Path": true,
+      "isTrueLabel": true,
+      "isOther": false,
+      "classId": 817,
+      "rank": 1
+    },
+    {
+      "id": "n04037443",
+      "label": "racer",
+      "depth": 7,
+      "parent": "n02958343",
+      "children": [],
+      "value": 0.03279507022160096,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 751,
+      "rank": 4
+    },
+    {
+      "id": "n03100240",
+      "label": "convertible",
+      "depth": 7,
+      "parent": "n02958343",
+      "children": [],
+      "value": 0.009259612428412223,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 511,
+      "rank": 8
+    },
+    {
+      "id": "n03770679",
+      "label": "minivan",
+      "depth": 7,
+      "parent": "n02958343",
+      "children": [],
+      "value": 0.0001894562512971948,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 656,
+      "rank": 21
+    },
+    {
+      "id": "n03444034",
+      "label": "go-kart",
+      "depth": 6,
+      "parent": "n03791235",
+      "children": [],
+      "value": 0.019254734106491662,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 573,
+      "rank": 5
+    },
+    {
+      "id": "n03785016",
+      "label": "moped",
+      "depth": 6,
+      "parent": "n03791235",
+      "children": [],
+      "value": 0.0026889017614155817,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 665,
+      "rank": 9
+    },
+    {
+      "id": "n03930630",
+      "label": "pickup",
+      "depth": 6,
+      "parent": "n03791235",
+      "children": [],
+      "value": 0.0009298952139110543,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 717,
+      "rank": 12
+    },
+    {
+      "id": "n02704792",
+      "label": "amphibian",
+      "depth": 6,
+      "parent": "n03791235",
+      "children": [],
+      "value": 0.00012693800839978114,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 408,
+      "rank": 25
+    },
+    {
+      "id": "n04252077",
+      "label": "snowmobile",
+      "depth": 5,
+      "parent": "n04170037",
+      "children": [],
+      "value": 0.13449812452901436,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 802,
+      "rank": 3
+    },
+    {
+      "id": "n04465501",
+      "label": "tractor",
+      "depth": 5,
+      "parent": "n04170037",
+      "children": [],
+      "value": 0.0005410242216468843,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 866,
+      "rank": 15
+    },
+    {
+      "id": "n03384352",
+      "label": "forklift",
+      "depth": 5,
+      "parent": "n04170037",
+      "children": [],
+      "value": 0.00021906832312572797,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 561,
+      "rank": 19
+    },
+    {
+      "id": "n03791053",
+      "label": "motor scooter",
+      "depth": 4,
+      "parent": "n04576211",
+      "children": [],
+      "value": 0.18988704688706143,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 670,
+      "rank": 2
+    },
+    {
+      "id": "n03183080",
+      "label": "device",
+      "depth": 3,
+      "parent": "n03575240",
+      "children": [
+        "n03736970",
+        "n03699975",
+        "n04536866",
+        "n03208938"
+      ],
+      "value": 0.019831829406838513,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03736970",
+      "label": "mechanical device",
+      "depth": 4,
+      "parent": "n03183080",
+      "children": [
+        "n02974003",
+        "n02966193"
+      ],
+      "value": 0.017123437621775664,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02974003",
+      "label": "car wheel",
+      "depth": 5,
+      "parent": "n03736970",
+      "children": [],
+      "value": 0.01696423155897229,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 479,
+      "rank": 7
+    },
+    {
+      "id": "n02966193",
+      "label": "carousel",
+      "depth": 5,
+      "parent": "n03736970",
+      "children": [],
+      "value": 0.00015920606280337563,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 476,
+      "rank": 24
+    },
+    {
+      "id": "n03699975",
+      "label": "machine",
+      "depth": 4,
+      "parent": "n03183080",
+      "children": [
+        "n03496892",
+        "n03832673"
+      ],
+      "value": 0.002022785156077003,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03496892",
+      "label": "harvester",
+      "depth": 5,
+      "parent": "n03699975",
+      "children": [],
+      "value": 0.001862082491392479,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 595,
+      "rank": 10
+    },
+    {
+      "id": "n03832673",
+      "label": "notebook",
+      "depth": 5,
+      "parent": "n03699975",
+      "children": [],
+      "value": 0.0001607026646845241,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 681,
+      "rank": 23
+    },
+    {
+      "id": "n04536866",
+      "label": "violin",
+      "depth": 4,
+      "parent": "n03183080",
+      "children": [],
+      "value": 0.0005136485847252293,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 889,
+      "rank": 16
+    },
+    {
+      "id": "n03208938",
+      "label": "disk brake",
+      "depth": 4,
+      "parent": "n03183080",
+      "children": [],
+      "value": 0.00017195804426061486,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 535,
+      "rank": 22
+    },
+    {
+      "id": "n04524313",
+      "label": "vehicle",
+      "depth": 3,
+      "parent": "n03575240",
+      "children": [
+        "n02858304",
+        "n02860847"
+      ],
+      "value": 0.0015590415128153817,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n02858304",
+      "label": "boat",
+      "depth": 4,
+      "parent": "n04524313",
+      "children": [
+        "n03662601",
+        "n04273569"
+      ],
+      "value": 0.0012804518088811495,
+      "isLeaf": false,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": null,
+      "rank": null
+    },
+    {
+      "id": "n03662601",
+      "label": "lifeboat",
+      "depth": 5,
+      "parent": "n02858304",
+      "children": [],
+      "value": 0.0008228223224914208,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 625,
+      "rank": 14
+    },
+    {
+      "id": "n04273569",
+      "label": "speedboat",
+      "depth": 5,
+      "parent": "n02858304",
+      "children": [],
+      "value": 0.00045762948638972876,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 814,
+      "rank": 17
+    },
+    {
+      "id": "n02860847",
+      "label": "bobsled",
+      "depth": 4,
+      "parent": "n04524313",
+      "children": [],
+      "value": 0.0002785897039342321,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 450,
+      "rank": 18
+    },
+    {
+      "id": "n03649909",
+      "label": "lawn mower",
+      "depth": 3,
+      "parent": "n03575240",
+      "children": [],
+      "value": 0.0008662911538552648,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 621,
+      "rank": 13
+    },
+    {
+      "id": "n03445924",
+      "label": "golfcart",
+      "depth": 3,
+      "parent": "n03575240",
+      "children": [],
+      "value": 0.00021700861169066322,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 575,
+      "rank": 20
+    },
+    {
+      "id": "n03127747",
+      "label": "crash helmet",
+      "depth": 2,
+      "parent": "n00021939",
+      "children": [],
+      "value": 0.018362065251568246,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 518,
+      "rank": 6
+    },
+    {
+      "id": "n03459775",
+      "label": "grille",
+      "depth": 2,
+      "parent": "n00021939",
+      "children": [],
+      "value": 0.001134937764182091,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": false,
+      "classId": 581,
+      "rank": 11
+    },
+    {
+      "id": "other",
+      "label": "other (classes not shown)",
+      "depth": 1,
+      "parent": "n00001740",
+      "children": [],
+      "value": 0.0038916367805382768,
+      "isLeaf": true,
+      "onTop1Path": false,
+      "isTrueLabel": false,
+      "isOther": true,
+      "classId": null,
+      "rank": null
+    }
+  ]
+}
