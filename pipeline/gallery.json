@@ -1,0 +1,23 @@
+{
+  "_comment": "Gallery inputs for python -m pipeline.run. Files are matched by stem in pipeline/inputs/ (any extension). trueLabel is looked up in imagenet_class_index.json. Order follows master plan 17.2; slots 2 (adversarial) and 4 (medical) arrive with later stages.",
+  "images": [
+    { "id": "clean_retriever", "file": "clean_retriever", "backup": "clean_retriever_b",
+      "name": "Golden retriever", "category": "clean", "order": 1,
+      "trueLabel": "golden retriever", "gradcam": "all" },
+    { "id": "ambig_cat", "file": "ambig_cat", "backup": null,
+      "name": "Tabby cat", "category": "ambiguous", "order": 3,
+      "trueLabel": "tabby" },
+    { "id": "ambig_wolf", "file": "ambig_wolf", "backup": null,
+      "name": "Wolf in snow", "category": "ambiguous", "order": 5,
+      "trueLabel": "timber wolf" },
+    { "id": "clean_sportscar", "file": "clean_sportscar", "backup": null,
+      "name": "Sports car", "category": "clean", "order": 6,
+      "trueLabel": "sports car" },
+    { "id": "clean_monarch", "file": "clean_monarch", "backup": null,
+      "name": "Monarch butterfly", "category": "clean", "order": 7,
+      "trueLabel": "monarch" },
+    { "id": "ambig_chihuahua", "file": "ambig_chihuahua", "backup": "ambig_chihuahua_b",
+      "name": "Chihuahua", "category": "ambiguous", "order": 8,
+      "trueLabel": "Chihuahua" }
+  ]
+}
