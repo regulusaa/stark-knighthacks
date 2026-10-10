@@ -1,9 +1,10 @@
 // Mouse picking for Brain tips: hover enlarges, a click (not a drag) focuses, a click on empty space clears.
+// Tips hidden behind tissue are skipped (`isHidden`), so you can't click through the brain.
 import * as THREE from 'three';
 
 const CLICK_PX = 5;
 
-export function attachPicking(canvas, camera, tips, { onTip, onEmpty }) {
+export function attachPicking(canvas, camera, tips, { onTip, onEmpty, isHidden = () => false }) {
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const hits = [];
@@ -15,7 +16,8 @@ export function attachPicking(canvas, camera, tips, { onTip, onEmpty }) {
     ray.setFromCamera(ndc, camera);
     hits.length = 0;
     ray.intersectObjects(tips.pickables, false, hits);
-    return hits.length ? hits[0].object.userData.classId : null;
+    for (const h of hits) if (!isHidden(h.object.userData.classId)) return h.object.userData.classId;
+    return null;
   }
 
   canvas.addEventListener('pointermove', (e) => {

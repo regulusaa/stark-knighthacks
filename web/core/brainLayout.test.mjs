@@ -2,7 +2,11 @@
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { layoutBrain, BRAIN, gapAzimuth } from './brainLayout.js';
+import { layoutBrain, BRAIN, FRONT_AZIMUTH } from './brainLayout.js';
+import { capSdf, occluded } from './brainShape.js';
+import { RIG } from './cameraRig.js';
+
+assert.deepEqual(BRAIN.viewFrom, RIG.defaultPosition.toArray(), 'BRAIN.viewFrom must be the default camera position');
 
 const ASSETS = join(import.meta.dirname, '..', 'public', 'assets');
 const MIN_TIP_DISTANCE = 0.5;
@@ -23,20 +27,35 @@ for (const id of readdirSync(ASSETS).sort()) {
     for (let i = 0; i < tips.length; i++) for (let j = i + 1; j < tips.length; j++) min = Math.min(min, dist(tips[i].pos, tips[j].pos));
     assert.ok(min >= MIN_TIP_DISTANCE, `closest tips ${min.toFixed(3)} < ${MIN_TIP_DISTANCE}`);
 
-    const gap = gapAzimuth();
     for (const t of tips) {
-      assert.ok(t.pos[1] >= BRAIN.center[1] - 1e-9, `${t.id} below the equator`);
+      // resting on the cortex: tipLift above the smooth cap (the SDF is a bound, so its distance reads a little low)
+      const d = capSdf(...t.pos);
+      assert.ok(d > 0.5 * BRAIN.tipLift && d < 1.5 * BRAIN.tipLift, `${t.id} is ${d.toFixed(3)} off the cortex (want ≈${BRAIN.tipLift})`);
+      // outside the excluded zones: base, frontal pole (faces the panel), far flank, fissure
+      assert.ok(t.dir[1] >= BRAIN.minY - 1e-9, `${t.id} below the base`);
+      assert.ok(t.dir[2] >= BRAIN.farFlankZ - 1e-9, `${t.id} on the far flank`);
       const az = Math.atan2(t.dir[2], t.dir[0]);
-      const off = Math.abs(((az - gap + 3 * Math.PI) % (2 * Math.PI)) - Math.PI) * 180 / Math.PI;
-      assert.ok(t.dir[1] > 0.999 || off >= BRAIN.gapHalfDeg - 1e-9, `${t.id} inside the panel wedge (${off.toFixed(1)}°)`);
+      const off = Math.abs(((az - FRONT_AZIMUTH + 3 * Math.PI) % (2 * Math.PI)) - Math.PI) * 180 / Math.PI;
+      assert.ok(t.dir[1] >= 0.9 || off >= BRAIN.frontHalfDeg - 1e-9, `${t.id} on the frontal pole (${off.toFixed(1)}°)`);
+      assert.ok(Math.abs(t.pos[2] - BRAIN.core[2]) >= BRAIN.midline - 0.2, `${t.id} in the fissure`);
+      // nothing but air between the tip and a point well outside it along its normal
+      const out = t.pos.map((v, k) => v + t.normal[k] * 6);
+      assert.ok(!occluded(out, t.pos), `${t.id} is buried under tissue`);
+      assert.ok(!occluded(BRAIN.viewFrom, t.pos), `${t.id} is hidden from the default camera`);
     }
 
+    // depth maps to radius: every internal node sits at (depth / maxDepth) of its envelope distance, deeper = further out
     for (const e of a.edges) {
       if (e.isStem) continue;
-      assert.ok(a.nodes.get(e.to).radius > a.nodes.get(e.from).radius, `radius does not grow along ${e.id}`);
+      const from = a.nodes.get(e.from);
+      const to = a.nodes.get(e.to);
+      assert.ok(to.radius / to.envelope > from.radius / from.envelope, `depth fraction does not grow along ${e.id}`);
     }
+    const top1 = tips.find((t) => t.node.onTop1Path);
+    assert.ok(top1, 'top-1 tip placed');
     assert.equal(tips.length, tree.nodes.filter((n) => n.isLeaf).length, 'every leaf placed');
     assert.equal(a.edges.length, tree.nodes.length, 'one edge per node (plus the stem, minus the root)');
+    assert.ok(a.edges.every((e) => e.points.length >= 2 && e.points.flat().every(Number.isFinite)), 'finite edge points');
 
     const again = layoutBrain(JSON.parse(readFileSync(file, 'utf8')));
     assert.deepEqual([...again.nodes.values()].map((n) => n.pos), [...a.nodes.values()].map((n) => n.pos), 'deterministic');

@@ -1,5 +1,7 @@
 // Tip labels (master plan 6.4): canvas-texture sprites. Top-1, the true class and the focused tip are always
-// shown; others only when the camera is within 7 units. Overlapping labels: the lower-priority one is hidden.
+// shown; others only when the camera is within 7 units and the tip isn't behind tissue (`isHidden`).
+// Overlapping labels: the lower-priority one is hidden. A label that would rise into the HUD band at the top of the
+// screen hangs below its tip instead.
 import * as THREE from 'three';
 
 export const LABELS = {
@@ -14,6 +16,7 @@ export const LABELS = {
   lift: 0.32,          // world units above the tip
   minPx: 18,           // on-screen label height is clamped to this range (at 1080p; scales with the viewport)
   maxPx: 30,
+  hudBand: 0.13,       // fraction of the screen height at the top that labels stay out of
 };
 
 function makeTexture(text, color) {
@@ -42,7 +45,7 @@ function makeTexture(text, color) {
   return { tex, aspect: w / h };
 }
 
-export function createLabels() {
+export function createLabels({ isHidden = () => false } = {}) {
   const group = new THREE.Group();
   let labels = []; // {classId, sprite, priority, always, aspect, visible}
   let focused = null;
@@ -74,11 +77,15 @@ export function createLabels() {
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, depthWrite: false, fog: false, transparent: true }));
         sprite.scale.set(LABELS.worldHeight * aspect, LABELS.worldHeight, 1);
         sprite.center.set(0.5, 0);
-        sprite.position.copy(t.pos).y += t.radius + LABELS.lift * 0.4;
+        const above = t.pos.clone();
+        above.y += t.radius + LABELS.lift * 0.4;
+        const below = t.pos.clone();
+        below.y -= t.radius + LABELS.lift * 0.4;
+        sprite.position.copy(above);
         sprite.renderOrder = 10;
         sprite.visible = false;
         group.add(sprite);
-        labels.push({ classId: t.classId, sprite, aspect, tip: t,
+        labels.push({ classId: t.classId, sprite, aspect, tip: t, above, below, flipped: false,
           baseAlways: isTop1 || isTrue,
           // higher wins an overlap: always-visible first, then by score
           priority: (isTop1 ? 3 : isTrue ? 2 : 0) + t.score });
@@ -115,14 +122,26 @@ export function createLabels() {
         l.sprite.getWorldPosition(tmp);
         const d = tmp.distanceTo(camera.position);
         const always = l.baseAlways || l.classId === focused;
-        let show = always || d < near;
+        let show = always || (d < near && !isHidden(l.classId));
         if (show) {
-          tmp.project(camera);
-          if (tmp.z > 1 || Math.abs(tmp.x) > 1.1 || Math.abs(tmp.y) > 1.1) show = always; // off screen
           const hPx = l.px;
           const wPx = hPx * l.aspect;
-          const x = (tmp.x * 0.5 + 0.5) * viewW;
-          const y = (1 - (tmp.y * 0.5 + 0.5)) * viewH; // sprite centre (0.5, 0): rect sits above this point
+          // above the tip unless that would reach into the HUD band; then hang below it
+          tmp.copy(l.above).applyMatrix4(group.matrixWorld).project(camera);
+          if (tmp.z > 1 || Math.abs(tmp.x) > 1.1 || Math.abs(tmp.y) > 1.1) show = always; // off screen
+          let x = (tmp.x * 0.5 + 0.5) * viewW;
+          let y = (1 - (tmp.y * 0.5 + 0.5)) * viewH;
+          const flip = y - hPx < LABELS.hudBand * viewH;
+          if (flip !== l.flipped) {
+            l.flipped = flip;
+            l.sprite.position.copy(flip ? l.below : l.above);
+            l.sprite.center.set(0.5, flip ? 1 : 0);
+          }
+          if (flip) {
+            tmp.copy(l.below).applyMatrix4(group.matrixWorld).project(camera);
+            x = (tmp.x * 0.5 + 0.5) * viewW;
+            y = (1 - (tmp.y * 0.5 + 0.5)) * viewH + hPx;   // centre (0.5, 1): the rect hangs below this point
+          }
           const r = [x - wPx / 2, y - hPx, x + wPx / 2, y];
           if (show && !always) {
             for (const k of rects) if (r[0] < k[2] && r[2] > k[0] && r[1] < k[3] && r[3] > k[1]) { show = false; break; }

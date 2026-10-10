@@ -1,6 +1,7 @@
 // Display entry point: builds the scene, loads the first image and runs the render loop.
 // Debug query params (reproducible screenshots):
 //   ?image=ID ?pulseAt=0..1|done ?heatmap=CLASSID ?focus=CLASSID ?t=SECONDS (freeze animation time) ?guides=1 ?stats=1
+//   ?view=front|side|back|top|threeq (fixed camera around the brain)
 import * as THREE from 'three';
 import { createScene } from './scene.js';
 import { loadManifest } from './assets.js';
@@ -12,15 +13,22 @@ import { mountHud } from './hudBridge.js';
 import { attachInput } from './input.js';
 import { layoutBrain } from './brainLayout.js';
 import { createBrainMesh, VEINS } from './brainMesh.js';
+import { createTissue, createTissueLights } from './brainTissue.js';
+import { ANATOMY, BOUNDS, occluded } from './brainShape.js';
 import { createTips } from './tips.js';
 import { createLabels } from './labels.js';
 import { createFocus } from './focus.js';
 import { attachPicking } from './picking.js';
 import { connectRelay } from './net.js';
 
-export const BRAIN_VOLUME = { center: new THREE.Vector3(0, 8.5, 0), radius: 4.5 }; // filled by CC-4b
+// The anatomy's bounding box; the whole Brain breathes about the cerebrum's centre.
+export const BRAIN_VOLUME = {
+  box: new THREE.Box3(new THREE.Vector3(...BOUNDS.min), new THREE.Vector3(...BOUNDS.max)),
+  center: new THREE.Vector3(...ANATOMY.origin),
+};
 
 const params = new URLSearchParams(location.search);
+const tissueReady = createTissue();     // ~1 s of geometry in a worker, while the rest loads
 const canvas = document.getElementById('stage');
 const { renderer, scene, camera, stats, tick, onContextLoss } = createScene(canvas);
 
@@ -37,43 +45,58 @@ brainRoot.position.copy(BRAIN_VOLUME.center).negate();
 brainPivot.add(brainRoot);
 const veins = createBrainMesh();
 const tips = createTips();
-const labels = createLabels();
+// a tip is hidden when tissue lies between it and the camera (both in brain-root space)
+const eyeLocal = new THREE.Vector3();
+const eyeArr = [0, 0, 0];
+const tipArr = [0, 0, 0];
+function tipHidden(classId) {
+  const t = tips.get(classId);
+  if (!t) return true;
+  brainRoot.worldToLocal(eyeLocal.copy(camera.position)).toArray(eyeArr);
+  return occluded(eyeArr, t.pos.toArray(tipArr));
+}
+const labels = createLabels({ isHidden: tipHidden });
 if (params.get('labelsAll') === '1') labels.nearDistance = 100; // test hook: make every label eligible
 brainRoot.add(veins.group, tips.group, labels.group);
-scene.add(brainPivot);
+scene.add(brainPivot, createTissueLights(BRAIN_VOLUME.center));
 
-if (params.get('guides') === '1') {
-  const guide = new THREE.Mesh(
-    new THREE.SphereGeometry(BRAIN_VOLUME.radius, 24, 16),
-    new THREE.MeshBasicMaterial({ color: 0x6b4c8a, wireframe: true, transparent: true, opacity: 0.25, fog: false }),
-  );
-  guide.position.copy(BRAIN_VOLUME.center);
-  scene.add(guide);
-}
+if (params.get('guides') === '1') scene.add(new THREE.Box3Helper(BRAIN_VOLUME.box, 0x6b4c8a));
 
 const manifest = await loadManifest();
 const api = createApi({ manifest, panel, trunk, rig });
 const hud = await mountHud(document.getElementById('hud'), api);
 attachInput(canvas, api, hud);
 
-const focus = createFocus({ api, rig, panel, tips, labels });
+const tissue = await tissueReady;
+brainRoot.add(tissue.mesh);
+
+// the focused tip's path lights up in the veins and glows through the tissue above it
+function highlight(classId) {
+  const id = classId === null ? null : tips.get(classId)?.node.id ?? null;
+  veins.setFocusPath(id);
+  tissue.setFocusPath(id === null ? null : veins.pathPoints(id));
+}
+const focus = createFocus({ api, rig, panel, tips, labels, highlight });
 api.attachFocus(focus);
-attachPicking(canvas, camera, tips, { onTip: (id) => api.focusTip(id), onEmpty: () => api.clearFocus() });
+attachPicking(canvas, camera, tips, { onTip: (id) => api.focusTip(id), onEmpty: () => api.clearFocus(), isHidden: tipHidden });
 
 api.onImageLoaded(() => {
   const a = api.assets;
   veins.dispose(); tips.dispose(); labels.dispose();
+  tissue.setPath(null); tissue.setFocusPath(null);
   if (!a?.tree) return;
   const layout = layoutBrain(a.tree);
   veins.build(layout);
   tips.build(layout, a.tree, a.gradcam);
   labels.build(tips.list);
   veins.resetReveal();
+  const top1 = [...layout.nodes.values()].find((n) => n.isLeaf && n.node.onTop1Path);
+  if (top1) tissue.setPath(veins.pathPoints(top1.id));
 });
 api.onPulseComplete(() => veins.startReveal());
 
 // Exposed for CC-4b/CC-5 code in this lane and for test scripts.
-const stark = { api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, relay: null };
+const stark = { api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, tissue, tipHidden, relay: null };
 window.__stark = stark;
 
 let readyPending = true;
@@ -95,6 +118,8 @@ function frame() {
   veins.update(animTime, dt);
   brainPivot.scale.setScalar(1 + BREATHE.amp * Math.sin((2 * Math.PI * animTime) / BREATHE.period));
   tips.setLit(veins.revealProgress);
+  tissue.setGlow(veins.revealProgress);
+  tissue.update(animTime);
   tips.update(camera);
   renderer.getSize(viewSize);
   labels.update(camera, viewSize.x, viewSize.y, dt * 1000);
@@ -117,6 +142,11 @@ if (params.get('stats') === '1') {
   setInterval(() => { el.textContent = `${stats.fps.toFixed(0)} fps · ${stats.pixelRatio}x`; }, 500);
 }
 
+// fixed cameras around the brain for verification shots (offsets from the cerebrum's centre)
+const DEBUG_VIEWS = {
+  front: [-15, 1.5, 0.01], side: [0, 1.5, 15], back: [15, 1.5, 0.01], top: [0.01, 15, 0.5], threeq: [9.5, 5, 11],
+};
+
 const first = manifest.find((m) => m.id === params.get('image')) ?? manifest[0];
 if (first) {
   const pulseAt = params.get('pulseAt');
@@ -128,6 +158,8 @@ if (first) {
   if (heat !== null) await api.showHeatmap(Number(heat), { instant: true });
   const focusId = params.get('focus');
   if (focusId !== null) api.focusTip(Number(focusId));
+  const view = DEBUG_VIEWS[params.get('view')];
+  if (view) rig.snapTo(new THREE.Vector3(...view).add(BRAIN_VOLUME.center), BRAIN_VOLUME.center);
 }
 
 // Networking last, so the first state the relay sees is a loaded image. ?offline=1 skips it.
