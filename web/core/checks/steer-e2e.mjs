@@ -80,6 +80,17 @@ async function openSteer(page) {
   await page.waitForSelector('#steer-panel .steer-row input', { timeout: 20000 });
 }
 
+// Codex's controller can leave a "Tap to take control again" toast over the first slider while the phone is
+// already driving (reported to Codex); a person would tap it away, so the script does too
+async function clearToast(run) {
+  const toast = guest.getByText('Tap to take control again');
+  if (await toast.isVisible().catch(() => false)) {
+    toastSeen.push(run);
+    await toast.click();
+    await toast.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  }
+}
+
 /** Drag one slider from its current value to 0 with real pointer events; samples the display while still pressed. */
 async function dragToZero(page, channel, { samples = false } = {}) {
   const input = page.locator(`#steer-panel .steer-row[data-channel="${channel}"] input`).first();
@@ -127,14 +138,7 @@ for (let run = 1; run <= RUNS; run++) {
   if (await take.count()) await take.click();
   await display.waitForFunction(() => window.__stark.api.state.driver?.label?.startsWith('Guest'), null, { timeout: 10000 });
   if (run === 1) { await shot(display, 'before'); await shot(guest, 'phone-before'); }
-  // Codex's controller can leave a "Tap to take control again" toast over the first slider while the phone is
-  // already driving (reported to Codex); a person would tap it away, so the script does too
-  const toast = guest.getByText('Tap to take control again');
-  if (await toast.isVisible().catch(() => false)) {
-    toastSeen.push(run);
-    await toast.click();
-    await toast.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
-  }
+  await clearToast(run);
 
   // 1. the strongest top-1 slider, 1× → 0×, sampled while the finger is down
   const seen = await dragToZero(guest, DEMO.sliders[0], { samples: run === 1 || true });
@@ -208,14 +212,17 @@ if (SHOTS) {
   await openSteer(guest);
   const take = guest.locator('#steer-panel .steer-take:visible, #take-control-bottom:visible').first();
   if (await take.count()) await take.click();
-  await guest.click('[data-input-mode="sliders"]');
+  await display.waitForFunction(() => window.__stark.api.state.driver?.label?.startsWith('Guest'), null, { timeout: 10000 });
+  await clearToast('probe');
   const input = guest.locator('#steer-panel .steer-row[data-channel="1220"] input').first();
+  await input.scrollIntoViewIfNeeded();
   const box = await input.boundingBox();
   const y = box.y + box.height / 2;
   await guest.mouse.move(box.x + 10 + (box.width - 20) / 3, y);
   await guest.mouse.down();
   await guest.mouse.move(box.x + 10 + (box.width - 20) * 0.6, y, { steps: 8 });
-  await sleep(800);
+  await display.waitForFunction(() => window.__stark.steer.session.state?.probe === 1220, null, { timeout: 5000 });
+  await sleep(600);
   await shot(display, 'probe');
   await guest.mouse.up();
 }
