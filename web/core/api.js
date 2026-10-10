@@ -42,6 +42,7 @@ export function createApi({ manifest, panel, trunk, rig }) {
   let state = null;
   let heatOn = false;
   let focusImpl = null; // focus.js, attached by main once the Brain exists
+  const server = { room: null, driver: null, controllerCount: 0 }; // kept across image switches
 
   function publish() {
     if (state) ev.emit('display-state', state);
@@ -100,7 +101,7 @@ export function createApi({ manifest, panel, trunk, rig }) {
 
       const tree = next.tree;
       state = {
-        room: null,
+        room: server.room,
         image: { id: entry.id, name: entry.name, category: entry.category },
         scoreKind: tree?.scoreKind ?? 'softmax',
         top1: null,
@@ -109,8 +110,8 @@ export function createApi({ manifest, panel, trunk, rig }) {
         layerMode: 'full',
         playback: { state: 'idle', speed: trunk.state.speed },
         focus: null,
-        driver: null,
-        controllerCount: 0,
+        driver: server.driver,
+        controllerCount: server.controllerCount,
         capabilities: {
           stability: entry.files?.stability === true,
           trunkInterior: false, layerModes: false, bloom: false, steer: false,
@@ -139,8 +140,9 @@ export function createApi({ manifest, panel, trunk, rig }) {
     resetView: () => rig.resetView(),
     replay() { trunk.play(); setPlayback(); },
     jumpToEnd() { trunk.jumpToEnd(); setPlayback(); },
+    /** Pulse speed multiplier; the contract allows 0.25–4 (keys step through 0.5 / 1 / 2). */
     setSpeed(s) {
-      const speed = TRUNK.speeds.includes(s) ? s : 1;
+      const speed = Number.isFinite(s) ? Math.min(4, Math.max(0.25, s)) : 1;
       trunk.setSpeed(speed);
       setPlayback();
     },
@@ -149,6 +151,24 @@ export function createApi({ manifest, panel, trunk, rig }) {
     focusTip(classId) { return focusImpl ? focusImpl.focusTip(classId) : false; },
     clearFocus() { focusImpl?.clearFocus(); },
     attachFocus(impl) { focusImpl = impl; },
+    /** Relay bookkeeping (net.js): room, driver, controller count. The server stays authoritative. */
+    setServerFields({ room, driver, controllerCount }) {
+      server.room = room ?? null;
+      server.driver = driver ?? null;
+      server.controllerCount = controllerCount ?? 0;
+      if (!state) return;
+      Object.assign(state, server);
+      publish();
+    },
+    /** set-mode from the host. Only modes whose capability is true are accepted (the relay checks too). */
+    setMode({ mode, layerMode } = {}) {
+      if (!state) return;
+      const caps = state.capabilities;
+      if (mode === 'normal' || (mode === 'stability' && caps.stability) || (mode === 'trunk' && caps.trunkInterior)) state.mode = mode;
+      else if (mode !== undefined) console.warn(`[stark] mode ${mode} is not available for this image`);
+      if (layerMode !== undefined && caps.layerModes) state.layerMode = layerMode;
+      publish();
+    },
     /** Used by focus.js: record the focused Answer (or null) and publish it. */
     setFocus(answer) {
       if (!state) return;

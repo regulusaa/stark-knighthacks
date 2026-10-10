@@ -97,7 +97,7 @@ async function main() {
     await sleep(30);
     host.mark();
     const h = await host.register({ role: 'host', room, key: HOST_KEY });
-    ok(h.ok && h.label === 'Host' && h.role === 'host', 'host accepted after a bad key (same socket)');
+    ok(h.ok && h.label === 'Ray' && h.role === 'host', 'host accepted after a bad key (same socket), labelled Ray');
     const hs = await host.waitFor(EVENTS.DISPLAY_STATE);
     ok(hs.room === room && hs.controllerCount === 1 && hs.driver === null, 'state sync on join, server fields filled');
     ok(hs.image.id === fixture.image.id, 'state sync carries the display\'s fields');
@@ -112,7 +112,7 @@ async function main() {
     const a2 = await g2.register({ role: 'guest', room });
     ok(a1.ok && a1.label === 'Guest 1' && a2.label === 'Guest 2', 'guest labels in join order');
     const g2peers = await (async () => { await g2.waitFor(EVENTS.PEER_JOINED, (p) => p.label === 'Guest 1'); return g2.seen(EVENTS.PEER_JOINED).map((m) => m.payload.label); })();
-    ok(['Display', 'Host', 'Guest 1'].every((l) => g2peers.includes(l)), 'newcomer told about every existing peer');
+    ok(['Display', 'Ray', 'Guest 1'].every((l) => g2peers.includes(l)), 'newcomer told about every existing peer');
     ok((await g2.waitFor(EVENTS.DISPLAY_STATE)).controllerCount === 3, 'controllerCount counts host + guests');
 
     // --- permissions -----------------------------------------------------------------------------------------
@@ -164,8 +164,9 @@ async function main() {
     g1.mark();
     host.emit(EVENTS.TAKE_CONTROL, {});
     dc = await g1.waitFor(EVENTS.DRIVER_CHANGED);
-    ok(dc.driver.isHost && dc.reason === 'host-override', 'host override');
-    await expectError(g1, ERROR_CODES.LOCKED, () => g1.emit(EVENTS.TAKE_CONTROL, {}), EVENTS.TAKE_CONTROL);
+    ok(dc.driver.isHost && dc.driver.label === 'Ray' && dc.reason === 'host-override', 'host override (driver labelled Ray)');
+    const hl = await expectError(g1, ERROR_CODES.LOCKED, () => g1.emit(EVENTS.TAKE_CONTROL, {}), EVENTS.TAKE_CONTROL);
+    ok(/^Ray is driving/.test(hl.message) && hl.driver.label === 'Ray', `LOCKED message names Ray ("${hl.message}")`);
 
     g1.mark();
     dc = await g1.waitFor(EVENTS.DRIVER_CHANGED, (p) => p.reason === 'idle', IDLE_MS * 4);

@@ -16,6 +16,7 @@ import { createTips } from './tips.js';
 import { createLabels } from './labels.js';
 import { createFocus } from './focus.js';
 import { attachPicking } from './picking.js';
+import { connectRelay } from './net.js';
 
 export const BRAIN_VOLUME = { center: new THREE.Vector3(0, 8.5, 0), radius: 4.5 }; // filled by CC-4b
 
@@ -72,9 +73,13 @@ api.onImageLoaded(() => {
 api.onPulseComplete(() => veins.startReveal());
 
 // Exposed for CC-4b/CC-5 code in this lane and for test scripts.
-window.__stark = { api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus };
+const stark = { api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, relay: null };
+window.__stark = stark;
 
 let readyPending = true;
+// contract §9: ready = registered with the relay (or offline), first image loaded, a frame rendered
+let netSettled = params.get('offline') === '1';
+setTimeout(() => { netSettled = true; }, 3000); // an unreachable relay must not block the display
 const clock = new THREE.Clock();
 const frozenT = params.get('t') !== null ? Number(params.get('t')) : null;
 let animTime = 0;
@@ -94,7 +99,7 @@ function frame() {
   renderer.getSize(viewSize);
   labels.update(camera, viewSize.x, viewSize.y, dt * 1000);
   renderer.render(scene, camera);
-  if (readyPending && api.state) {
+  if (readyPending && api.state && netSettled) {
     readyPending = false;
     requestAnimationFrame(() => { window.__starkReady = true; }); // after the first complete frame is presented
   }
@@ -123,7 +128,17 @@ if (first) {
   if (heat !== null) await api.showHeatmap(Number(heat), { instant: true });
   const focusId = params.get('focus');
   if (focusId !== null) api.focusTip(Number(focusId));
-} else {
+}
+
+// Networking last, so the first state the relay sees is a loaded image. ?offline=1 skips it.
+if (params.get('offline') !== '1') {
+  stark.relay = await connectRelay(api, {
+    onStatus: (st) => { stark.netStatus = st.phase; if (st.phase !== 'connecting' && st.phase !== 'registering') netSettled = true; },
+  });
+  if (!stark.relay) netSettled = true;
+}
+
+if (!first) {
   console.warn('[stark] no gallery images in the manifest');
   panel.setCrop(null);
   window.__starkReady = true;
