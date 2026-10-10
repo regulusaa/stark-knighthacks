@@ -1,6 +1,6 @@
 // Stark server: pages, static files, health, QR and the Socket.io relay (contract v1 section 6).
 //   npm start            listens on PORT (default 3001) on all interfaces and prints the URLs phones can use
-// Env: PORT, STARK_HOST_KEY, STARK_FIXED_ROOM, STARK_PUBLIC_URL (PUBLIC_URL also accepted).
+// Env: PORT, STARK_HOST_KEY, STARK_HOST_LABEL (default "Ray"), STARK_FIXED_ROOM, STARK_PUBLIC_URL (PUBLIC_URL also accepted).
 import express from 'express';
 import { existsSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -68,7 +68,7 @@ export function start({
 
   const http = createServer(app);
   const io = new Server(http, { serveClient: true, maxHttpBufferSize: 256 * 1024 });
-  const rooms = attachRelay(io, { hostKey, fixedRoom: env.STARK_FIXED_ROOM || null, idleMs, emptyRoomMs, log });
+  const rooms = attachRelay(io, { hostKey, hostLabel: env.STARK_HOST_LABEL || 'Ray', fixedRoom: env.STARK_FIXED_ROOM || null, idleMs, emptyRoomMs, log });
 
   return new Promise((resolve, reject) => {
     http.once('error', reject);

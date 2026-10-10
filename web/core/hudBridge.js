@@ -32,11 +32,17 @@ function builtIn(root, hudApi) {
       .stark-hud .score { font-weight: 400; color: #fcd27a; }
       .stark-hud .status { position: absolute; left: 28px; bottom: 24px; font-size: 18px; color: #9d8bb3; }
       .stark-hud .status b { color: #f4ecff; letter-spacing: .12em; }
+      .stark-hud .qr { position: absolute; right: 28px; bottom: 24px; text-align: center; font-size: 15px; color: #bfa9d9; }
+      .stark-hud .qr img { display: block; width: 150px; height: 150px; background: #fff; border-radius: 8px;
+        padding: 6px; margin-bottom: 8px; box-sizing: border-box; }
+      .stark-hud .qr[hidden] { display: none; }
     </style>
     <div class="stark-hud">
       <div class="top"><div class="name"></div><div class="answer"></div></div>
-      <div class="status">Room <b class="room">—</b></div>
+      <div class="status">Room <b class="room">—</b><span class="who"></span></div>
+      <div class="qr" hidden><img alt="QR code: scan to take the wheel"><div>Scan to take the wheel</div></div>
     </div>`;
+  let qrRoom = null;
   const $ = (s) => root.querySelector(s);
   hudApi.onState((s) => {
     $('.name').textContent = s.image?.name ?? '';
@@ -44,7 +50,17 @@ function builtIn(root, hudApi) {
     $('.answer').innerHTML = t
       ? `${escapeHtml(t.label)} <span class="score">· model score ${t.score.toFixed(2)}</span>`
       : 'no data for this image';
-    $('.room').textContent = s.room || hudApi.getRoom() || '—';
+    const room = s.room || hudApi.getRoom() || null;
+    $('.room').textContent = room || '—';
+    const n = s.controllerCount || 0;
+    $('.who').textContent = room
+      ? `  ·  ${s.driver ? `${s.driver.label} driving` : 'nobody driving'}  ·  ${n} controller${n === 1 ? '' : 's'}`
+      : '';
+    if (room !== qrRoom) {
+      qrRoom = room;
+      $('.qr').hidden = !room;
+      if (room) $('.qr img').src = `/api/qr.svg?room=${encodeURIComponent(room)}`;
+    }
   });
 }
 

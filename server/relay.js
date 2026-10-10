@@ -40,7 +40,7 @@ function digest(s) {
   return createHash('sha256').update(String(s)).digest();
 }
 
-export function attachRelay(io, { hostKey, fixedRoom, idleMs, emptyRoomMs, log = console.log }) {
+export function attachRelay(io, { hostKey, hostLabel = 'Ray', fixedRoom, idleMs, emptyRoomMs, log = console.log }) {
   const keyDigest = digest(hostKey);
   const keyOk = (key) => typeof key === 'string' && timingSafeEqual(digest(key), keyDigest);
 
@@ -92,7 +92,7 @@ export function attachRelay(io, { hostKey, fixedRoom, idleMs, emptyRoomMs, log =
       if (!room) return reject('That room is not available. Check the code on the display.', ERROR_CODES.NO_ROOM);
       if (p.role === ROLES.HOST) {
         if (!keyOk(p.key)) return reject('This host link has the wrong key.', ERROR_CODES.BAD_KEY);
-        client = { id: newId('h'), role: ROLES.HOST, label: 'Host', isHost: true };
+        client = { id: newId('h'), role: ROLES.HOST, label: hostLabel, isHost: true };
       } else {
         client = { id: newId('c'), role: ROLES.GUEST, label: rooms.nextGuestLabel(room), isHost: false };
       }
