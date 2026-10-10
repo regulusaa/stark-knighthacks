@@ -1,0 +1,40 @@
+.stark-display-result {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top, 0px));
+  left: max(16px, env(safe-area-inset-left, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  max-width: 440px;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  color: #f3eef7;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: clamp(18px, 1.2vw, 28px);
+  line-height: 1.3;
+  text-align: left;
+  text-shadow: 0 1px 4px #050208;
+}
+
+.stark-display-result[hidden] { display: none; }
+
+.stark-display-result__label,
+.stark-display-result__score {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.stark-display-result__label { font-weight: 500; }
+.stark-display-result__score {
+  color: #a79fb2;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 1000px) {
+  .stark-display-result {
+    top: max(24px, env(safe-area-inset-top, 0px));
+    left: max(24px, env(safe-area-inset-left, 0px));
+    right: max(24px, env(safe-area-inset-right, 0px));
+  }
+}
