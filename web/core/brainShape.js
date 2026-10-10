@@ -14,8 +14,10 @@ export const ANATOMY = {
   hemi: { ap: 0, y: 0.15, rAp: 4.6, rUp: 3.0, rDown: 2.1, rLat: 3.95, medial: 0.2, medialRound: 0.95, center: 1.8 },
   temporal: { ap: 0.95, y: -1.45, lat: 2.45, rAp: 2.45, rY: 1.2, rLat: 1.4, blend: 0.5 },
   cerebellum: { ap: -2.75, y: -2.25, lat: 1.05, rAp: 1.35, rY: 0.9, rLat: 1.4, blend: 0.4 },
-  // brainstem centreline, top (inside the cerebrum) to bottom (sleeving the top of the trunk): [ap, y, radius]
-  stem: [[-0.45, -0.9, 0.62], [-0.85, -2.3, 0.7], [-1.1, -3.4, 0.48], [-1.2, -4.4, 0.38]],
+  // brainstem centreline, top (inside the cerebrum) to bottom: [ap, y, radius]. Below the medulla it carries on as a
+  // tapering spinal cord, well clear of the cerebellum, sleeving the trunk (the forward pass climbs inside it)
+  stem: [[-0.45, -0.9, 0.62], [-0.85, -2.3, 0.7], [-1.1, -3.4, 0.48], [-1.2, -4.4, 0.38], [-1.2, -5.6, 0.33], [-1.2, -6.95, 0.24]],
+  stemFade: 0.6,                       // the cord's last stretch fades out (it leaves the frame rather than ending)
   pons: { ap: -0.6, y: -2.35, r: 0.6 },
   callosum: { ap: -0.1, y: -0.6, rAp: 2.9, rY: 1.0, rLat: 0.8 },
   core: [-0.3, -0.7],                  // ap, y of the hierarchy's root (thalamus, on the midline)
@@ -109,6 +111,10 @@ export const CORE = fromBrain(ANATOMY.core[0], ANATOMY.core[1]);
 
 /** The brainstem centreline (world), top to bottom. */
 export const STEM_AXIS = ANATOMY.stem.map(([ap, y]) => fromBrain(ap, y));
+
+/** World height of the bottom of the spinal cord, and of the cerebellum (below it, tissue is "stem" for framing). */
+export const STEM_BOTTOM_Y = STEM_AXIS[STEM_AXIS.length - 1][1];
+export const STEM_FRAME_Y = O[1] + ANATOMY.cerebellum.y - ANATOMY.cerebellum.rY;
 
 /** Unit gradient of an SDF (world), by central differences. */
 export function gradient(sdf, p, h = 0.01) {

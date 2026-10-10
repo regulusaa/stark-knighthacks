@@ -119,6 +119,7 @@ export function createImagePanel() {
     [s + w / 2, 0, w, 2 * s], [-s - w / 2, 0, w, 2 * s]]) {
     const q = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), frameMat);
     q.position.set(x, y, 0.001);
+    q.renderOrder = 20;   // after the translucent tissue, which would otherwise paint over it
     group.add(q);
   }
 
@@ -127,6 +128,7 @@ export function createImagePanel() {
   const caption = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), captionMat);
   caption.position.set(0, -s - w - PANEL.captionGap - PANEL.captionHeight / 2, 0.002);
   caption.visible = false;
+  caption.renderOrder = 20;
   group.add(caption);
   const captions = new Map();
   let captionText = null;

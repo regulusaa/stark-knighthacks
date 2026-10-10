@@ -7,10 +7,10 @@ import * as THREE from 'three';
 export const RIG = {
   fov: 40,
   // A raised posterior-lateral three-quarter view (azimuth 41°, polar 68°): cerebellum, brainstem and the top of the
-  // fissure all show. Solved numerically at 16:9: every tissue vertex and the panel within NDC x ±0.9,
-  // y −0.9..0.68 (the top 16% kept for the HUD and the tips riding the crown); the trunk below may leave the frame.
-  defaultPosition: new THREE.Vector3(6.51, 14.95, 10.44),
-  defaultTarget: new THREE.Vector3(-1.7, 9.9, 1.0),
+  // fissure all show. Solved numerically at 16:9: every tissue vertex (the spinal cord to its end included) and the
+  // panel within NDC x ±0.95, y −0.95..0.73 (the top band kept for the HUD and the tips riding the crown).
+  defaultPosition: new THREE.Vector3(6.86, 14.93, 12.5),
+  defaultTarget: new THREE.Vector3(-2.36, 9.26, 1.91),
   damping: 0.08,                 // fraction of the remaining gap closed per 60 Hz frame
   minPolar: THREE.MathUtils.degToRad(20),
   maxPolar: THREE.MathUtils.degToRad(100),
