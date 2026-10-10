@@ -44,6 +44,11 @@ export function start({
   app.get('/display', page('web/core/display.html', 'display'));
   app.get('/controller', page('web/ui/controller.html', 'controller'));
 
+  // Lets the display mount Codex's HUD only when it exists, without a 404 in the console.
+  app.get('/api/ui-modules', (_req, res) => {
+    res.set('Cache-Control', 'no-store').json({ hud: existsSync(join(ROOT, 'web/ui/hud.js')) });
+  });
+
   app.get('/api/qr.svg', async (req, res) => {
     const code = normalizeCode(req.query.room);
     if (!code) return res.status(400).json({ code: 'BAD_PAYLOAD', message: 'room must be a 5-character room code' });

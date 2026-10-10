@@ -1,0 +1,53 @@
+// Mounts Codex's HUD (/ui/hud.js, contract v1 section 7) if it exists; otherwise a minimal built-in HUD,
+// so the display never depends on code outside /web/core.
+export async function mountHud(root, api, { getRoom = () => null } = {}) {
+  let visible = true;
+  const hudApi = {
+    onState: (cb) => api.onDisplayState(cb),
+    onFocus: (cb) => api.onFocus(cb),
+    getRoom,
+    setVisible(v) { visible = Boolean(v); root.style.display = visible ? '' : 'none'; },
+  };
+  try {
+    const probe = await fetch('/api/ui-modules', { cache: 'no-store' }).then((r) => r.json()).catch(() => ({}));
+    if (!probe.hud) throw new Error('/ui/hud.js is not there yet');
+    const mod = await import('/ui/hud.js');
+    if (typeof mod.mountHud !== 'function') throw new Error('hud.js has no mountHud export');
+    mod.mountHud(root, hudApi);
+    return { ...hudApi, kind: 'ui', get visible() { return visible; } };
+  } catch (err) {
+    console.info('[stark] using the built-in HUD:', err.message);
+    builtIn(root, hudApi);
+    return { ...hudApi, kind: 'built-in', get visible() { return visible; } };
+  }
+}
+
+function builtIn(root, hudApi) {
+  root.innerHTML = `
+    <style>
+      .stark-hud { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #f4ecff; }
+      .stark-hud .top { position: absolute; top: 28px; left: 0; right: 0; text-align: center; }
+      .stark-hud .name { font-size: 22px; letter-spacing: .08em; text-transform: uppercase; color: #bfa9d9; }
+      .stark-hud .answer { margin-top: 6px; font-size: 40px; font-weight: 600; text-shadow: 0 0 18px rgba(252,180,60,.35); }
+      .stark-hud .score { font-weight: 400; color: #fcd27a; }
+      .stark-hud .status { position: absolute; left: 28px; bottom: 24px; font-size: 18px; color: #9d8bb3; }
+      .stark-hud .status b { color: #f4ecff; letter-spacing: .12em; }
+    </style>
+    <div class="stark-hud">
+      <div class="top"><div class="name"></div><div class="answer"></div></div>
+      <div class="status">Room <b class="room">—</b></div>
+    </div>`;
+  const $ = (s) => root.querySelector(s);
+  hudApi.onState((s) => {
+    $('.name').textContent = s.image?.name ?? '';
+    const t = s.top1;
+    $('.answer').innerHTML = t
+      ? `${escapeHtml(t.label)} <span class="score">· model score ${t.score.toFixed(2)}</span>`
+      : 'no data for this image';
+    $('.room').textContent = s.room || hudApi.getRoom() || '—';
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
