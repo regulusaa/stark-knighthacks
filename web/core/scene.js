@@ -3,6 +3,15 @@ import * as THREE from 'three';
 
 export const BACKGROUND = 0x050208;
 export const FOG_DENSITY = 0.022;
+
+/**
+ * Dispose materials/textures of a Brain that was just replaced, but only after the new one has rendered: three.js
+ * deletes a shader program when its last material is disposed, so disposing first made every image switch
+ * recompile the tip, halo and label shaders (15–27 ms on the M1, a dropped frame right as the pulse starts).
+ */
+export function retireLater(disposables, ms = 1000) {
+  if (disposables.length) setTimeout(() => { for (const d of disposables) d.dispose(); }, ms);
+}
 const MAX_PIXEL_RATIO = 1.5;
 const LOW_FPS = 45;
 const LOW_FPS_SECONDS = 2;
