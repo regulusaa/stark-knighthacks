@@ -19,8 +19,8 @@
   "play-pulse": { "speed": 1.0, "skipToEnd": false },
   "set-mode": { "mode": "stability" },
   "display-state": "see display-state.json",
-  "steer-update": { "layer": "conv5_block3_out", "mode": "slider", "channels": [ { "channelIndex": 1187, "scale": 1.5 } ], "code": null },
-  "steer-result": "see steer-state.json",
+  "steer-update": { "seq": 12, "set": [ { "channel": 87, "scale": 0 }, { "channel": 1187, "scale": 2 } ], "probe": 1187 },
+  "steer-result": "see steer-result.*.json",
   "steer-reset": {},
   "error": "see error.json"
 }

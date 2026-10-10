@@ -102,7 +102,8 @@ def make(manifest_images):
                 flags.append("true class outside top 25 (added as an extra leaf)")
         margin, ent = row_stats(t)
         n_heat = sum(1 for c in g["classes"] if c["hasHeatmap"])
-        d.text((tx, y + 156), f"margin #1-#2 {margin:.3f}   entropy {ent:.2f}   other {t['otherScore']:.4f}",
+        other = "n/a (independent scores)" if t["otherScore"] is None else f"{t['otherScore']:.4f}"
+        d.text((tx, y + 156), f"margin #1-#2 {margin:.3f}   entropy {ent:.2f}   other {other}",
                fill=(170, 170, 170), font=font)
         d.text((tx, y + 176), f"{len(t['nodes'])} tree nodes   {n_heat} heatmaps", fill=(170, 170, 170), font=font)
         if flags:

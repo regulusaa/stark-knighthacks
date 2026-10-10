@@ -4,23 +4,24 @@
 // Each part is a welded box grid, projected onto its SDF envelope (brainShape.js) along rays from the part's centre,
 // then displaced along the envelope normal by the part's fold function. The folds are real geometry (no normal
 // maps), so they hold up from every orbit angle. Groove depth is baked into vertex colours (cavity shading).
-//   hemispheres  meandering gyri: the zero set of domain-warped noise, plus the Sylvian fissure and central sulcus;
-//                different seeds per side, so the two halves are not mirror images
-//   cerebellum   fine parallel folia, concentric about a point near the brainstem, a deeper fissure every few
+//   hemispheres  rounded gyri of even width from phasor noise (a labyrinth of stripes), steered to run front-to-back
+//                over the frontal and temporal lobes and parallel to the central sulcus beside it, plus the Sylvian
+//                fissure and central sulcus; different seeds per side, so the two halves are not mirror images
+//   cerebellum   fine transverse folia that fan toward the brainstem (out of sight), a deeper fissure every few
 //   brainstem    a tube swept down its centreline and pushed out to the brainstem SDF (pons bulge included)
 //   callosum     the deep midline filler that closes the bottom of the longitudinal fissure
 import {
-  ANATOMY, hemisphereSdf, cerebellumSdf, brainstemSdf, callosumSdf, rayHit, fromBrain, STEM_AXIS,
+  ANATOMY, hemisphereSdf, cerebellumSdf, brainstemSdf, callosumSdf, rayHit, traceHit, fromBrain, STEM_AXIS,
 } from './brainShape.js';
 
 export const FOLDS = {
   spacing: { hemi: 0.042, cerebellum: 0.03, callosum: 0.12 },
-  gyri: { freq: 1.0, warpFreq: 0.35, warp: 1.0, width: 0.42, depth: 0.3 },
+  gyri: { wavelength: 0.92, cell: 1.9, perCell: 9, depth: 0.4, crown: 2.1, depthVar: 0.2, steerWeight: 0.85, mergeBelow: 0.15 },
   sylvian: { from: [3.1, -1.0], to: [-1.6, -0.05], width: 0.36, depth: 0.5 },
   central: { from: [-0.5, 3.2], to: [1.05, -0.35], width: 0.42, depth: 0.34, wobble: 0.35 },
-  folia: { angle: 0.085, depth: 0.075, fissureEvery: 5, fissureDepth: 0.17, nucleus: [1.1, 0.25] },
-  cavityFloor: 0.22,              // colour multiplier at the bottom of the deepest groove
-  cavityDepth: 0.42,
+  folia: { angle: 0.042, depth: 0.08, fissureEvery: 6, fissureDepth: 0.15, nucleus: [4.2, 0.9], warp: 0.014, smile: 0.022 },
+  cavityFloor: 0.3,               // colour multiplier at the bottom of the deepest groove
+  cavityDepth: 0.55,
   cerebellumTint: [1.0, 0.78, 0.82],
   stemTint: [0.96, 0.84, 0.9],
   callosumTint: [0.16, 0.12, 0.16],   // seen only down the fissure: keep it in shadow
@@ -67,6 +68,91 @@ export function makeNoise(seed) {
   };
 }
 
+/** Small seeded hash → [0, 1) stream, for per-cell kernel placement. */
+function hashRand(seed, i, j, k) {
+  let s = (Math.imul(seed, 0x9e3779b1) ^ Math.imul(i, 0x85ebca6b) ^ Math.imul(j, 0xc2b2ae35) ^ Math.imul(k, 0x27d4eb2f)) >>> 0;
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Phasor noise (Tricard et al. 2019): a sum of Gabor kernels of which only the phase is kept, so the stripes have
+ * the same width and contrast everywhere and wind into a labyrinth where neighbouring kernels disagree, the way
+ * gyri do. A kernel's wave direction loses (part of) its component along `steer(c)`, the preferred gyrus direction
+ * there, so its stripes run along it; at each sample the direction is projected onto the surface tangent (a
+ * direction pointing out of the surface would smear into a plateau), and kernels that point mostly out of the
+ * surface count for less. Every step is smooth in the sample position, so the folds have no creases.
+ * Returns phase(x, y, z, nx, ny, nz) in radians; `phasor.confidence` is then |Σ| / Σ|kernel| for that sample (near 0
+ * at the pattern's singularities, where the phase is ill-defined).
+ */
+export function makePhasor(seed, { wavelength, cell, perCell, steer = null }) {
+  const freq = (2 * Math.PI) / wavelength;
+  const b = 1.21 / cell;                         // the Gaussian falls to 1% one cell from its centre
+  const a = Math.PI * b * b;
+  const R2 = cell * cell;
+  const cache = new Map();
+  const kernelsAt = (i, j, k) => {
+    const key = ((i + 512) * 1024 + (j + 512)) * 1024 + (k + 512);
+    let ks = cache.get(key);
+    if (ks) return ks;
+    const r = hashRand(seed, i, j, k);
+    ks = [];
+    for (let n = 0; n < perCell; n++) {
+      const cx = (i + r()) * cell, cy = (j + r()) * cell, cz = (k + r()) * cell;
+      const u = r() * 2 - 1, phi = r() * 2 * Math.PI, q = Math.sqrt(1 - u * u);
+      let dx = q * Math.cos(phi), dy = q * Math.sin(phi), dz = u;
+      const st = steer ? steer(cx, cy, cz) : null;   // [gx, gy, gz, weight]: the gyri there run along g
+      if (st) {
+        const along = (dx * st[0] + dy * st[1] + dz * st[2]) * st[3];
+        dx -= along * st[0]; dy -= along * st[1]; dz -= along * st[2];
+        const l = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+        dx /= l; dy /= l; dz /= l;
+      }
+      ks.push({ cx, cy, cz, dx, dy, dz, off: r() * 2 * Math.PI });
+    }
+    cache.set(key, ks);
+    return ks;
+  };
+  // the kernels of the 27 cells around the last sample's cell, flattened (consecutive samples share a cell)
+  let near = new Float64Array(0), nearCount = 0, lastKey = NaN;
+  const gather = (ci, cj, ck) => {
+    const all = [];
+    for (let i = ci - 1; i <= ci + 1; i++) for (let j = cj - 1; j <= cj + 1; j++) for (let k = ck - 1; k <= ck + 1; k++) all.push(...kernelsAt(i, j, k));
+    if (near.length < all.length * 7) near = new Float64Array(all.length * 7);
+    all.forEach((K, n) => near.set([K.cx, K.cy, K.cz, K.dx, K.dy, K.dz, K.off], n * 7));
+    nearCount = all.length;
+  };
+  const phasor = (x, y, z, nx, ny, nz) => {
+    const ci = Math.floor(x / cell), cj = Math.floor(y / cell), ck = Math.floor(z / cell);
+    const key = ((ci + 512) * 1024 + (cj + 512)) * 1024 + (ck + 512);
+    if (key !== lastKey) { gather(ci, cj, ck); lastKey = key; }
+    let re = 0, im = 0, sum = 0;
+    for (let n = 0, o = 0; n < nearCount; n++, o += 7) {
+      const px = x - near[o], py = y - near[o + 1], pz = z - near[o + 2];
+      const r2 = px * px + py * py + pz * pz;
+      if (r2 > R2) continue;
+      // the kernel's direction, in the tangent plane
+      const kx = near[o + 3], ky = near[o + 4], kz = near[o + 5];
+      const dn = kx * nx + ky * ny + kz * nz;
+      const tx = kx - dn * nx, ty = ky - dn * ny, tz = kz - dn * nz;
+      const tl2 = tx * tx + ty * ty + tz * tz;
+      if (tl2 < 1e-6) continue;
+      const g = Math.exp(-a * r2) * tl2;      // weight: how much of the kernel lies in the surface
+      const ph = freq * (tx * px + ty * py + tz * pz) / Math.sqrt(tl2) + near[o + 6];
+      re += g * Math.cos(ph); im += g * Math.sin(ph); sum += g;
+    }
+    phasor.confidence = sum > 0 ? Math.sqrt(re * re + im * im) / sum : 0;
+    return Math.atan2(im, re);
+  };
+  phasor.confidence = 0;
+  return phasor;
+}
+
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smooth01 = (v) => { const t = clamp01(v); return t * t * (3 - 2 * t); };
 /** Groove profile: 0 on a groove's centre line, rising steeply (a narrow sulcus) to a rounded crown at 1. */
@@ -82,31 +168,42 @@ function segDist(px, py, a, b) {
 }
 
 // ---------------------------------------------------------------------------------------------------- folds
-/** Cortex folds of one hemisphere, in brain coordinates (ap, y, lat): displacement ≤ 0 along the outward normal. */
+/**
+ * Cortex folds of one hemisphere. Takes brain coordinates (ap, y, lat) and the outward envelope normal in the same
+ * frame; returns a displacement ≤ 0 along that normal (gyrus crowns sit on the envelope, so tips never sink).
+ */
 export function hemisphereFolds(side) {
   const G = FOLDS.gyri;
   const S = FOLDS.sylvian;
   const C = FOLDS.central;
-  const n1 = makeNoise(side > 0 ? 1103 : 2207);
   const n2 = makeNoise(side > 0 ? 3301 : 4409);
-  const [ox, oy, oz] = side > 0 ? [0, 0, 0] : [17.3, 5.1, 9.7];
-  return (ap, y, lat) => {
-    // meandering gyri: sulci run along the zero set of domain-warped noise, so they form long, branching lines
-    const wx = ap * G.warpFreq + ox, wy = y * G.warpFreq + oy, wz = lat * G.warpFreq + oz;
-    const qx = ap * G.freq + G.warp * n2(wx, wy, wz);
-    const qy = y * G.freq + G.warp * n2(wx + 31.7, wy, wz);
-    const qz = lat * G.freq + G.warp * n2(wx, wy + 47.1, wz);
-    const g = n1(qx + ox, qy + oy, qz + oz);
-    let disp = G.depth * (gyrus(Math.abs(g), G.width) - 1);
+  const cdx = C.to[0] - C.from[0], cdy = C.to[1] - C.from[1];
+  const cdl = Math.hypot(cdx, cdy);
+  // preferred gyrus directions (brain frame): front-to-back over the frontal and temporal lobes, parallel to the
+  // central sulcus beside it (the pre- and postcentral gyri); free elsewhere (parietal and occipital labyrinth)
+  const steer = (ap, y, lat) => {
+    const nearCentral = Math.exp(-((segDist(ap, y, C.from, C.to) / 1.15) ** 2));
+    if (nearCentral > 0.3) return [cdx / cdl, cdy / cdl, 0, G.steerWeight * nearCentral];
+    const frontal = smooth01((ap - 1.6) / 1.2);
+    const temporal = smooth01((-0.7 - y) / 0.6) * smooth01((lat - 1.2) / 0.8) * smooth01((ap + 1.5) / 1.5);
+    const w = Math.max(frontal, temporal);
+    return w > 0.05 ? [1, 0, 0, G.steerWeight * w] : null;
+  };
+  const phasor = makePhasor(side > 0 ? 7919 : 6007, { ...G, steer });
+  return (ap, y, lat, nap, ny, nlat) => {
+    const ph = phasor(ap, y, lat, nap, ny, nlat);
+    // rounded, sausage-like crowns (x = 0 on a crown's centre line, 1 at the bottom of a sulcus)
+    const x = Math.abs(ph) / Math.PI;
+    // where the stripes break up (a singularity) the neighbouring gyri merge rather than leave a pit
+    const depth = smooth01(phasor.confidence / G.mergeBelow) * G.depth * (1 - G.depthVar + G.depthVar * 2 * (0.5 + 0.5 * n2(ap * 0.45 + 2.1, y * 0.45, lat * 0.45)));
+    let disp = -depth * Math.pow(x, G.crown);
     // lateral (Sylvian) fissure above the temporal lobe, on the outer face only
     const lw = clamp01((lat - 1.1) / 1.2);
     if (lw > 0) disp = Math.min(disp, lw * S.depth * (crown(segDist(ap, y, S.from, S.to), S.width) - 1));
     // central sulcus: from the top of the midline down the side toward the Sylvian fissure
     const wob = C.wobble * n2(y * 1.4 + 3.3, lat * 0.9, 7.7);
     disp = Math.min(disp, C.depth * (gyrus(segDist(ap + wob, y, C.from, C.to), C.width) - 1));
-    // a little unevenness on the crowns, so no two gyri are the same height
-    disp += 0.035 * n1(ap * 2.1 + 5.5, y * 2.1, lat * 2.1) * clamp01(1 + disp / G.depth);
-    return disp;
+    return Math.min(0, disp);
   };
 }
 
@@ -120,7 +217,7 @@ export function cerebellumFolds() {
   const n = makeNoise(5501);
   return (ap, y, z) => {
     const a = ap - C.ap, b = y - C.y;
-    const ang = Math.atan2(b - F.nucleus[1], a - F.nucleus[0]) + 0.025 * n(ap * 1.6, y * 1.6, z * 1.6) + 0.012 * z * z;
+    const ang = Math.atan2(b - F.nucleus[1], a - F.nucleus[0]) + F.warp * n(ap * 1.6, y * 1.6, z * 1.6) + F.smile * z * z;
     const f = (ang + Math.PI) / F.angle;
     const v = Math.abs(f - Math.floor(f) - 0.5) * 2;                  // 0 in a groove, 1 on a ridge crest
     const deep = Math.floor(f) % F.fissureEvery === 0 ? F.fissureDepth : F.depth;
@@ -190,7 +287,7 @@ function buildPart({ sdf, center, extents, spacing, fold = null, shade = null, t
   const h = 0.02;
   for (let i = 0; i < count; i++) {
     d[0] = dirs[i * 3]; d[1] = dirs[i * 3 + 1]; d[2] = dirs[i * 3 + 2];
-    const t = rayHit(sdf, center, d, maxT, 0.1, 13) ?? 0;
+    const t = traceHit(sdf, center, d, maxT) ?? 0;
     let x = center[0] + d[0] * t, y = center[1] + d[1] * t, z = center[2] + d[2] * t;
     let disp = 0;
     if (fold) {
@@ -199,7 +296,7 @@ function buildPart({ sdf, center, extents, spacing, fold = null, shade = null, t
       let gz = sdf(x, y, z + h) - sdf(x, y, z - h);
       const gl = Math.sqrt(gx * gx + gy * gy + gz * gz) || 1;
       gx /= gl; gy /= gl; gz /= gl;
-      disp = fold(x, y, z);
+      disp = fold(x, y, z, gx, gy, gz);
       x += gx * disp; y += gy * disp; z += gz * disp;
     }
     position[i * 3] = x; position[i * 3 + 1] = y; position[i * 3 + 2] = z;
@@ -300,7 +397,7 @@ export function buildTissueArrays() {
       center: fromBrain(0.3, -0.1, side * H.center),
       extents: [H.rAp, 2.6, H.rLat / 2],
       spacing: FOLDS.spacing.hemi,
-      fold: (x, y, z) => folds(O[0] - x, y - O[1], side * (z - O[2])),
+      fold: (x, y, z, nx, ny, nz) => folds(O[0] - x, y - O[1], side * (z - O[2]), -nx, ny, side * nz),
       // the medial wall darkens toward the midline, so the longitudinal fissure reads as a deep cleft
       shade: (x, y, z) => 0.18 + 0.82 * smooth01((side * (z - O[2]) - H.medial) / 0.8),
       maxT: 6.5,

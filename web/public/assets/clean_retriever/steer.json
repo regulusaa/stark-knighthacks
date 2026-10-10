@@ -1,0 +1,362 @@
+{
+  "version": 1,
+  "imageId": "clean_retriever",
+  "layer": "conv5_block3_out",
+  "grid": 7,
+  "channels": 2048,
+  "identityMaxAbsErr": 2.8115017780550033e-06,
+  "classes": [
+    {
+      "classId": 207,
+      "label": "golden retriever",
+      "rank": 1,
+      "logit": 15.066786766052246,
+      "top": [
+        {
+          "channel": 452,
+          "contribution": 1.6616635695880888,
+          "pooled": 6.1002508924931895
+        },
+        {
+          "channel": 1514,
+          "contribution": 0.7965879386801991,
+          "pooled": 6.350457322840788
+        },
+        {
+          "channel": 605,
+          "contribution": 0.5655399845413405,
+          "pooled": 4.700197797648761
+        },
+        {
+          "channel": 1400,
+          "contribution": 0.49840540033126124,
+          "pooled": 3.368924160392917
+        },
+        {
+          "channel": 911,
+          "contribution": 0.4853758327982126,
+          "pooled": 4.21528858068038
+        },
+        {
+          "channel": 1128,
+          "contribution": 0.38157546789454583,
+          "pooled": 3.0417748233493493
+        },
+        {
+          "channel": 1803,
+          "contribution": 0.37315084542693244,
+          "pooled": 2.082278005930842
+        },
+        {
+          "channel": 463,
+          "contribution": 0.35455382962341236,
+          "pooled": 2.4229173240612965
+        },
+        {
+          "channel": 850,
+          "contribution": 0.3436437193875895,
+          "pooled": 4.102244304150951
+        },
+        {
+          "channel": 1061,
+          "contribution": 0.3408265795973488,
+          "pooled": 6.181246812246283
+        }
+      ]
+    },
+    {
+      "classId": 208,
+      "label": "Labrador retriever",
+      "rank": 2,
+      "logit": 10.856338500976562,
+      "top": [
+        {
+          "channel": 1514,
+          "contribution": 1.495647629327719,
+          "pooled": 6.350457322840788
+        },
+        {
+          "channel": 1510,
+          "contribution": 1.007382787339331,
+          "pooled": 4.954490447530941
+        },
+        {
+          "channel": 850,
+          "contribution": 0.6132246295102108,
+          "pooled": 4.102244304150951
+        },
+        {
+          "channel": 1266,
+          "contribution": 0.5248350139614318,
+          "pooled": 3.0159518207822527
+        },
+        {
+          "channel": 1061,
+          "contribution": 0.4112530211651352,
+          "pooled": 6.181246812246283
+        },
+        {
+          "channel": 463,
+          "contribution": 0.34177616332051486,
+          "pooled": 2.4229173240612965
+        },
+        {
+          "channel": 593,
+          "contribution": 0.30685231885773706,
+          "pooled": 1.7933174919108956
+        },
+        {
+          "channel": 897,
+          "contribution": 0.30480778003101067,
+          "pooled": 2.4570730438037796
+        },
+        {
+          "channel": 1128,
+          "contribution": 0.2893204701512359,
+          "pooled": 3.0417748233493493
+        },
+        {
+          "channel": 1803,
+          "contribution": 0.2880330719712585,
+          "pooled": 2.082278005930842
+        }
+      ]
+    },
+    {
+      "classId": 222,
+      "label": "kuvasz",
+      "rank": 3,
+      "logit": 9.524075508117676,
+      "top": [
+        {
+          "channel": 452,
+          "contribution": 1.6770199908318493,
+          "pooled": 6.1002508924931895
+        },
+        {
+          "channel": 1514,
+          "contribution": 0.9256390618934912,
+          "pooled": 6.350457322840788
+        },
+        {
+          "channel": 1061,
+          "contribution": 0.8926658089200217,
+          "pooled": 6.181246812246283
+        },
+        {
+          "channel": 124,
+          "contribution": 0.5383326957346424,
+          "pooled": 4.874667988747967
+        },
+        {
+          "channel": 1384,
+          "contribution": 0.4129103277503811,
+          "pooled": 2.1011297617639815
+        },
+        {
+          "channel": 1803,
+          "contribution": 0.4018640245461366,
+          "pooled": 2.082278005930842
+        },
+        {
+          "channel": 850,
+          "contribution": 0.3687653632858061,
+          "pooled": 4.102244304150951
+        },
+        {
+          "channel": 849,
+          "contribution": 0.3199688739462303,
+          "pooled": 2.266288927623204
+        },
+        {
+          "channel": 897,
+          "contribution": 0.2970696080551762,
+          "pooled": 2.4570730438037796
+        },
+        {
+          "channel": 1338,
+          "contribution": 0.25649109908897716,
+          "pooled": 2.2019442733453243
+        }
+      ]
+    },
+    {
+      "classId": 255,
+      "label": "Leonberg",
+      "rank": 4,
+      "logit": 8.80329704284668,
+      "top": [
+        {
+          "channel": 452,
+          "contribution": 1.291128458126783,
+          "pooled": 6.1002508924931895
+        },
+        {
+          "channel": 1400,
+          "contribution": 0.6621548539950737,
+          "pooled": 3.368924160392917
+        },
+        {
+          "channel": 1514,
+          "contribution": 0.5406323080738437,
+          "pooled": 6.350457322840788
+        },
+        {
+          "channel": 1061,
+          "contribution": 0.4511410674393376,
+          "pooled": 6.181246812246283
+        },
+        {
+          "channel": 124,
+          "contribution": 0.4431197603719602,
+          "pooled": 4.874667988747967
+        },
+        {
+          "channel": 911,
+          "contribution": 0.3648193652026885,
+          "pooled": 4.21528858068038
+        },
+        {
+          "channel": 1510,
+          "contribution": 0.3546401386753358,
+          "pooled": 4.954490447530941
+        },
+        {
+          "channel": 828,
+          "contribution": 0.3480973227938986,
+          "pooled": 1.4085179871442366
+        },
+        {
+          "channel": 429,
+          "contribution": 0.3324757796589253,
+          "pooled": 1.9986989400824722
+        },
+        {
+          "channel": 1073,
+          "contribution": 0.3006555337878212,
+          "pooled": 2.7751766601387335
+        }
+      ]
+    },
+    {
+      "classId": 852,
+      "label": "tennis ball",
+      "rank": 5,
+      "logit": 8.413824081420898,
+      "top": [
+        {
+          "channel": 452,
+          "contribution": 0.5562459905002282,
+          "pooled": 6.1002508924931895
+        },
+        {
+          "channel": 207,
+          "contribution": 0.49128329922390196,
+          "pooled": 4.169676350087536
+        },
+        {
+          "channel": 1514,
+          "contribution": 0.4801660547543697,
+          "pooled": 6.350457322840788
+        },
+        {
+          "channel": 605,
+          "contribution": 0.3678730453813931,
+          "pooled": 4.700197797648761
+        },
+        {
+          "channel": 1485,
+          "contribution": 0.3522685951914149,
+          "pooled": 2.2321035868051102
+        },
+        {
+          "channel": 1400,
+          "contribution": 0.31505860166771904,
+          "pooled": 3.368924160392917
+        },
+        {
+          "channel": 1302,
+          "contribution": 0.3128252466387754,
+          "pooled": 3.6939134719420452
+        },
+        {
+          "channel": 463,
+          "contribution": 0.28771404529626254,
+          "pooled": 2.4229173240612965
+        },
+        {
+          "channel": 1499,
+          "contribution": 0.26829532845422877,
+          "pooled": 1.5666993588817364
+        },
+        {
+          "channel": 1266,
+          "contribution": 0.23630578011687117,
+          "pooled": 3.0159518207822527
+        }
+      ]
+    }
+  ],
+  "favoring": {
+    "for": 207,
+    "against": 208,
+    "top": [
+      {
+        "channel": 452,
+        "margin": 1.7132270096632425
+      },
+      {
+        "channel": 1400,
+        "margin": 0.9306013092483216
+      },
+      {
+        "channel": 605,
+        "margin": 0.5435011178217019
+      },
+      {
+        "channel": 911,
+        "margin": 0.32553490840532073
+      },
+      {
+        "channel": 1417,
+        "margin": 0.28816005153739044
+      },
+      {
+        "channel": 1338,
+        "margin": 0.25523336355155385
+      },
+      {
+        "channel": 1096,
+        "margin": 0.24364656409490518
+      },
+      {
+        "channel": 1987,
+        "margin": 0.21055676841068247
+      },
+      {
+        "channel": 1412,
+        "margin": 0.20154150215168967
+      },
+      {
+        "channel": 1964,
+        "margin": 0.18746322389906006
+      }
+    ]
+  },
+  "flip": {
+    "from": 207,
+    "to": 208,
+    "toLabel": "Labrador retriever",
+    "toScore": 0.4869475662621036,
+    "n": 7,
+    "channels": [
+      452,
+      1400,
+      605,
+      911,
+      1417,
+      1338,
+      1096
+    ]
+  }
+}

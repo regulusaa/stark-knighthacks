@@ -11,7 +11,7 @@ from importlib import metadata
 from . import config, gallery
 
 STAMPS = config.CACHE / "stamps.json"
-LIBS = ("tensorflow", "keras", "numpy", "pillow", "nltk")
+LIBS = ("tensorflow", "keras", "numpy", "pillow", "nltk", "torch", "torchxrayvision", "grad-cam", "scikit-image")
 
 
 def _lib_versions():
@@ -38,6 +38,25 @@ def key(stage, entry, input_path):
         h.update((config.PIPELINE / src).read_bytes())
     h.update(input_path.read_bytes() if input_path and input_path.exists() else b"<no input>")
     h.update(json.dumps(gallery.public_entry(entry), sort_keys=True).encode())
+    w = config.RESNET_WEIGHTS
+    h.update(str(w.stat().st_size if w.exists() else -1).encode())
+    h.update(json.dumps(_LIBS, sort_keys=True).encode())
+    return h.hexdigest()
+
+
+def once_key(stage, input_paths):
+    """Stamp for a stage's run_once step: its code plus the bytes of every per-image file it reads."""
+    global _LIBS
+    if _LIBS is None:
+        _LIBS = _lib_versions()
+    h = hashlib.sha256()
+    h.update(f"{stage.NAME}:once".encode())
+    for src in sorted(stage.SOURCES):
+        h.update(src.encode())
+        h.update((config.PIPELINE / src).read_bytes())
+    for p in sorted(input_paths):
+        h.update(str(p.relative_to(config.REPO)).encode())
+        h.update(p.read_bytes() if p.exists() else b"<missing>")
     w = config.RESNET_WEIGHTS
     h.update(str(w.stat().st_size if w.exists() else -1).encode())
     h.update(json.dumps(_LIBS, sort_keys=True).encode())

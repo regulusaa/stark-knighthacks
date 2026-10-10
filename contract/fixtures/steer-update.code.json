@@ -1,0 +1,5 @@
+{
+  "seq": 13,
+  "code": "# silence the strongest golden-retriever channels\nchannel[top(5, \"golden retriever\")] = 0\nchannel[640] *= 2",
+  "probe": null
+}

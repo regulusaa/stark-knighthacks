@@ -1,0 +1,282 @@
+{
+  "identityMaxAbsErr": {
+    "clean_retriever": 2.8115017780550033e-06,
+    "adv_retriever": 1.5118019636162217e-06,
+    "ambig_cat": 3.256629085512941e-06,
+    "ambig_wolf": 6.884224692527141e-06,
+    "clean_sportscar": 4.0678965831375535e-06,
+    "clean_monarch": 8.679665885580334e-06,
+    "ambig_chihuahua": 2.164646723201713e-06
+  },
+  "closedFormCam": {
+    "clean_retriever": {
+      "classes": {
+        "207": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "208": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "222": {
+          "pearson": 0.9999999965544686,
+          "maxPixelDiff": 1
+        },
+        "255": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "852": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "215": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "205": {
+          "pearson": 0.9999999999999999,
+          "maxPixelDiff": 0
+        },
+        "206": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "159": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "200": {
+          "pearson": 0.9999999999999999,
+          "maxPixelDiff": 0
+        },
+        "805": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "256": {
+          "pearson": 0.9999999964988399,
+          "maxPixelDiff": 1
+        },
+        "216": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "244": {
+          "pearson": 0.9999999999999999,
+          "maxPixelDiff": 0
+        },
+        "220": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "247": {
+          "pearson": 0.9999999999999999,
+          "maxPixelDiff": 0
+        },
+        "175": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "238": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "539": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "214": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "209": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "204": {
+          "pearson": 0.9999999956485319,
+          "maxPixelDiff": 1
+        },
+        "219": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "213": {
+          "pearson": 0.9999999968432796,
+          "maxPixelDiff": 1
+        },
+        "257": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        }
+      },
+      "min": 0.9999999956485319,
+      "mean": 0.9999999994218048,
+      "n": 25
+    },
+    "adv_retriever": {
+      "classes": {
+        "208": {
+          "pearson": 0.9999999967216935,
+          "maxPixelDiff": 1
+        },
+        "207": {
+          "pearson": 0.9999999969994914,
+          "maxPixelDiff": 1
+        },
+        "222": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "852": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "206": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        }
+      },
+      "min": 0.9999999967216935,
+      "mean": 0.9999999987442368,
+      "n": 5
+    },
+    "ambig_cat": {
+      "classes": {
+        "281": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "282": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "287": {
+          "pearson": 0.9999999999999999,
+          "maxPixelDiff": 0
+        },
+        "285": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "283": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        }
+      },
+      "min": 0.9999999999999999,
+      "mean": 1.0,
+      "n": 5
+    },
+    "ambig_wolf": {
+      "classes": {
+        "269": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "270": {
+          "pearson": 0.9999999975397864,
+          "maxPixelDiff": 1
+        },
+        "272": {
+          "pearson": 0.9999999949582515,
+          "maxPixelDiff": 1
+        },
+        "279": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "248": {
+          "pearson": 0.999999996704589,
+          "maxPixelDiff": 1
+        }
+      },
+      "min": 0.9999999949582515,
+      "mean": 0.9999999978405253,
+      "n": 5
+    },
+    "clean_sportscar": {
+      "classes": {
+        "817": {
+          "pearson": 0.9999999999999999,
+          "maxPixelDiff": 0
+        },
+        "670": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "802": {
+          "pearson": 0.9999999976497299,
+          "maxPixelDiff": 1
+        },
+        "751": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "573": {
+          "pearson": 0.9999999999999998,
+          "maxPixelDiff": 0
+        }
+      },
+      "min": 0.9999999976497299,
+      "mean": 0.999999999529946,
+      "n": 5
+    },
+    "clean_monarch": {
+      "classes": {
+        "323": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "322": {
+          "pearson": 0.9999999950235557,
+          "maxPixelDiff": 1
+        },
+        "325": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "326": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "321": {
+          "pearson": 0.9999999400638948,
+          "maxPixelDiff": 1
+        }
+      },
+      "min": 0.9999999400638948,
+      "mean": 0.9999999870174902,
+      "n": 5
+    },
+    "ambig_chihuahua": {
+      "classes": {
+        "151": {
+          "pearson": 0.9999999999999998,
+          "maxPixelDiff": 0
+        },
+        "158": {
+          "pearson": 0.9999999975181859,
+          "maxPixelDiff": 1
+        },
+        "195": {
+          "pearson": 0.9999999970831612,
+          "maxPixelDiff": 1
+        },
+        "157": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        },
+        "152": {
+          "pearson": 1.0,
+          "maxPixelDiff": 0
+        }
+      },
+      "min": 0.9999999970831612,
+      "mean": 0.9999999989202694,
+      "n": 5
+    }
+  }
+}

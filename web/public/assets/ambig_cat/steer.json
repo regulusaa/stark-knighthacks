@@ -1,0 +1,356 @@
+{
+  "version": 1,
+  "imageId": "ambig_cat",
+  "layer": "conv5_block3_out",
+  "grid": 7,
+  "channels": 2048,
+  "identityMaxAbsErr": 3.256629085512941e-06,
+  "classes": [
+    {
+      "classId": 281,
+      "label": "tabby",
+      "rank": 1,
+      "logit": 11.719097137451172,
+      "top": [
+        {
+          "channel": 1353,
+          "contribution": 1.6118506653998885,
+          "pooled": 5.958054423332214
+        },
+        {
+          "channel": 956,
+          "contribution": 1.2740398458048885,
+          "pooled": 6.529857382482412
+        },
+        {
+          "channel": 830,
+          "contribution": 1.0949002368570893,
+          "pooled": 8.320730768904394
+        },
+        {
+          "channel": 1692,
+          "contribution": 0.8241660240024952,
+          "pooled": 4.094700655158685
+        },
+        {
+          "channel": 257,
+          "contribution": 0.6802436736180623,
+          "pooled": 6.695955570863218
+        },
+        {
+          "channel": 449,
+          "contribution": 0.5073270652505169,
+          "pooled": 2.8383953109079476
+        },
+        {
+          "channel": 88,
+          "contribution": 0.38664982185062796,
+          "pooled": 2.165052142070264
+        },
+        {
+          "channel": 1270,
+          "contribution": 0.38142284929128595,
+          "pooled": 2.799617687050177
+        },
+        {
+          "channel": 1816,
+          "contribution": 0.34893350321077066,
+          "pooled": 1.8828819479261125
+        },
+        {
+          "channel": 805,
+          "contribution": 0.30166306209666655,
+          "pooled": 1.7042667403513072
+        }
+      ]
+    },
+    {
+      "classId": 282,
+      "label": "tiger cat",
+      "rank": 2,
+      "logit": 11.672760009765625,
+      "top": [
+        {
+          "channel": 1353,
+          "contribution": 1.4661073155394426,
+          "pooled": 5.958054423332214
+        },
+        {
+          "channel": 830,
+          "contribution": 0.9719427752044799,
+          "pooled": 8.320730768904394
+        },
+        {
+          "channel": 956,
+          "contribution": 0.9541023600007226,
+          "pooled": 6.529857382482412
+        },
+        {
+          "channel": 1692,
+          "contribution": 0.7015349548153561,
+          "pooled": 4.094700655158685
+        },
+        {
+          "channel": 1706,
+          "contribution": 0.587555206473473,
+          "pooled": 5.113018237206401
+        },
+        {
+          "channel": 1816,
+          "contribution": 0.4625151239547469,
+          "pooled": 1.8828819479261125
+        },
+        {
+          "channel": 916,
+          "contribution": 0.4472447993620991,
+          "pooled": 1.5391977003642492
+        },
+        {
+          "channel": 257,
+          "contribution": 0.3660310636897909,
+          "pooled": 6.695955570863218
+        },
+        {
+          "channel": 805,
+          "contribution": 0.3476501428787796,
+          "pooled": 1.7042667403513072
+        },
+        {
+          "channel": 743,
+          "contribution": 0.34530722600143415,
+          "pooled": 5.558562759842191
+        }
+      ]
+    },
+    {
+      "classId": 287,
+      "label": "lynx",
+      "rank": 3,
+      "logit": 9.98357105255127,
+      "top": [
+        {
+          "channel": 1353,
+          "contribution": 1.4323419497276646,
+          "pooled": 5.958054423332214
+        },
+        {
+          "channel": 956,
+          "contribution": 1.3707703593893261,
+          "pooled": 6.529857382482412
+        },
+        {
+          "channel": 830,
+          "contribution": 1.092304660542219,
+          "pooled": 8.320730768904394
+        },
+        {
+          "channel": 1528,
+          "contribution": 0.48421940671878794,
+          "pooled": 2.3434555798160788
+        },
+        {
+          "channel": 213,
+          "contribution": 0.4069304207661855,
+          "pooled": 1.117242886095631
+        },
+        {
+          "channel": 1816,
+          "contribution": 0.4015125599865423,
+          "pooled": 1.8828819479261125
+        },
+        {
+          "channel": 257,
+          "contribution": 0.40135814038544876,
+          "pooled": 6.695955570863218
+        },
+        {
+          "channel": 743,
+          "contribution": 0.37194521082398707,
+          "pooled": 5.558562759842191
+        },
+        {
+          "channel": 95,
+          "contribution": 0.3617533006045322,
+          "pooled": 2.4261371870430146
+        },
+        {
+          "channel": 592,
+          "contribution": 0.330871397000363,
+          "pooled": 5.817630548866427
+        }
+      ]
+    },
+    {
+      "classId": 285,
+      "label": "Egyptian cat",
+      "rank": 4,
+      "logit": 8.631988525390625,
+      "top": [
+        {
+          "channel": 956,
+          "contribution": 1.7403254819152825,
+          "pooled": 6.529857382482412
+        },
+        {
+          "channel": 830,
+          "contribution": 1.395089784242511,
+          "pooled": 8.320730768904394
+        },
+        {
+          "channel": 1353,
+          "contribution": 0.9452318151176566,
+          "pooled": 5.958054423332214
+        },
+        {
+          "channel": 449,
+          "contribution": 0.5663698169651887,
+          "pooled": 2.8383953109079476
+        },
+        {
+          "channel": 1816,
+          "contribution": 0.41123968549006,
+          "pooled": 1.8828819479261125
+        },
+        {
+          "channel": 743,
+          "contribution": 0.36758078306461384,
+          "pooled": 5.558562759842191
+        },
+        {
+          "channel": 1270,
+          "contribution": 0.34717605364500476,
+          "pooled": 2.799617687050177
+        },
+        {
+          "channel": 916,
+          "contribution": 0.3403750330072116,
+          "pooled": 1.5391977003642492
+        },
+        {
+          "channel": 1692,
+          "contribution": 0.3129170004614361,
+          "pooled": 4.094700655158685
+        },
+        {
+          "channel": 805,
+          "contribution": 0.31259442569095686,
+          "pooled": 1.7042667403513072
+        }
+      ]
+    },
+    {
+      "classId": 283,
+      "label": "Persian cat",
+      "rank": 5,
+      "logit": 7.60995626449585,
+      "top": [
+        {
+          "channel": 830,
+          "contribution": 1.2359789971218715,
+          "pooled": 8.320730768904394
+        },
+        {
+          "channel": 1353,
+          "contribution": 0.8663013949818605,
+          "pooled": 5.958054423332214
+        },
+        {
+          "channel": 257,
+          "contribution": 0.718900375821574,
+          "pooled": 6.695955570863218
+        },
+        {
+          "channel": 592,
+          "contribution": 0.7176572295531919,
+          "pooled": 5.817630548866427
+        },
+        {
+          "channel": 722,
+          "contribution": 0.5341916761778092,
+          "pooled": 2.424022290171409
+        },
+        {
+          "channel": 956,
+          "contribution": 0.43835613333482926,
+          "pooled": 6.529857382482412
+        },
+        {
+          "channel": 606,
+          "contribution": 0.36955923607683144,
+          "pooled": 1.7580903732046789
+        },
+        {
+          "channel": 1171,
+          "contribution": 0.34660773475548984,
+          "pooled": 3.512129571973061
+        },
+        {
+          "channel": 1476,
+          "contribution": 0.33089876345068664,
+          "pooled": 2.1512813300502542
+        },
+        {
+          "channel": 93,
+          "contribution": 0.30391391177848326,
+          "pooled": 3.772815024366184
+        }
+      ]
+    }
+  ],
+  "favoring": {
+    "for": 281,
+    "against": 282,
+    "top": [
+      {
+        "channel": 956,
+        "margin": 0.31993748580416603
+      },
+      {
+        "channel": 257,
+        "margin": 0.3142126099282713
+      },
+      {
+        "channel": 1700,
+        "margin": 0.2908862286666587
+      },
+      {
+        "channel": 93,
+        "margin": 0.23681479832691854
+      },
+      {
+        "channel": 449,
+        "margin": 0.20107541633407838
+      },
+      {
+        "channel": 1171,
+        "margin": 0.15168441833920576
+      },
+      {
+        "channel": 1230,
+        "margin": 0.14594240193584287
+      },
+      {
+        "channel": 461,
+        "margin": 0.14589217129937979
+      },
+      {
+        "channel": 1353,
+        "margin": 0.1457433498604459
+      },
+      {
+        "channel": 325,
+        "margin": 0.1430935153727888
+      }
+    ]
+  },
+  "flip": {
+    "from": 281,
+    "to": 282,
+    "toLabel": "tiger cat",
+    "toScore": 0.466044931022017,
+    "n": 1,
+    "channels": [
+      956
+    ]
+  }
+}

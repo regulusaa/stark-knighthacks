@@ -1,4 +1,4 @@
-"""Check every pipeline output against contract v1. Run alone with: python -m pipeline.validate
+"""Check every pipeline output against contract v2. Run alone with: python -m pipeline.validate
 
 Pure Python (json + PIL), no TensorFlow. Stages may add checks for their own files via validate(image_dir, entry).
 Exit code 1 if anything fails.
@@ -66,6 +66,11 @@ def validate_manifest(errs, entries):
             _types(errs, f"{w}.trueClass", i["trueClass"], {"classId": int, "label": str})
         on_disk = manifest.files_present(config.ASSETS / i["id"])
         errs.check(i["files"] == on_disk, f"{w}: files flags {i['files']} do not match disk {on_disk}")
+        if errs.check(isinstance(i.get("steerable"), bool), f"{w}: steerable missing (contract v2)"):
+            want = manifest.steerable(i, config.ASSETS / i["id"])
+            errs.check(i["steerable"] == want, f"{w}: steerable {i['steerable']} but Steer data on disk says {want}")
+            if i["category"] != "medical":
+                errs.check(i["steerable"], f"{w}: ResNet50 images must be steerable")
     return imgs
 
 

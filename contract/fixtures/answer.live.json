@@ -1,0 +1,10 @@
+{
+  "classId": 208,
+  "label": "Labrador retriever",
+  "score": 0.44,
+  "rank": 1,
+  "hasHeatmap": true,
+  "heatmapSource": "live",
+  "isTop1": true,
+  "isTrueClass": false
+}
