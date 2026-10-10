@@ -4,8 +4,10 @@ import * as THREE from 'three';
 
 export const RIG = {
   fov: 40,
-  defaultPosition: new THREE.Vector3(7.7, 7.2, 20.3), // solved so panel + trunk + Brain volume fill NDC ±0.84 at 16:9
-  defaultTarget: new THREE.Vector3(-1.8, 6.55, 0.1),
+  // solved numerically at 16:9: panel + Brain volume within NDC x ±0.84, y −0.84..0.76 (top 12% kept for the HUD),
+  // trunk base above −0.95. Same viewing direction as the CC-4a starting values.
+  defaultPosition: new THREE.Vector3(8.01, 8.15, 20.44),
+  defaultTarget: new THREE.Vector3(-1.55, 7.5, 0.1),
   damping: 0.08,                 // fraction of the remaining gap closed per 60 Hz frame
   minPolar: THREE.MathUtils.degToRad(20),
   maxPolar: THREE.MathUtils.degToRad(100),
@@ -30,6 +32,13 @@ export function createCameraRig(camera) {
   let tween = null; // {t, ms}
   const tmp = new THREE.Vector3();
   const sphere = new THREE.Sphere();
+  const fitBox = new THREE.Box3();
+  const dir = new THREE.Vector3();
+  const right = new THREE.Vector3();
+  const up = new THREE.Vector3();
+  const rel = new THREE.Vector3();
+  const tmpSph = new THREE.Spherical();
+  const UP = new THREE.Vector3(0, 1, 0);
 
   function clampSph(s) {
     s.phi = THREE.MathUtils.clamp(s.phi, RIG.minPolar, RIG.maxPolar);
@@ -82,6 +91,33 @@ export function createCameraRig(camera) {
       to.target.copy(sphere.center);
       to.sph.copy(goal.sph);
       to.sph.radius = fit * 1.08;
+      clampSph(to.sph);
+      startTween(ms);
+    },
+    /**
+     * Fly so every point fits inside ±margin of the screen (NDC), keeping the current viewing direction.
+     * Solved exactly per point: depth along the view and the horizontal/vertical half-angles give the distance.
+     */
+    flyToFit(points, ms = RIG.flyMs, margin = 0.84, topMargin = 0.76) {
+      fitBox.makeEmpty();
+      for (const p of points) fitBox.expandByPoint(p);
+      fitBox.getCenter(to.target);
+      to.sph.copy(goal.sph);
+      dir.setFromSpherical(tmpSph.set(1, to.sph.phi, to.sph.theta));
+      right.crossVectors(UP, dir).normalize();
+      up.crossVectors(dir, right);
+      const tanFov = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+      const tanV = tanFov * margin;
+      const tanTop = tanFov * topMargin;  // the top of the screen is kept clear for the HUD
+      const tanH = tanV * camera.aspect;
+      let need = 0;
+      for (const p of points) {
+        rel.copy(p).sub(to.target);
+        const along = rel.dot(dir);
+        const y = rel.dot(up);
+        need = Math.max(need, along + Math.abs(rel.dot(right)) / tanH, along + (y > 0 ? y / tanTop : -y / tanV));
+      }
+      to.sph.radius = need;
       clampSph(to.sph);
       startTween(ms);
     },

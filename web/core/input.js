@@ -41,6 +41,7 @@ export function attachInput(canvas, api, hud) {
       case ']': api.setSpeed(speeds[Math.min(speeds.length - 1, i + 1)]); break;
       case 'g': api.toggleHeatmap(); break;
       case 'h': hud.setVisible(!hud.visible); break;
+      case 'escape': api.clearFocus(); break;
       default: return;
     }
   });

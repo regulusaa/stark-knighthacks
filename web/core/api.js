@@ -41,6 +41,7 @@ export function createApi({ manifest, panel, trunk, rig }) {
   let loadToken = 0;
   let state = null;
   let heatOn = false;
+  let focusImpl = null; // focus.js, attached by main once the Brain exists
 
   function publish() {
     if (state) ev.emit('display-state', state);
@@ -123,10 +124,13 @@ export function createApi({ manifest, panel, trunk, rig }) {
       } else {
         console.warn(`[stark] ${entry.id}: no tree data; showing the placeholder`);
       }
+      const wasFocused = Boolean(focusImpl?.current !== null && focusImpl?.current !== undefined);
+      focusImpl?.reset();
+      if (wasFocused) rig.resetView();
+      ev.emit('image-loaded', { id: entry.id, ok: next.ok }); // the Brain rebuilds here, before the pulse runs
       if (autoplay) trunk.play(); else trunk.reset();
       setPlayback();
       ev.emit('focus-state', null);
-      ev.emit('image-loaded', { id: entry.id, ok: next.ok });
       return true;
     },
 
@@ -141,6 +145,17 @@ export function createApi({ manifest, panel, trunk, rig }) {
       setPlayback();
     },
     showHeatmap,
+    /** Focus one tip: fly to it and the panel, show its heatmap if it has one, emit focus-state. */
+    focusTip(classId) { return focusImpl ? focusImpl.focusTip(classId) : false; },
+    clearFocus() { focusImpl?.clearFocus(); },
+    attachFocus(impl) { focusImpl = impl; },
+    /** Used by focus.js: record the focused Answer (or null) and publish it. */
+    setFocus(answer) {
+      if (!state) return;
+      state.focus = answer;
+      ev.emit('focus-state', answer);
+      publish();
+    },
     toggleHeatmap() { return showHeatmap(heatOn ? null : state?.top1?.classId ?? null); },
 
     onDisplayState(cb) { const off = ev.on('display-state', cb); if (state) cb(state); return off; },
