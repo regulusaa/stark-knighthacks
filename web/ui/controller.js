@@ -1,6 +1,8 @@
 import { EVENTS, ERROR_CODES, ROLES, READY_FLAG } from '/contract/contract.js';
 import { create as createGestures } from '/ui/gestures.js';
 import { createAnswerList } from '/ui/answer-list.js';
+import { createGallery } from '/ui/gallery.js';
+import { createHostControls } from '/ui/host-controls.js';
 import { connect } from '/ui/transport.js';
 
 const query = new URLSearchParams(location.search);
@@ -36,10 +38,15 @@ let optimisticFocus = null;
 app.dataset.role = role;
 if (query.get('mock') === '1') {
   document.querySelector('.brand small').textContent = 'MOCK PREVIEW';
-  document.querySelector('.current-image .eyebrow').textContent = 'MOCK DATA / ON DISPLAY';
+  document.querySelector('.current-image .eyebrow').textContent = 'MOCK DATA / NOW SHOWING';
 }
 document.getElementById('room-code').textContent = room || 'NO ROOM';
 document.getElementById('host-slots').hidden = role !== ROLES.HOST;
+document.getElementById('host-gallery').hidden = role !== ROLES.HOST;
+if (role === ROLES.HOST) {
+  document.querySelector('#answers-panel .slot-index').textContent = '04';
+  document.getElementById('side-panel').insertBefore(document.getElementById('host-slots'), document.getElementById('answers-panel'));
+}
 window[READY_FLAG] = false;
 window.__cx2Ready = false;
 
@@ -116,6 +123,14 @@ function render() {
   label.textContent = role === ROLES.HOST ? 'Host' : driving ? 'Driving' : pendingControl ? 'Requesting' : otherLabel ? `${otherLabel} driving` : 'Viewing';
   document.getElementById('image-name').textContent = display?.image?.name || 'Waiting for image';
   document.getElementById('top-answer').textContent = scoreText(display?.top1);
+  const truth = document.getElementById('truth-status');
+  truth.hidden = !display?.top1 || !display?.trueClass;
+  if (!truth.hidden) {
+    const correct = display.top1.classId === display.trueClass.classId;
+    truth.dataset.correct = String(correct);
+    document.getElementById('correctness').textContent = correct ? 'Correct' : 'Incorrect';
+    document.getElementById('true-class-name').textContent = `· True class: ${display.trueClass.label}`;
+  }
   trackpadFrame.classList.toggle('locked', guestViewing);
   trackpadLock.hidden = !guestViewing;
   document.getElementById('lock-message').textContent = otherLabel ? `${otherLabel} is driving` : 'Take the wheel';
@@ -152,6 +167,8 @@ function onStatus(status) {
     pendingControl = false;
     queuedFocus = null;
     optimisticFocus = null;
+    gallery?.clearPending();
+    hostControls?.clearPending();
     releaseWakeLock();
     setState('error', 'offline');
   } else if (status.phase === 'reconnecting') {
@@ -159,6 +176,8 @@ function onStatus(status) {
     pendingControl = false;
     queuedFocus = null;
     optimisticFocus = null;
+    gallery?.clearPending();
+    hostControls?.clearPending();
     releaseWakeLock();
     setState('error', 'reconnecting');
   } else if (status.phase === 'error') {
@@ -170,6 +189,8 @@ function onStatus(status) {
 function onDisplayState(value) {
   const imageChanged = Boolean(display && display.image?.id !== value.image?.id);
   display = value;
+  gallery?.setCurrent(value.image?.id);
+  hostControls?.setDisplay(value);
   const answersChanged = answerList.setAnswers(value.answers);
   if (imageChanged) {
     queuedFocus = null;
@@ -215,6 +236,10 @@ function onFocusState(value) {
 
 function onError(error) {
   pendingControl = false;
+  if (role === ROLES.HOST) {
+    gallery?.clearPending();
+    hostControls?.clearPending();
+  }
   if (error.code === ERROR_CODES.NO_ROOM) { releaseWakeLock(); setState('error', 'noRoom'); }
   else if (error.code === ERROR_CODES.BAD_KEY) { releaseWakeLock(); setState('error', 'badKey'); }
   else if (error.code === ERROR_CODES.LOCKED) {
@@ -236,6 +261,8 @@ function startConnection() {
   pendingControl = false;
   queuedFocus = null;
   optimisticFocus = null;
+  gallery?.clearPending();
+  hostControls?.setDisplay(null);
   answerList.setAnswers([]);
   answerList.setFocus(null);
   window[READY_FLAG] = false;
@@ -301,6 +328,27 @@ const answerList = createAnswerList({
   onLongLabel: showNotice,
 });
 
+const gallery = role === ROLES.HOST ? createGallery({
+  root: document.getElementById('gallery-grid'),
+  mock: query.get('mock') === '1',
+  onSelect: imageId => { transport.emit(EVENTS.SELECT_IMAGE, { imageId }); haptic(); },
+  onTimeout: () => showNotice('The image did not load. Try again.'),
+}) : null;
+const hostControls = role === ROLES.HOST ? createHostControls({
+  root: document.getElementById('side-panel'),
+  onPlay: payload => { transport.emit(EVENTS.PLAY_PULSE, payload); haptic(); },
+  onMode: payload => { transport.emit(EVENTS.SET_MODE, payload); haptic(); },
+  onTimeout: () => showNotice('The display did not confirm that control. Try again.'),
+}) : null;
+
+if (gallery) {
+  const manifestUrl = query.get('mock') === '1' ? '/contract/fixtures/manifest.json' : '/assets/manifest.json';
+  fetch(manifestUrl).then(response => {
+    if (!response.ok) throw new Error('Gallery manifest unavailable');
+    return response.json();
+  }).then(manifest => gallery.setManifest(manifest)).catch(() => showNotice('Gallery unavailable. Try again later.'));
+}
+
 takeCenter.addEventListener('click', takeControl);
 takeBottom.addEventListener('click', takeControl);
 resetBottom.addEventListener('click', resetView);
@@ -317,7 +365,23 @@ document.addEventListener('visibilitychange', () => {
   else releaseWakeLock();
 });
 
-const gestures = createGestures(document.getElementById('trackpad'));
+const sensitivityInput = document.getElementById('sensitivity');
+const sensitivityValue = document.getElementById('sensitivity-value');
+const sensitivityKey = 'stark:touch-sensitivity';
+let initialSensitivity = 1;
+try {
+  const saved = Number(sessionStorage.getItem(sensitivityKey));
+  if (saved >= 0.5 && saved <= 2) initialSensitivity = saved;
+} catch {}
+sensitivityInput.value = String(initialSensitivity);
+sensitivityValue.textContent = `${initialSensitivity.toFixed(1)}×`;
+const gestures = createGestures(document.getElementById('trackpad'), { sensitivity: initialSensitivity });
+sensitivityInput.addEventListener('input', () => {
+  const value = Number(sensitivityInput.value);
+  gestures.setSensitivity(value);
+  sensitivityValue.textContent = `${value.toFixed(1)}×`;
+  try { sessionStorage.setItem(sensitivityKey, String(value)); } catch {}
+});
 const trackpad = document.getElementById('trackpad');
 const touchDots = [document.getElementById('touch-one'), document.getElementById('touch-two')];
 const pinchLine = document.getElementById('pinch-line');

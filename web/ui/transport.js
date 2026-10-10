@@ -15,10 +15,13 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
   const timers = new Set();
   let closed = false;
   let displayState = null;
+  let baseDisplayState = null;
   let manifest = null;
   let fixtureError = null;
   let fgsm = null;
+  let medical = null;
   let currentDriver = null;
+  let playbackToken = 0;
 
   const status = {
     phase: 'connecting',
@@ -90,11 +93,46 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
     };
   }
 
+  function mockImageState(image) {
+    const next = structuredClone(baseDisplayState);
+    next.room = room;
+    next.driver = currentDriver;
+    next.image = { id: image.id, name: image.name, category: image.category };
+    next.focus = null;
+    next.mode = 'normal';
+    next.layerMode = 'full';
+    next.playback = { state: 'done', speed: 1 };
+    if (image.id === 'adv_retriever') {
+      const top1 = { classId: fgsm.adversarial.classId, label: fgsm.adversarial.label, score: fgsm.adversarial.score, rank: 1, hasHeatmap: true, isTop1: true, isTrueClass: false };
+      const trueClass = { classId: fgsm.trueClass.classId, label: fgsm.trueClass.label, score: fgsm.trueClass.adversarialScore, rank: 2, hasHeatmap: true, isTop1: false, isTrueClass: true };
+      next.top1 = top1;
+      next.trueClass = trueClass;
+      next.answers = [top1, trueClass];
+      next.capabilities.stability = false;
+    } else if (image.id === 'ambig_husky') {
+      const top1 = { classId: 250, label: 'Siberian husky', score: 0.32, rank: 1, hasHeatmap: true, isTop1: true, isTrueClass: true };
+      next.top1 = top1;
+      next.trueClass = top1;
+      next.answers = [top1, { classId: 269, label: 'timber wolf', score: 0.30, rank: 2, hasHeatmap: true, isTop1: false, isTrueClass: false }];
+      next.capabilities.stability = true;
+    } else if (image.id === 'med_xray_pneumonia') {
+      const findings = medical.findings.filter(item => item.rank <= 10 || item.classId === medical.sourceLabel.classId)
+        .sort((a, b) => a.rank - b.rank).map(item => ({ classId: item.classId, label: item.label, score: item.score, rank: item.rank, hasHeatmap: item.hasHeatmap, isTop1: item.rank === 1, isTrueClass: item.classId === medical.sourceLabel.classId }));
+      next.top1 = findings[0];
+      next.trueClass = findings.find(item => item.isTrueClass);
+      next.answers = findings;
+      next.scoreKind = 'independent';
+      next.capabilities = { stability: false, trunkInterior: false, layerModes: false, bloom: false, steer: false };
+    }
+    return next;
+  }
+
   async function beginMock() {
     try {
-      [displayState, manifest, fixtureError, fgsm] = await Promise.all([
-        loadFixture('display-state'), loadFixture('manifest'), loadFixture('error'), loadFixture('fgsm'),
+      [baseDisplayState, manifest, fixtureError, fgsm, medical] = await Promise.all([
+        loadFixture('display-state'), loadFixture('manifest'), loadFixture('error'), loadFixture('fgsm'), loadFixture('medical'),
       ]);
+      displayState = structuredClone(baseDisplayState);
       // The delay is part of the mock, not an arbitrary loading animation.
       await delay(2000);
       if (closed) return;
@@ -189,7 +227,27 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
       updateDisplay({ focus: null }); deliver(EVENTS.FOCUS_STATE, null);
     } else if (event === EVENTS.SELECT_IMAGE && role === ROLES.HOST && displayState) {
       const image = manifest.images.find(item => item.id === payload.imageId);
-      if (image) updateDisplay({ image: { id: image.id, name: image.name, category: image.category }, focus: null });
+      if (image) later(650, () => {
+        playbackToken++;
+        displayState = mockImageState(image);
+        deliver(EVENTS.DISPLAY_STATE, structuredClone(displayState));
+        deliver(EVENTS.FOCUS_STATE, null);
+      });
+    } else if (event === EVENTS.PLAY_PULSE && role === ROLES.HOST && displayState) {
+      const token = ++playbackToken;
+      const speed = payload.speed ?? 1;
+      later(180, () => {
+        if (token !== playbackToken) return;
+        updateDisplay({ playback: { state: payload.skipToEnd ? 'done' : 'playing', speed } });
+        if (!payload.skipToEnd) later(1300 / speed, () => {
+          if (token === playbackToken) updateDisplay({ playback: { state: 'done', speed } });
+        });
+      });
+    } else if (event === EVENTS.SET_MODE && role === ROLES.HOST && displayState) {
+      later(180, () => updateDisplay({
+        mode: payload.mode ?? displayState.mode,
+        layerMode: payload.layerMode ?? displayState.layerMode,
+      }));
     }
   }
 

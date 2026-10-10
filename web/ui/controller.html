@@ -7,6 +7,7 @@
   <title>Stark · Controller</title>
   <link rel="stylesheet" href="/ui/styles/tokens.css">
   <link rel="stylesheet" href="/ui/controller.css">
+  <link rel="stylesheet" href="/ui/styles/host.css">
 </head>
 <body>
   <div id="app" class="controller" data-state="connecting" data-role="guest">
@@ -45,7 +46,8 @@
         </div>
 
         <aside id="side-panel" class="side-panel">
-          <div class="current-image"><span class="eyebrow">ON DISPLAY</span><strong id="image-name">Waiting for image</strong><span id="top-answer">Model score will appear here</span></div>
+          <div class="current-image"><span class="eyebrow">NOW SHOWING</span><strong id="image-name">Waiting for image</strong><span id="top-answer">Model score will appear here</span><div id="truth-status" class="truth-status" hidden><span class="true-class-ring" aria-hidden="true"></span><strong id="correctness"></strong><span id="true-class-name"></span></div></div>
+          <div id="host-gallery" hidden><section class="host-block" aria-labelledby="gallery-title"><div class="host-block-heading"><span class="slot-index">01</span><h3 id="gallery-title">Gallery</h3></div><div id="gallery-grid" class="gallery-grid" role="group" aria-label="Choose an image"></div></section></div>
           <section id="answers-panel" class="answers-panel" aria-label="Model answers">
             <div class="answers-heading"><div><span class="slot-index">01</span><h3>Answers</h3></div><span id="answer-count" class="answer-count">0</span></div>
             <div id="focus-card" class="focus-card" hidden>
@@ -58,10 +60,10 @@
             <div id="answer-list" class="answer-list" role="group" aria-label="Answers ranked by model score"></div>
           </section>
           <div id="host-slots" class="host-slots" hidden>
-            <div class="slot"><div><span class="slot-index">02</span><h3>Gallery</h3></div><p>Image picker will appear here.</p></div>
-            <div class="slot"><div><span class="slot-index">03</span><h3>Playback &amp; modes</h3></div><p>Playback controls will appear here.</p></div>
-            <button id="host-reset" class="secondary-button" type="button">Reset view</button>
+            <section id="playback-panel" class="host-block" aria-labelledby="playback-title"><div class="host-block-heading"><span class="slot-index">02</span><h3 id="playback-title">Playback &amp; view</h3></div><div class="host-action-row"><button id="replay-pulse" class="secondary-button" type="button">Replay pulse</button><button id="jump-to-end" class="secondary-button" type="button">Jump to end</button><button id="host-reset" class="secondary-button" type="button">Reset view</button></div><p class="control-caption">Speed · starts a replay</p><div id="speed-control" class="segmented-control" role="group" aria-label="Pulse speed"><button type="button" data-speed="0.5">0.5×</button><button type="button" data-speed="1">1×</button><button type="button" data-speed="2">2×</button></div><p id="playback-status" class="control-status" role="status" aria-live="polite"></p></section>
+            <section id="modes-panel" class="host-block" aria-labelledby="modes-title"><div class="host-block-heading"><span class="slot-index">03</span><h3 id="modes-title">Modes</h3></div><div id="mode-control" class="mode-control" role="group" aria-label="Display mode"><button type="button" data-mode="normal">Normal</button><button type="button" data-mode="stability" hidden>Stability test</button><button type="button" data-mode="trunk" hidden>Trunk interior</button></div><div id="layer-control-wrap" hidden><p class="control-caption">Layers</p><div id="layer-control" class="segmented-control" role="group" aria-label="Layer detail"><button type="button" data-layer-mode="full">Full</button><button type="button" data-layer-mode="reduced">Reduced</button></div></div><p id="mode-status" class="control-status" role="status" aria-live="polite"></p></section>
           </div>
+          <div class="sensitivity-control"><div class="sensitivity-heading"><label for="sensitivity">Touch sensitivity</label><output id="sensitivity-value" for="sensitivity">1.0×</output></div><input id="sensitivity" type="range" min="0.5" max="2" step="0.1" value="1"></div>
         </aside>
       </section>
     </main>
