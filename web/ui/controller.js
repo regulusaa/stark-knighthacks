@@ -242,6 +242,47 @@ document.addEventListener('visibilitychange', () => {
 });
 
 const gestures = createGestures(document.getElementById('trackpad'));
+const trackpad = document.getElementById('trackpad');
+const touchDots = [document.getElementById('touch-one'), document.getElementById('touch-two')];
+const pinchLine = document.getElementById('pinch-line');
+const touchPoints = new Map();
+
+function renderTouches() {
+  const rect = trackpad.getBoundingClientRect();
+  const points = [...touchPoints.values()];
+  touchDots.forEach((dot, index) => {
+    const point = points[index];
+    dot.style.display = point ? 'block' : 'none';
+    if (point) {
+      dot.style.left = `${point.x - rect.left}px`;
+      dot.style.top = `${point.y - rect.top}px`;
+    }
+  });
+  pinchLine.style.display = points.length === 2 ? 'block' : 'none';
+  if (points.length === 2) {
+    const [a, b] = points;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    pinchLine.style.left = `${a.x - rect.left}px`;
+    pinchLine.style.top = `${a.y - rect.top}px`;
+    pinchLine.style.width = `${Math.hypot(dx, dy)}px`;
+    pinchLine.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+  }
+  trackpad.classList.toggle('active', points.length > 0);
+}
+
+trackpad.addEventListener('pointerdown', event => {
+  if (touchPoints.size < 2) touchPoints.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  renderTouches();
+});
+trackpad.addEventListener('pointermove', event => {
+  if (!touchPoints.has(event.pointerId)) return;
+  touchPoints.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  renderTouches();
+});
+for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+  trackpad.addEventListener(type, event => { touchPoints.delete(event.pointerId); renderTouches(); });
+}
 gestures.onOrbit(({ dx, dy }) => { if (display && isDriving()) transport.emit(EVENTS.CONTROL_ORBIT, { dx, dy }); });
 gestures.onZoom(dz => { if (display && isDriving()) transport.emit(EVENTS.CONTROL_ZOOM, { dz }); });
 window.addEventListener('pagehide', () => { releaseWakeLock(); gestures.destroy(); transport?.close(); }, { once: true });

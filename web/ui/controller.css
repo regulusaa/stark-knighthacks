@@ -46,6 +46,10 @@ button:focus-visible { outline: 3px solid var(--color-true-class); outline-offse
 .trackpad::after { content: ""; position: absolute; inset: 20px; border: 1px dashed #ffffff1b; border-radius: 10px; pointer-events: none; }
 .trackpad-instructions { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; pointer-events: none; color: var(--color-text-secondary); }
 .trackpad-instructions strong { color: var(--color-text); font-size: 18px; }
+.trackpad.active .trackpad-instructions { opacity: .2; }
+.touch-indicator { position: absolute; z-index: 2; width: 48px; height: 48px; display: none; transform: translate(-50%, -50%); pointer-events: none; border: 2px solid var(--inferno-6); border-radius: 50%; background: #fbb61a44; box-shadow: 0 0 0 8px #fbb61a18, 0 0 28px #ed692585; }
+.touch-indicator.second { border-color: var(--inferno-3); background: #bc375455; box-shadow: 0 0 0 8px #bc375422, 0 0 28px #bc375488; }
+.pinch-line { position: absolute; z-index: 1; height: 2px; display: none; transform-origin: left center; pointer-events: none; background: linear-gradient(90deg, var(--inferno-5), var(--inferno-3)); box-shadow: 0 0 12px var(--inferno-4); }
 .orbit-symbol { margin-bottom: 8px; color: var(--inferno-5); font-size: 48px; line-height: 1; }
 .trackpad-frame.locked .trackpad { filter: brightness(.42); }
 .trackpad-frame.locked .trackpad-instructions { visibility: hidden; }
