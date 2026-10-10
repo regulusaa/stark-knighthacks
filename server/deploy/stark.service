@@ -1,0 +1,23 @@
+[Unit]
+Description=Stark relay server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=stark
+Group=stark
+WorkingDirectory=/opt/stark
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOST=127.0.0.1
+EnvironmentFile=/etc/stark.env
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

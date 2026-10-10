@@ -1,0 +1,6 @@
+# setup.sh replaces __HOST__ with <server-ip-with-dashes>.sslip.io. Caddy gets the HTTPS certificate itself,
+# passes WebSockets through, and sets X-Forwarded-Proto/Host for the app.
+__HOST__ {
+	encode gzip
+	reverse_proxy 127.0.0.1:3000
+}

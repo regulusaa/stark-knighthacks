@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# One-time provisioning of a fresh Ubuntu 24.04 Vultr server for Stark (master plan 12.2). Run as root:
+#   bash setup.sh [hostname]      hostname defaults to <public-ip-with-dashes>.sslip.io
+# Installs Node 20, git and Caddy; clones the repo into /opt/stark as the "stark" user; installs the systemd
+# unit and the Caddyfile; opens only 22/80/443. It never writes secrets: create /etc/stark.env yourself.
+set -euo pipefail
+
+REPO=https://github.com/regulusaa/stark-knighthacks.git
+APP=/opt/stark
+HERE="$(cd "$(dirname "$0")" && pwd)"
+
+[ "$(id -u)" = 0 ] || { echo "run as root" >&2; exit 1; }
+
+IP="$(hostname -I | awk '{print $1}')"
+HOST="${1:-${IP//./-}.sslip.io}"
+echo "==> hostname: $HOST"
+
+echo "==> packages"
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -q
+apt-get install -yq git curl ufw ca-certificates gnupg debian-keyring debian-archive-keyring apt-transport-https
+
+if ! node -v 2>/dev/null | grep -q '^v20\.'; then
+  echo "==> Node 20 LTS (NodeSource)"
+  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  apt-get install -yq nodejs
+fi
+
+if ! command -v caddy >/dev/null; then
+  echo "==> Caddy (official apt repo)"
+  curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key \
+    | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt > /etc/apt/sources.list.d/caddy-stable.list
+  apt-get update -q
+  apt-get install -yq caddy
+fi
+
+echo "==> user and app"
+id stark >/dev/null 2>&1 || useradd --system --create-home --home-dir /home/stark --shell /usr/sbin/nologin stark
+if [ ! -d "$APP/.git" ]; then
+  git clone --branch main "$REPO" "$APP"
+fi
+chown -R stark:stark "$APP"
+sudo -u stark -H bash -c "cd $APP && npm ci --omit=dev"
+
+echo "==> env file"
+if [ ! -f /etc/stark.env ]; then
+  install -m 600 -o root -g root /dev/null /etc/stark.env
+  echo "    created an EMPTY /etc/stark.env (root-only). Fill it in yourself; see stark.env.example."
+fi
+
+echo "==> systemd + Caddy"
+install -m 644 "$HERE/stark.service" /etc/systemd/system/stark.service
+sed "s/__HOST__/$HOST/" "$HERE/Caddyfile" > /etc/caddy/Caddyfile
+systemctl daemon-reload
+systemctl enable --now stark
+systemctl enable caddy
+systemctl reload-or-restart caddy
+
+echo "==> firewall (22, 80, 443 only)"
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw --force enable
+
+echo "==> local health"
+for i in $(seq 1 20); do
+  curl -fsS http://127.0.0.1:3000/health >/dev/null 2>&1 && break
+  sleep 1
+done
+curl -fsS http://127.0.0.1:3000/health && echo
+echo "done. Next: put the real values in /etc/stark.env, then: systemctl restart stark"
+echo "public URL: https://$HOST/health"

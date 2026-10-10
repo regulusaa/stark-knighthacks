@@ -1,0 +1,16 @@
+# Backup host (master plan 12.2). Secrets are set in the Render dashboard, not here.
+services:
+  - type: web
+    name: stark
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: STARK_HOST_KEY
+        sync: false
+      - key: STARK_FIXED_ROOM
+        sync: false
+      - key: STARK_PUBLIC_URL
+        sync: false
