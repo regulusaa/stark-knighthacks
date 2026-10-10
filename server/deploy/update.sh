@@ -13,7 +13,7 @@ systemctl restart stark
 
 for i in $(seq 1 20); do
   if [ "$(curl -fsS http://127.0.0.1:3000/health 2>/dev/null)" = ok ]; then
-    echo "health ok ($(git -C "$APP" log --oneline -1))"
+    echo "health ok ($(sudo -u stark git -C "$APP" log --oneline -1))"
     HOST="$(awk 'NF && $1 !~ /^#/ {print $1; exit}' /etc/caddy/Caddyfile)"
     if [ "$(curl -fsS "https://$HOST/health" 2>/dev/null)" = ok ]; then echo "https ok: https://$HOST/health"; else
       echo "!!! HTTPS check failed for https://$HOST/health (app is up locally; check: journalctl -u caddy)" >&2; exit 1; fi
