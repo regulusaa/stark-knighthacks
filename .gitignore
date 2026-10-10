@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+*.h5
+*.pt
+__pycache__/
+.env
+.shots/
+pipeline/.cache/
