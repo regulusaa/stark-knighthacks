@@ -69,6 +69,7 @@ try {
   assert.equal(await page.locator('#answers-title').innerText(), 'Findings · independent scores');
   assert.equal(await page.locator('.answer-meter-fill').first().evaluate(e => e.style.width), '71%');
   assert.match(await page.locator('#medical-caveat').innerText(), /not a diagnosis/);
+  assert.equal(await page.locator('#truth-status').isVisible(), false);
   assert.equal(await page.locator('#explore-tabs').isVisible(), false);
   assert.match(await page.locator('#steer-medical-note').innerText(), /ImageNet model only/);
   for (const width of [320, 375, 390]) { await page.setViewportSize({ width, height: 667 }); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true); }
@@ -76,6 +77,38 @@ try {
   assert.equal(await page.locator('[data-mode="stability"]').isVisible(), false);
   assert.equal(await page.locator('#adversarial-pair').isVisible(), false);
   console.log('ok independent medical bars, caveat, ImageNet-only Steer note and 320/375/390px overflow');
+  await open('idle');
+  await page.locator('[data-panel="steer"]').click();
+  await page.waitForSelector('.steer-panel[data-steer-state="idle"]');
+  await page.locator('[data-input-mode="code"]').click();
+  await page.locator('#steer-code-input').fill('channel[top(3, "golden retriever")] = 0');
+  await page.waitForTimeout(200); await page.locator('.steer-run').click();
+  await page.waitForFunction(() => window.__v3Mock.state.steerMoment?.to.classId === 208);
+  const firstMoment = (await state()).steerMoment;
+  await page.locator('[data-mode-field="bloom"]').click(); await wait();
+  assert.equal((await state()).steer.changedCount, 3);
+  assert.equal((await state()).steerMoment.at, firstMoment.at);
+  await page.locator('.steer-reset').click();
+  await page.waitForFunction(() => window.__v3Mock.state.steerMoment?.to.classId === 207);
+  assert.equal((await state()).steerMoment.from.classId, 208);
+  await page.locator('[data-mode="stability"]').click(); await wait();
+  assert.equal((await state()).capabilities.steer, false);
+  assert.equal((await state()).steer, null);
+  await page.locator('[data-mode="normal"]').click(); await wait();
+  assert.equal((await state()).capabilities.steer, true);
+  console.log('ok shared Steer mock flips both directions, Glow preserves interventions, mode entry clears them');
+  await page.locator('[data-mode="trunk"]').click();
+  await page.evaluate(() => window.__v3Mock.setConnection(false));
+  assert.equal(await page.locator('[data-mode="trunk"]').getAttribute('aria-busy'), 'false');
+  await page.waitForTimeout(210); await page.evaluate(() => window.__v3Mock.setConnection(true));
+  await page.waitForSelector('#app[data-state="host"]');
+  await page.evaluate(() => { window.__v3Mock.emit = () => true; });
+  await page.locator('[data-mode="normal"]').click();
+  assert.equal(await page.locator('[data-mode="normal"]').getAttribute('aria-busy'), 'true');
+  await page.waitForTimeout(8100);
+  assert.equal(await page.locator('[data-mode="normal"]').getAttribute('aria-busy'), 'false');
+  assert.match(await page.locator('#notice').innerText(), /did not confirm/);
+  console.log('ok disconnect clears pending controls and missing confirmation expires with a retry notice');
   assert.deepEqual(errors, []);
   console.log('PASS CX-8 controller/host checks; no console errors');
 } finally { await browser.close(); }

@@ -20,10 +20,17 @@ const bounds=()=>display.evaluate(async()=>{
 });
 const quiet=async width=>{
  assert.equal(await display.locator('.hud-compact').count(),1);
- assert.equal(await display.locator('.stark-hud header,.hud-qr,.hud-room,.hud-status,.hud-legend,.hud-focus,.hud-truth').count(),0);
+ assert.equal(await display.locator('.stark-hud header,.hud-qr,.hud-room,.hud-status,.hud-legend,.hud-truth').count(),0);
+ const focused=await display.evaluate(()=>Boolean(window.__stark.api.state.focus));
+ assert.equal(await display.locator('.hud-focus').getAttribute('aria-hidden'),String(!focused));
  assert.equal(await display.locator('.hud-answer').evaluate(e=>getComputedStyle(e).fontSize),width<1200?'18px':'28px');
  assert.equal(await display.locator('.hud-result').evaluate(e=>getComputedStyle(e).pointerEvents),'none');
- assert.match(await display.locator('.hud-secondary').innerText(),/^Model score \d+\.\d%$/);
+ const medical=await display.evaluate(()=>window.__stark.api.state.scoreKind==='independent');
+ if(medical){
+  assert.equal(await display.locator('.hud-result').isVisible(),false);
+  assert.equal(await display.locator('.hud-findings .hud-data-row').count(),3);
+  assert.match(await display.locator('.hud-medical p').innerText(),/not a diagnosis/);
+ }else assert.match(await display.locator('.hud-result .hud-secondary').innerText(),/^Model score \d+\.\d%$/);
  const b=await bounds();for(const [name,v]of Object.entries(b))assert.ok(v[0]>=-.99&&v[1]<=.99&&v[2]>=-.99&&v[3]<=.99,`${name} clipped: ${JSON.stringify(b)}`);
 };
 try {

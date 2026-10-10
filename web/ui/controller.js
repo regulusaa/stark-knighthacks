@@ -152,7 +152,7 @@ function render() {
   document.getElementById('image-name').textContent = display?.image?.name || 'Waiting for image';
   document.getElementById('top-answer').textContent = scoreText(display?.top1);
   const truth = document.getElementById('truth-status');
-  truth.hidden = !display?.top1 || !display?.trueClass;
+  truth.hidden = display?.scoreKind === 'independent' || !display?.top1 || !display?.trueClass;
   if (!truth.hidden) {
     const correct = display.top1.classId === display.trueClass.classId;
     truth.dataset.correct = String(correct);

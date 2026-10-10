@@ -37,18 +37,32 @@ export async function createV3Fixtures(room = '7KQ2M') {
 
 export async function createV3Mock({ room, role, scene = 'idle' }) {
   const fixtures = await createV3Fixtures(room);
+  const { createSteerMock } = await import('./steer-engine.js');
+  const engine = await createSteerMock({ role, scene: 'unclaimed' });
   const listeners = new Map();
   const subscribers = new Set();
   const timers = new Set();
   const log = [];
   let state = clone(fixtures.states[scene] || fixtures.states.idle);
+  state.capabilities.steer = state.mode === MODES.NORMAL && state.image.id === 'clean_retriever';
   let closed = false;
   let runToken = 0;
   const status = { phase: 'connecting', clientId: role === ROLES.HOST ? 'h_mock' : 'c_local', label: role === ROLES.HOST ? 'Ray' : 'Guest 1', reason: null,
     subscribe(cb) { subscribers.add(cb); cb(status); return () => subscribers.delete(cb); } };
   const deliver = (event, value) => { if (!closed) for (const cb of listeners.get(event) || []) cb(clone(value)); };
   const later = (ms, cb) => { const timer = setTimeout(() => { timers.delete(timer); if (!closed) cb(); }, ms); timers.add(timer); };
-  const publish = () => deliver(EVENTS.DISPLAY_STATE, state);
+  const publish = () => { if (status.phase === 'connected') deliver(EVENTS.DISPLAY_STATE, state); };
+  engine.on(EVENTS.STEER_RESULT, value => {
+    if (!state.capabilities.steer || state.mode !== MODES.NORMAL || status.phase !== 'connected') return;
+    const previous = state.top1;
+    state.top1 = clone(value.result.top1); state.answers = clone(value.result.answers);
+    state.steer = { active: value.active, changedCount: value.scales.length, top1Changed: value.result.top1Changed };
+    if (previous?.classId !== state.top1.classId) {
+      const at = Date.now(); state.steerMoment = { from: previous, to: state.top1, at };
+      later(4000, () => { if (state.steerMoment?.at === at) { state.steerMoment = null; publish(); } });
+    }
+    publish(); deliver(EVENTS.STEER_RESULT, value);
+  });
   function replay() {
     const token = ++runToken;
     state.stability = { ...clone(fixtures.states['stability-playing'].stability), run: 1, phase: 'playing' };
@@ -69,26 +83,37 @@ export async function createV3Mock({ room, role, scene = 'idle' }) {
     on(event, cb) { if (!listeners.has(event)) listeners.set(event, new Set()); listeners.get(event).add(cb); return () => listeners.get(event)?.delete(cb); },
     show(name) { runToken++; state = clone(fixtures.states[name] || fixtures.states.idle); state.room = room; if (state.steerMoment) state.steerMoment.at = Date.now(); publish(); deliver(EVENTS.FOCUS_STATE, state.focus); },
     inject(value) { state = clone(value); publish(); },
-    start() { later(30, () => { status.phase = 'connected'; for (const cb of subscribers) cb(status); deliver(EVENTS.PEER_JOINED, { role: ROLES.DISPLAY, clientId: 'd_mock' }); publish(); }); },
+    setConnection(connected) { status.phase = connected ? 'connected' : 'disconnected'; for (const cb of subscribers) cb(status); if (connected) publish(); },
+    start() { later(30, () => { status.phase = 'connected'; for (const cb of subscribers) cb(status); deliver(EVENTS.PEER_JOINED, { role: ROLES.DISPLAY, clientId: 'd_mock' }); publish(); if (state.image.id === 'clean_retriever' && state.mode === MODES.NORMAL) engine.start(); }); },
     emit(event, payload = {}) {
       log.push({ event, payload: clone(payload), time: performance.now() }); console.info('[mock emit]', event, payload);
       if (closed || status.phase !== 'connected') return false;
-      if (event === EVENTS.TAKE_CONTROL) later(30, () => { state.driver = { id: status.clientId, label: status.label, isHost: role === ROLES.HOST }; publish(); deliver(EVENTS.DRIVER_CHANGED, { driver: state.driver, reason: 'take' }); });
+      if (event === EVENTS.TAKE_CONTROL) later(30, () => { state.driver = { id: status.clientId, label: status.label, isHost: role === ROLES.HOST }; engine.setDriver(state.driver); publish(); deliver(EVENTS.DRIVER_CHANGED, { driver: state.driver, reason: 'take' }); });
       else if (event === EVENTS.SET_MODE && role === ROLES.HOST) later(180, () => {
+        const oldMode = state.mode;
         for (const field of ['mode', 'layerMode', 'noiseView', 'bloom']) if (Object.hasOwn(payload, field)) state[field] = payload[field];
-        state.steer = null; state.steerMoment = null; state.capabilities.steer = state.mode === MODES.NORMAL && state.scoreKind !== 'independent';
+        if (state.mode !== oldMode) { state.steer = null; state.steerMoment = null; }
+        state.capabilities.steer = state.mode === MODES.NORMAL && state.image.id === 'clean_retriever';
+        if (state.mode !== oldMode) {
+          engine.emit(EVENTS.STEER_RESET, {});
+          const baseline = fixtures.states[state.image.category === 'adversarial' ? 'adversarial' : state.scoreKind === 'independent' ? 'medical' : 'idle'];
+          state.top1 = clone(baseline.top1); state.answers = clone(baseline.answers);
+        }
         if (payload.mode === MODES.STABILITY) replay(); else if (payload.mode) { runToken++; state.stability = null; }
         publish();
       });
-      else if (event === EVENTS.SELECT_IMAGE && role === ROLES.HOST) later(350, () => { runToken++; const name = payload.imageId === 'adv_retriever' ? 'adversarial' : payload.imageId.startsWith('med_') ? 'medical' : 'idle'; const driver = state.driver; state = clone(fixtures.states[name]); state.driver = driver; state.room = room; publish(); deliver(EVENTS.FOCUS_STATE, null); });
+      else if (event === EVENTS.SELECT_IMAGE && role === ROLES.HOST) later(350, () => { runToken++; const name = payload.imageId === 'adv_retriever' ? 'adversarial' : payload.imageId.startsWith('med_') ? 'medical' : 'idle'; const driver = state.driver; state = clone(fixtures.states[name]); state.driver = driver; state.room = room; state.capabilities.steer = name === 'idle'; engine.emit(EVENTS.STEER_RESET, {}); publish(); deliver(EVENTS.FOCUS_STATE, null); });
       else if (event === EVENTS.PLAY_PULSE && role === ROLES.HOST) later(30, () => { if (state.mode === MODES.STABILITY) replay(); else { state.playback = { state: payload.skipToEnd ? 'done' : 'playing', speed: payload.speed ?? 1 }; publish(); } });
       else if ([EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS].includes(event)) {
         if (state.stability?.phase === 'playing') return false;
         later(30, () => { state.focus = event === EVENTS.CLEAR_FOCUS ? null : state.answers.find(a => a.classId === payload.classId) || null; publish(); deliver(EVENTS.FOCUS_STATE, state.focus); });
+      } else if ([EVENTS.STEER_UPDATE, EVENTS.STEER_RESET].includes(event)) {
+        if (!state.capabilities.steer) return false;
+        return engine.emit(event, payload);
       } else if (![EVENTS.CONTROL_ORBIT, EVENTS.CONTROL_ZOOM, EVENTS.RESET_VIEW].includes(event) && role !== ROLES.HOST) deliver(EVENTS.ERROR, { code: ERROR_CODES.FORBIDDEN, event, message: 'Host control only' });
       return true;
     },
-    close() { closed = true; runToken++; for (const timer of timers) clearTimeout(timer); timers.clear(); listeners.clear(); subscribers.clear(); },
+    close() { engine.close(); closed = true; runToken++; for (const timer of timers) clearTimeout(timer); timers.clear(); listeners.clear(); subscribers.clear(); },
   };
   window.__v3Mock = api;
   return api;
