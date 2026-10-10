@@ -13,19 +13,15 @@
   </style>
 </head>
 <body>
-  <div id="hud" data-hud-layout="full"></div>
+  <div id="hud" data-hud-layout="full" data-tree-url="/contract/fixtures/tree.json"></div>
   <script src="/socket.io/socket.io.js"></script>
   <script type="module">
     import { mountHud } from '../hud.js';
+    import { createV3Fixtures, V3_SCENES } from './contract-v3-shim.js';
     import { EVENTS, ROLES } from '/contract/contract.js';
     const query = new URLSearchParams(location.search);
     const root = document.getElementById('hud');
-    const read = async name => {
-      const response = await fetch(`/contract/fixtures/${name}.json`);
-      if (!response.ok) throw new Error(`Fixture unavailable: ${name}`);
-      return response.json();
-    };
-    const [fixture, focused] = await Promise.all([read('display-state'), read('focus-state')]);
+    if (query.get('layout') === 'compact') delete root.dataset.hudLayout;
     // A default preview registers a fixture display so its QR links to a real room.
     // ?room=CODE can use an existing room without taking over its display.
     let socket;
@@ -38,38 +34,43 @@
         socket.on('connect_error', () => { clearTimeout(timeout); resolve(null); });
       });
     }
-    const idle = { ...fixture, room, focus: null, driver: null, controllerCount: 0 };
-    const states = [
-      { name: 'idle', state: idle },
-      { name: 'focused', state: { ...fixture, room, focus: focused } },
-      { name: 'stability', state: { ...fixture, room, mode: 'stability', focus: null } },
-    ];
-    const listeners = { state: new Set(), focus: new Set() };
-    let current = idle;
+    const fixtures = await createV3Fixtures(room);
+    const states = fixtures.states;
+    const listeners = { state: new Set(), focus: new Set(), steer: new Set() };
+    let current = states.idle;
     let visible = true;
     const api = {
       onState(cb) { listeners.state.add(cb); cb(current); return () => listeners.state.delete(cb); },
+      onSteer(cb) { listeners.steer.add(cb); return () => listeners.steer.delete(cb); },
       onFocus(cb) { listeners.focus.add(cb); cb(current.focus); return () => listeners.focus.delete(cb); },
       getRoom() { return room; },
       setVisible(value) { visible = Boolean(value); root.style.opacity = visible ? '1' : '0'; root.setAttribute('aria-hidden', String(!visible)); },
     };
     const mounted = mountHud(root, api);
-    function show(name) {
-      const entry = states.find(item => item.name === name) || states[0];
-      current = entry.state;
-      document.body.dataset.scene = entry.name;
+    function show(name, patch = {}) {
+      if (name === 'stability') name = 'stability-playing';
+      current = { ...structuredClone(states[name] || states.idle), ...patch };
+      if (current.steerMoment) current.steerMoment.at = Date.now();
+      document.body.dataset.scene = name;
       for (const cb of listeners.state) cb(current);
       for (const cb of listeners.focus) cb(current.focus);
+      const steer = name === 'outsideBrain' ? fixtures.outside : { imageId: current.image?.id, active: false, result: { outsideBrain: null } };
+      for (const cb of listeners.steer) cb(steer);
       if (socket?.connected && room) socket.emit(EVENTS.DISPLAY_STATE, current);
     }
     let index = 0;
     show(query.get('scene') || 'idle');
-    // ?scene=idle|focused|stability freezes one fixture for repeatable screenshots.
-    const timer = query.has('scene') ? null : setInterval(() => { index = (index + 1) % states.length; show(states[index].name); }, 3000);
+    // ?scene=<name> freezes a fixture; ?momentFrame=mid captures the banner moving.
+    const timer = query.has('scene') ? null : setInterval(() => { index = (index + 1) % V3_SCENES.length; show(V3_SCENES[index]); }, 3000);
     window.addEventListener('keydown', event => { if (event.key.toLowerCase() === 'h') api.setVisible(!visible); });
     window.addEventListener('pagehide', () => { clearInterval(timer); mounted.destroy(); socket?.close(); }, { once: true });
-    window.__hudLab = { api, show, mounted };
-    await new Promise(resolve => setTimeout(resolve, 250));
+    window.__hudLab = { api, show, mounted, states, listeners, get current() { return current; }, inject(state) { current = state; for (const cb of listeners.state) cb(current); } };
+    if (query.get('momentFrame') === 'mid') {
+      await new Promise(resolve => setTimeout(resolve, 2520));
+      // Flush layout before waiting into the transition; screenshot-only headless pages may defer paint.
+      root.querySelector('.hud-moment').getBoundingClientRect();
+      await new Promise(resolve => setTimeout(resolve, 180));
+    } else await new Promise(resolve => setTimeout(resolve, 250));
     window.__starkReady = true;
   </script>
 </body>

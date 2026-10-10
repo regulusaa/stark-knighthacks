@@ -83,3 +83,73 @@
 @media (max-width: 1199px) {
   .stark-hud.hud-compact .hud-result { font-size: 18px; }
 }
+
+.stark-hud [hidden] { display: none !important; }
+.stark-hud .hud-image-line { display: flex; align-items: center; gap: 10px; }
+.stark-hud .hud-image-line .hud-label { min-width: 0; }
+.stark-hud .hud-adversarial-chip { flex: none; padding: 3px 10px; border: 1px solid #ed692580; border-radius: 12px; font-size: 18px; color: #fbb61a; background: #17111f99; }
+.stark-hud .hud-context { top: 180px; left: max(32px, env(safe-area-inset-left)); width: min(750px, calc(100% - 64px)); }
+.stark-hud .hud-context-title { color: #fbb61a; font-size: 32px; line-height: 1.35; overflow-wrap: anywhere; }
+.stark-hud .hud-context .hud-label { white-space: normal; margin-top: 12px; }
+.stark-hud .hud-context .hud-secondary { margin-top: 10px; }
+.stark-hud .hud-context .hud-empty { display: none; }
+.stark-hud .hud-context-image { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; color: #a79fb2; }
+.stark-hud .hud-progress { height: 4px; margin-top: 24px; background: #ffffff20; border-radius: 4px; overflow: hidden; }
+.stark-hud .hud-progress span { display: block; height: 100%; background: linear-gradient(90deg,#bc3754,#ed6925,#fbb61a); }
+.stark-hud .hud-winners { margin-top: 20px; }
+.stark-hud .hud-data-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; }
+.stark-hud .hud-data-row .hud-label { min-width: 0; margin: 0; }
+.stark-hud .hud-data-score { flex: none; color: #fbb61a; font-variant-numeric: tabular-nums; }
+.stark-hud .hud-medical { top: max(32px, env(safe-area-inset-top)); left: 50%; width: 660px; margin-left: -330px; }
+.stark-hud .hud-medical .hud-kicker { color: #f3eef7; font-size: 28px; letter-spacing: 0; }
+.stark-hud .hud-medical p { margin: 16px 0 0; color: #a79fb2; font-size: 28px; line-height: 1.4; }
+.stark-hud .hud-findings .hud-ring { width: 18px; height: 18px; margin-right: 10px; }
+.stark-hud .hud-feature-status { bottom: max(32px, env(safe-area-inset-bottom)); left: max(32px, env(safe-area-inset-left)); width: min(850px, calc(100% - 64px)); }
+.stark-hud:not(.hud-compact) .hud-feature-status { bottom: 175px; }
+.stark-hud .hud-outside { margin-top: 16px; line-height: 1.4; color: #f3eef7; overflow-wrap: anywhere; }
+.stark-hud .hud-outside.hud-empty { display: none; }
+.stark-hud .hud-feature-status .hud-mode.hud-empty { display: none; }
+.stark-hud.hud-compact .hud-context { top: 132px; }
+.stark-hud.hud-compact .hud-medical { left: max(32px, env(safe-area-inset-left)); width: min(600px, calc(100% - 64px)); margin: 0; }
+.stark-hud.hud-compact .hud-focus { background: #0e0a14d9; }
+/* One remembered intervention, then a fixed result slot. The scene remains interactive. */
+.stark-hud .hud-moment { z-index: 2; top: 50%; left: 50%; width: min(1000px, calc(100% - 64px)); padding: 32px; transform: translate(-50%, -50%); border: 1px solid #ed692585; border-radius: 24px; background: linear-gradient(125deg,#17111ff5,#320a5ee0); box-shadow: 0 24px 96px #050208a0; text-align: center; transition: top 400ms ease, transform 400ms ease, opacity 200ms ease; }
+.stark-hud .hud-moment-kicker { font-size: 56px; font-weight: 300; letter-spacing: -.03em; margin-bottom: 24px; color: #fcffa4; }
+.stark-hud .hud-moment-pair { display: grid; grid-template-columns: minmax(0,1fr) 56px minmax(0,1fr); align-items: center; gap: 16px; color: #fbb61a; font-size: 44px; line-height: 1.2; }
+.stark-hud .hud-moment-pair > div { min-width: 0; overflow-wrap: anywhere; }
+.stark-hud .hud-moment-score { font-size: 44px; margin-top: 16px; color: #f3eef7; font-variant-numeric: tabular-nums; }
+.stark-hud .hud-moment-arrow { color: #ed6925; }
+.stark-hud .hud-moment.hud-docked { top: max(32px, env(safe-area-inset-top)); transform: translate(-50%, 0) scale(.65); transform-origin: top center; }
+.stark-hud.hud-has-moment .hud-result { opacity: 0; }
+@media (max-width: 1199px) {
+  .stark-hud .hud-context { top: 160px; width: min(560px, calc(100% - 64px)); }
+  .stark-hud .hud-context-title { font-size: 22px; }
+  .stark-hud .hud-context .hud-label { font-size: 18px; }
+  .stark-hud .hud-medical { width: 44%; margin-left: -22%; }
+  .stark-hud .hud-medical .hud-kicker, .stark-hud .hud-medical p { font-size: 18px; }
+  .stark-hud .hud-moment-kicker { font-size: 40px; }
+  .stark-hud .hud-moment-pair, .stark-hud .hud-moment-score { font-size: 30px; }
+  .stark-hud .hud-moment-pair { grid-template-columns: minmax(0,1fr) 32px minmax(0,1fr); gap: 8px; }
+}
+@media (max-width: 600px) {
+  .stark-hud .hud-context { top: 248px; }
+  .stark-hud.hud-compact .hud-context { top: 112px; }
+  .stark-hud .hud-focus { top: auto; bottom: 190px; }
+  .stark-hud .hud-medical { top: 120px; left: 32px; width: calc(100% - 64px); margin: 0; }
+  .stark-hud .hud-feature-status, .stark-hud:not(.hud-compact) .hud-feature-status { bottom: 190px; font-size: 18px; }
+  .stark-hud.hud-compact .hud-feature-status { bottom: 32px; }
+  .stark-hud .hud-moment { padding: 20px 16px; }
+  .stark-hud .hud-moment-kicker { font-size: 32px; }
+  .stark-hud .hud-moment-pair, .stark-hud .hud-moment-score { font-size: 20px; }
+  .stark-hud .hud-moment-pair { grid-template-columns: minmax(0,1fr); }
+  .stark-hud .hud-moment-arrow { line-height: 1; }
+  .stark-hud .hud-moment-score { margin-top: 8px; }
+  .stark-hud .hud-moment.hud-docked { transform: translate(-50%,0) scale(.8); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stark-hud .hud-moment { transition: opacity 200ms ease; }
+  .stark-hud .hud-moment.hud-docked { transform: translate(-50%,0) scale(.65); }
+}
+.stark-hud.hud-compact[data-context-kind="stability"] .hud-context { top: max(32px, env(safe-area-inset-top)); }
+.stark-hud .hud-moment-score { color: #fbb61a; }
+@media (min-width: 1200px) { .stark-hud .hud-brand { width: 480px; } }
