@@ -2,7 +2,7 @@
 export function mountWorkspaceTabs(root) {
   const nav = document.createElement('div'); nav.className = 'workspace-tabs';
   nav.setAttribute('role', 'tablist'); nav.setAttribute('aria-label', 'Controller workspace');
-  nav.innerHTML = `<button id="modify-tab" role="tab" aria-controls="modify-workspace" data-workspace="modify">Modify</button><button id="usage-tab" role="tab" aria-controls="usage-workspace" data-workspace="usage">Usage settings</button>`;
+  nav.innerHTML = `<button id="modify-tab" role="tab" aria-controls="modify-workspace" data-workspace="modify">Surgery</button><button id="usage-tab" role="tab" aria-controls="usage-workspace" data-workspace="usage">Usage settings</button>`;
   const panels = {};
   for (const name of ['modify', 'usage']) {
     const panel = document.createElement('section'); panel.id = `${name}-workspace`; panel.className = 'workspace-content';
