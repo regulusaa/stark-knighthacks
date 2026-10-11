@@ -102,6 +102,12 @@ const stemPoints = [];
 {
   const pos = tissue.mesh.geometry.attributes.position;
   for (let i = 0; i < pos.count; i += 23) (pos.getY(i) < STEM_FRAME_Y ? stemPoints : framePoints).push([pos.getX(i), pos.getY(i), pos.getZ(i)]);
+  // The visible assembly also includes the complete forward-pass column and nerve roots.
+  // Fitting tissue alone cut these off at the bottom of the default/fullscreen view.
+  for (const geometry of [trunk.mesh.geometry, fibers.mesh.geometry]) {
+    const p = geometry.attributes.position;
+    for (let i = 0; i < p.count; i += 7) stemPoints.push([p.getX(i), p.getY(i), p.getZ(i)]);
+  }
 }
 let framing = null;
 function applyFraming() {
