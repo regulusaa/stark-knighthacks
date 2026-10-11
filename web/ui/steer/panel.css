@@ -80,3 +80,10 @@
 .steer-medical-note { padding: 12px; margin: 0; border: 1px solid #ffffff24; border-radius: 12px; color: #a79fb2; font-size: 14px; }
 @media (max-width: 350px) { .steer-panel { padding: 12px; } .steer-header h3 { font-size: 21px; } .steer-row-heading { gap: 8px; } }
 @media (prefers-reduced-motion: reduce) { .steer-row,.steer-result-bar > span { transition: none; } }
+
+.steer-demo { padding:16px; border:1px solid #781C6D; border-radius:12px; background:#17111F; margin:16px 0; }
+.steer-demo p, .steer-live-delta { font-size:16px; line-height:1.45; }
+.steer-demo-next, .steer-zero { min-height:48px; font:inherit; padding:8px 16px; border:1px solid #BC3754; border-radius:12px; background:#320A5E; color:#F3EEF7; }
+.steer-demo-next { width:100%; }
+.steer-zero { justify-self:start; margin-top:8px; }
+.steer-live-delta { color:#FCFFA4; font-variant-numeric:tabular-nums; }

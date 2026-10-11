@@ -127,7 +127,7 @@ function setState(next, kind = null) {
 
 function render() {
   renderSteer();
-  immersion?.setContext({display});
+  syncImmersion();
   sceneController?.setContext({display,driving:Boolean(isDriving()),connected:transport?.status.phase==='connected',clientId:transport?.status.clientId});
   const active = state === 'guest-viewing' || state === 'guest-driving' || state === 'host';
   stateScreen.hidden = active;
@@ -341,7 +341,7 @@ function onError(error) {
     optimisticFocus = null;
     answerList.setFocus(display?.focus);
     showNotice(error.message || 'This control is unavailable right now.');
-  } else if (error.code === ERROR_CODES.BAD_PAYLOAD) showNotice(error.message || 'That control was not accepted.');
+  } else if (error.code === ERROR_CODES.BAD_PAYLOAD) showNotice(error.event===EVENTS.FOCUS_TIP && error.message?.includes('not in the current answer list') ? 'This node is open here. The main screen currently accepts focus only from its answer list.' : error.message || 'That control was not accepted.');
   else if (error.code === ERROR_CODES.RATE_LIMITED) showNotice('Too many inputs · slow down for a moment.');
   else showNotice(error.message || 'That action did not work. Please try again.');
 }
@@ -369,7 +369,7 @@ function startConnection() {
   transport.on(EVENTS.DRIVER_CHANGED, onDriverChanged);
   transport.on(EVENTS.FOCUS_STATE, onFocusState);
   transport.on(EVENTS.ERROR, onError);
-  transport.on(EVENTS.STEER_RESULT, value => steerPanel?.setResult(value));
+  transport.on(EVENTS.STEER_RESULT, value => { steerPanel?.setResult(value); syncImmersion(); });
   transport.on(EVENTS.PEER_LEFT, peer => {
     if (peer.role === ROLES.DISPLAY) {
       display = null;
@@ -455,7 +455,36 @@ document.getElementById('side-panel').insertBefore(currentImage, document.getEle
 if (role === ROLES.GUEST) document.getElementById('side-panel').insertBefore(resetBottom, document.querySelector('.sensitivity-control'));
 
 const workspaceTabs = mountWorkspaceTabs(document.getElementById('side-panel'), {onSelect:name=>immersion?.selectTab(name)});
-immersion=createImmersion({workbench,panel:workspaceTabs.panels.immersion,notify:showNotice});
+let immersionNoticeAt = -Infinity;
+function syncImmersion() {
+  immersion?.setContext({display,connected:transport?.status.phase==='connected',driving:Boolean(isDriving()),sensitivity:Number(document.getElementById('sensitivity').value)||1,steer:steerPanel?.state.result,guide:steerPanel?.state.guide});
+}
+function immersionAction(p) {
+  if (document.hidden || transport?.status.phase!=='connected' || !display) return false;
+  if (p.action==='focus') {
+    const answer=display.answers?.find(a=>a.classId===p.classId) ?? null;
+    requestFocus(EVENTS.FOCUS_TIP,{classId:p.classId},answer); return true;
+  }
+  if (p.action==='layer') return requestSceneAction({action:'inspect',part:'stem'});
+  if (p.action==='scale') return steerPanel?.changeChannel(p.channel,p.scale);
+  if (p.action==='finish-scale') { steerPanel?.releaseChannels(); return true; }
+  if (p.action==='reset-features') return steerPanel?.resetChannels();
+  if (p.action==='demo-next') return steerPanel?.applyNextDemo();
+  if (!isDriving()) {
+    if (performance.now()-immersionNoticeAt>1200) {
+      immersionNoticeAt=performance.now();
+      if (display.driver) showNotice(`${display.driver.label} is driving · Take control in a moment`);
+      else if (!pendingControl) takeControl();
+    }
+    return false;
+  }
+  claimHostControl();
+  if (p.action==='orbit' && Number.isFinite(p.dx) && Number.isFinite(p.dy)) return transport.emit(EVENTS.CONTROL_ORBIT,{dx:p.dx,dy:p.dy});
+  if (p.action==='zoom' && Number.isFinite(p.dz)) return transport.emit(EVENTS.CONTROL_ZOOM,{dz:p.dz});
+  if (p.action==='reset') { resetView(); return true; }
+  return false;
+}
+immersion=createImmersion({workbench,panel:workspaceTabs.panels.immersion,notify:showNotice,onSharedEvent:immersionAction});
 immersion.selectTab(workbench.dataset.activeWorkspace);
 
 const answerList = createAnswerList({
@@ -475,6 +504,7 @@ steerPanel = createSteerPanel({
   requestControl: takeControl,
   notify: showNotice,
   onImageChange() { document.getElementById('modify-workspace').scrollTop = 0; },
+  onGuideChange: syncImmersion,
 });
 function renderSteer() {
   const available = display?.capabilities?.steer === true;
@@ -486,7 +516,7 @@ function renderSteer() {
   for (const button of document.querySelectorAll('[data-panel]')) button.setAttribute('aria-selected', String(button.dataset.panel === selectedPanel));
   steerPanel?.setContext({ display, connected: transport?.status.phase === 'connected', driving: Boolean(isDriving()), clientId: transport?.status.clientId, role, requesting: pendingControl, mock: query.get('mock') === '1' });
 }
-for (const button of document.querySelectorAll('[data-panel]')) button.addEventListener('click', () => { selectedPanel = button.dataset.panel; renderSteer(); });
+for (const button of document.querySelectorAll('[data-panel]')) button.addEventListener('click', () => { selectedPanel = button.dataset.panel; renderSteer(); if(selectedPanel==='steer') document.getElementById('steer-panel').scrollIntoView({block:'start'}); });
 
 const gallery = role === ROLES.HOST ? createGallery({
   root: document.getElementById('gallery-grid'),
@@ -563,6 +593,7 @@ sensitivityInput.addEventListener('input', () => {
   const value = Number(sensitivityInput.value);
   gestures.setSensitivity(value);
   sensitivityValue.textContent = `${value.toFixed(1)}×`;
+  syncImmersion();
   try { sessionStorage.setItem(sensitivityKey, String(value)); } catch {}
 });
 const trackpad = document.getElementById('trackpad');
