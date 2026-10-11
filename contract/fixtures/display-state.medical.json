@@ -1,0 +1,98 @@
+{
+  "room": "7KQ2M",
+  "image": {
+    "id": "med_xray_pneumonia",
+    "name": "Chest X-ray (pneumonia)",
+    "category": "medical",
+    "adversarial": null
+  },
+  "scoreKind": "independent",
+  "top1": {
+    "classId": 16,
+    "label": "Lung Opacity",
+    "score": 0.97,
+    "rank": 1,
+    "hasHeatmap": true,
+    "heatmapSource": "precomputed",
+    "isTop1": true,
+    "isTrueClass": false
+  },
+  "trueClass": {
+    "classId": 8,
+    "label": "Pneumonia",
+    "score": 0.84,
+    "rank": 2,
+    "hasHeatmap": true,
+    "heatmapSource": "precomputed",
+    "isTop1": false,
+    "isTrueClass": true
+  },
+  "mode": "normal",
+  "layerMode": "full",
+  "playback": {
+    "state": "done",
+    "speed": 1.0
+  },
+  "focus": null,
+  "driver": {
+    "id": "c_3f9a",
+    "label": "Guest 2",
+    "isHost": false
+  },
+  "controllerCount": 3,
+  "capabilities": {
+    "stability": false,
+    "trunkInterior": false,
+    "layerModes": false,
+    "bloom": true,
+    "steer": false,
+    "noiseView": false
+  },
+  "answers": [
+    {
+      "classId": 16,
+      "label": "Lung Opacity",
+      "score": 0.97,
+      "rank": 1,
+      "hasHeatmap": true,
+      "heatmapSource": "precomputed",
+      "isTop1": true,
+      "isTrueClass": false
+    },
+    {
+      "classId": 8,
+      "label": "Pneumonia",
+      "score": 0.84,
+      "rank": 2,
+      "hasHeatmap": true,
+      "heatmapSource": "precomputed",
+      "isTop1": false,
+      "isTrueClass": true
+    },
+    {
+      "classId": 12,
+      "label": "Mass",
+      "score": 0.76,
+      "rank": 3,
+      "hasHeatmap": true,
+      "heatmapSource": "precomputed",
+      "isTop1": false,
+      "isTrueClass": false
+    },
+    {
+      "classId": 7,
+      "label": "Effusion",
+      "score": 0.41,
+      "rank": 4,
+      "hasHeatmap": false,
+      "heatmapSource": null,
+      "isTop1": false,
+      "isTrueClass": false
+    }
+  ],
+  "noiseView": false,
+  "bloom": true,
+  "stability": null,
+  "steerMoment": null,
+  "steer": null
+}

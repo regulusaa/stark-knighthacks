@@ -1,0 +1,104 @@
+{
+  "room": "7KQ2M",
+  "image": {
+    "id": "clean_retriever",
+    "name": "Golden retriever",
+    "category": "clean",
+    "adversarial": null
+  },
+  "scoreKind": "softmax",
+  "top1": {
+    "classId": 208,
+    "label": "Labrador retriever",
+    "score": 0.49,
+    "rank": 1,
+    "hasHeatmap": true,
+    "heatmapSource": "live",
+    "isTop1": true,
+    "isTrueClass": false
+  },
+  "trueClass": {
+    "classId": 207,
+    "label": "golden retriever",
+    "score": 0.31,
+    "rank": 2,
+    "hasHeatmap": true,
+    "heatmapSource": "live",
+    "isTop1": false,
+    "isTrueClass": true
+  },
+  "mode": "normal",
+  "layerMode": "full",
+  "playback": {
+    "state": "done",
+    "speed": 1.0
+  },
+  "focus": null,
+  "driver": {
+    "id": "c_3f9a",
+    "label": "Guest 2",
+    "isHost": false
+  },
+  "controllerCount": 3,
+  "capabilities": {
+    "stability": true,
+    "trunkInterior": true,
+    "layerModes": true,
+    "bloom": true,
+    "steer": true,
+    "noiseView": false
+  },
+  "answers": [
+    {
+      "classId": 208,
+      "label": "Labrador retriever",
+      "score": 0.49,
+      "rank": 1,
+      "hasHeatmap": true,
+      "heatmapSource": "live",
+      "isTop1": true,
+      "isTrueClass": false
+    },
+    {
+      "classId": 207,
+      "label": "golden retriever",
+      "score": 0.31,
+      "rank": 2,
+      "hasHeatmap": true,
+      "heatmapSource": "live",
+      "isTop1": false,
+      "isTrueClass": true
+    }
+  ],
+  "noiseView": false,
+  "bloom": true,
+  "stability": null,
+  "steerMoment": {
+    "from": {
+      "classId": 207,
+      "label": "golden retriever",
+      "score": 0.97,
+      "rank": 1,
+      "hasHeatmap": true,
+      "heatmapSource": "precomputed",
+      "isTop1": true,
+      "isTrueClass": true
+    },
+    "to": {
+      "classId": 208,
+      "label": "Labrador retriever",
+      "score": 0.49,
+      "rank": 1,
+      "hasHeatmap": true,
+      "heatmapSource": "live",
+      "isTop1": true,
+      "isTrueClass": false
+    },
+    "at": 1760112000000
+  },
+  "steer": {
+    "active": true,
+    "changedCount": 7,
+    "top1Changed": true
+  }
+}

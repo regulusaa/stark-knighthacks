@@ -1,5 +1,5 @@
 // The display's internal API: the single boundary CC-4b (the Brain) and CC-5 (networking) code against.
-// It also builds the contract v1 section 3.2 DisplayState from the loaded tree and Grad-CAM index.
+// It also builds the contract section 3.2 DisplayState (v3 fields included) from the loaded tree and Grad-CAM index.
 import { DEFAULTS } from '/contract/contract.js';
 import { loadImageAssets, disposeImageAssets, heatmapTexture, placeholderTexture } from './assets.js';
 import { TRUNK } from './trunk.js';
@@ -115,7 +115,7 @@ export function createApi({ manifest, panel, trunk, rig }) {
       const tree = next.tree;
       state = {
         room: server.room,
-        image: { id: entry.id, name: entry.name, category: entry.category },
+        image: { id: entry.id, name: entry.name, category: entry.category, adversarial: null },
         scoreKind: tree?.scoreKind ?? 'softmax',
         top1: null,
         trueClass: null,
@@ -127,10 +127,14 @@ export function createApi({ manifest, panel, trunk, rig }) {
         controllerCount: server.controllerCount,
         capabilities: {
           stability: entry.files?.stability === true,
-          trunkInterior: false, layerModes: false, bloom: false, steer: false,
+          trunkInterior: false, layerModes: false, bloom: false, steer: false, noiseView: false,
         },
         steer: null,
         answers: [],
+        noiseView: false,     // (v3)
+        bloom: false,
+        stability: null,
+        steerMoment: null,
       };
       if (tree) {
         state.answers = buildAnswers(tree, next.gradcam);
