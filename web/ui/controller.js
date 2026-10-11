@@ -9,6 +9,7 @@ import { createSteerPanel } from '/ui/steer/panel.js';
 import { createDemoRail } from '/ui/demo-rail.js';
 import { mountWorkspaceTabs } from '/ui/workspace-tabs.js';
 import { createSceneController } from '/ui/scene-controller.js';
+import { createImmersion } from '/ui/immersion/workspace.js';
 
 const query = new URLSearchParams(location.search);
 const room = (query.get('room') || '').trim().toUpperCase();
@@ -46,6 +47,7 @@ let connectionTimedOut = false;
 let selectedPanel = 'answers';
 let steerPanel = null;
 let sceneController = null, sceneSeq = 0, queuedScene = null;
+let immersion = null;
 const drivenKey = 'stark:has-driven';
 let hasDriven = false;
 try { hasDriven = sessionStorage.getItem(drivenKey) === '1'; } catch {}
@@ -125,6 +127,7 @@ function setState(next, kind = null) {
 
 function render() {
   renderSteer();
+  immersion?.setContext({display});
   sceneController?.setContext({display,driving:Boolean(isDriving()),connected:transport?.status.phase==='connected',clientId:transport?.status.clientId});
   const active = state === 'guest-viewing' || state === 'guest-driving' || state === 'host';
   stateScreen.hidden = active;
@@ -451,7 +454,9 @@ document.getElementById('side-panel').insertBefore(currentImage, document.getEle
 // Keep the guest's existing Reset view action in the scrollable settings pane.
 if (role === ROLES.GUEST) document.getElementById('side-panel').insertBefore(resetBottom, document.querySelector('.sensitivity-control'));
 
-const workspaceTabs = mountWorkspaceTabs(document.getElementById('side-panel'));
+const workspaceTabs = mountWorkspaceTabs(document.getElementById('side-panel'), {onSelect:name=>immersion?.selectTab(name)});
+immersion=createImmersion({workbench,panel:workspaceTabs.panels.immersion,notify:showNotice});
+immersion.selectTab(workbench.dataset.activeWorkspace);
 
 const answerList = createAnswerList({
   root: document.getElementById('answers-panel'),
@@ -607,7 +612,7 @@ gestures.onOrbit(({ dx, dy }) => { if (display && isDriving()) { claimHostContro
 gestures.onZoom(dz => { if (display && isDriving()) { claimHostControl(); transport.emit(EVENTS.CONTROL_ZOOM, { dz }); } });
 window.addEventListener('pagehide', event => {
   releaseWakeLock();
-  if (!event.persisted) { gestures.destroy(); answerList.destroy(); sceneController?.destroy(); steerPanel.destroy(); demoRail?.destroy(); transport?.close(); }
+  if (!event.persisted) { gestures.destroy(); immersion?.destroy(); answerList.destroy(); sceneController?.destroy(); steerPanel.destroy(); demoRail?.destroy(); transport?.close(); }
 });
 
 startConnection();
