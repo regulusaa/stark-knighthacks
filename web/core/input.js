@@ -2,6 +2,7 @@
 // Keys: 1–9 image (manifest order) · R reset view · Space replay · E end · [ ] speed · G heatmap · H HUD · Esc unfocus
 //       Steer (no network needed): F zero the image's flip channels · Shift+F zero the top-5 channels of the current
 //       top-1 (again to keep going) · X reset Steer
+//       (v3) N noise view · A the other image of the adversarial pair · B glow
 import { TRUNK } from './trunk.js';
 
 export function attachInput(canvas, api, hud, steer = {}) {
@@ -47,6 +48,9 @@ export function attachInput(canvas, api, hud, steer = {}) {
       case 'escape': api.clearFocus(); break;
       case 'f': if (e.shiftKey) steer.zeroTop1?.(); else steer.zeroFlip?.(); break;
       case 'x': steer.reset?.(); break;
+      case 'n': if (api.state?.capabilities.noiseView) api.setMode({ noiseView: !api.state.noiseView }); break;
+      case 'a': { const pair = api.state && api.pairOf(api.state.image.id); if (pair) api.loadImage(pair); break; }
+      case 'b': if (api.state) api.setMode({ bloom: !api.state.bloom }); break;
       default: return;
     }
   });

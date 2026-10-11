@@ -50,6 +50,26 @@ export function createApi({ manifest, panel, trunk, rig }) {
   let focusImpl = null; // focus.js, attached by main once the Brain exists
   let heatProvider = null; // Steer: (classId, instant) → true if it showed a live heatmap
   const server = { room: null, driver: null, controllerCount: 0 }; // kept across image switches
+  // (v3) the adversarial pair: image id → its partner (both ways), from fgsm.json. The current image and its partner
+  // stay loaded, so switching between the two is instant; everything else is disposed when it stops being current.
+  let pairs = new Map();
+  const kept = new Map();   // image id → Promise<assets>
+  function assetsFor(entry) {
+    if (!kept.has(entry.id)) kept.set(entry.id, loadImageAssets(entry));
+    return kept.get(entry.id);
+  }
+  function keepOnly(ids) {
+    for (const [id, p] of kept) if (!ids.has(id)) { kept.delete(id); p.then(disposeImageAssets); }
+  }
+  /** Fetch a partner's assets ahead of time, Steer data included (it goes through the HTTP cache). */
+  function preload(id) {
+    const entry = manifest.find((m) => m.id === id);
+    if (!entry) return;
+    assetsFor(entry).then((a) => {
+      if (!entry.steerable) return;
+      for (const f of ['conv5.bin', 'steer.json']) fetch(a.base + f).then((r) => r.arrayBuffer()).catch(() => {});
+    });
+  }
 
   function publish() {
     if (state) ev.emit('display-state', state);
@@ -103,14 +123,18 @@ export function createApi({ manifest, panel, trunk, rig }) {
       const entry = manifest.find((m) => m.id === id);
       if (!entry) { console.warn(`[stark] unknown image ${id}`); return false; }
       const mine = ++loadToken;
-      const next = await loadImageAssets(entry);
-      if (mine !== loadToken) { disposeImageAssets(next); return false; } // a newer load won
-      const prev = assets;
+      // (v3) between the two images of an adversarial pair the camera stays exactly where it is and the answered
+      // Brain appears at once (no pulse), so the strand visibly jumps while the photo doesn't change
+      const pairSwitch = Boolean(state && pairs.get(state.image.id) === id);
+      const next = await assetsFor(entry);
+      if (mine !== loadToken) return false;   // a newer load won (these assets stay cached until evicted)
+      if (!next.ok) kept.delete(id);          // let a later select retry
       assets = next;
       panel.clear();
       panel.setCrop(next.crop || placeholderTexture());
       heatOn = false;
-      disposeImageAssets(prev);
+      keepOnly(new Set([id, pairs.get(id)].filter(Boolean)));
+      if (pairs.has(id)) preload(pairs.get(id));
 
       const tree = next.tree;
       state = {
@@ -145,9 +169,10 @@ export function createApi({ manifest, panel, trunk, rig }) {
       }
       const wasFocused = Boolean(focusImpl?.current !== null && focusImpl?.current !== undefined);
       focusImpl?.reset();
-      if (wasFocused) rig.resetView();
-      ev.emit('image-loaded', { id: entry.id, ok: next.ok }); // the Brain rebuilds here, before the pulse runs
-      if (autoplay) trunk.play(); else trunk.reset();
+      if (wasFocused && !pairSwitch) rig.resetView();
+      ev.emit('image-loaded', { id: entry.id, ok: next.ok, pairSwitch }); // the Brain rebuilds here, before the pulse
+      if (pairSwitch) { trunk.jumpToEnd(); ev.emit('pair-switch', entry.id); }
+      else if (autoplay) trunk.play(); else trunk.reset();
       setPlayback();
       ev.emit('focus-state', null);
       return true;
@@ -211,6 +236,12 @@ export function createApi({ manifest, panel, trunk, rig }) {
       publish();
     },
     onMode: (cb) => ev.on('mode', cb),
+    /** (v3) image id → partner id, both ways (adversarial.js sets it from fgsm.json). */
+    setPairs(map) { pairs = map; if (state && pairs.has(state.image.id)) preload(pairs.get(state.image.id)); },
+    pairOf: (id) => pairs.get(id) ?? null,
+    /** (v3) The loaded (or loading) assets of an image the display keeps, e.g. the pair's partner; else null. */
+    assetsOf: (id) => kept.get(id) ?? null,
+    onPairSwitch: (cb) => ev.on('pair-switch', cb),
     onNoiseView: (cb) => ev.on('noise-view', cb),
     onBloom: (cb) => ev.on('bloom', cb),
     onStabilityReplay: (cb) => ev.on('stability-replay', cb),

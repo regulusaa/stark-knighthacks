@@ -24,6 +24,7 @@ import { attachPicking } from './picking.js';
 import { connectRelay } from './net.js';
 import { linkSteer } from './steer/link.js';
 import { createStability } from './stability.js';
+import { createAdversarial } from './adversarial.js';
 
 // The anatomy's bounding box; the whole Brain breathes about the cerebrum's centre.
 export const BRAIN_VOLUME = {
@@ -135,9 +136,12 @@ api.onPulseComplete(() => veins.startReveal());
 const steer = linkSteer({ api, panel, veins, tips, labels, tissue });
 // v3 demo beats (registered after Steer's image-loaded handler too)
 const stability = createStability({ api, veins, tips, labels, tissue, trunk });
+const adversarial = await createAdversarial({ api, panel });
+// between the two images of the adversarial pair the answered Brain appears at once (api: no pulse, same camera)
+api.onPairSwitch(() => veins.setRevealed());
 
 // Exposed for CC-4b/CC-5 code in this lane and for test scripts.
-const stark = { get framing() { return framing; }, fibers, pickTrack, api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, tissue, tipHidden, steer, stability, relay: null };
+const stark = { get framing() { return framing; }, fibers, pickTrack, api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, tissue, tipHidden, steer, stability, adversarial, relay: null };
 window.__stark = stark;
 
 let readyPending = true;

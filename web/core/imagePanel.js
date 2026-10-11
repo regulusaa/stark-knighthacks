@@ -15,6 +15,8 @@ export const PANEL = {
   // parallel to the default camera's image plane, so the crop reads as an upright square photo
   heatAlpha: 0.55,
   fadeMs: 300,
+  noiseFadeMs: 300,     // (v3) photo ↔ amplified noise
+  noiseCaption: 'The change, amplified 50×',
   frameWidth: 0.028,   // ≈ 2 px at the default view on a 1080p screen
   frameOpacity: 0.3,
   frameColor: 0xe6eeff,
@@ -74,6 +76,8 @@ void main() {
 const fragmentShader = /* glsl */ `
 ${INFERNO_GLSL}
 uniform sampler2D uCrop;
+uniform sampler2D uNoise;     // (v3) the adversarial change, amplified
+uniform float uNoiseMix;
 uniform sampler2D uHeatA;
 uniform sampler2D uHeatB;
 uniform float uWeightA;
@@ -84,6 +88,7 @@ void main() {
   vec3 col = texture2D(uCrop, vUv).rgb;
   col = mix(col, inferno(texture2D(uHeatA, vUv).r), uHeatAlpha * uWeightA);
   col = mix(col, inferno(texture2D(uHeatB, vUv).r), uHeatAlpha * uWeightB);
+  col = mix(col, texture2D(uNoise, vUv).rgb, uNoiseMix);   // the noise replaces the photo (and its heatmap)
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>
 }`;
@@ -99,6 +104,8 @@ export function createImagePanel() {
   const uniforms = {
     uInferno: { value: infernoTexture },
     uCrop: { value: BLANK },
+    uNoise: { value: BLANK },
+    uNoiseMix: { value: 0 },
     uHeatA: { value: BLANK },
     uHeatB: { value: BLANK },
     uWeightA: { value: 0 },
@@ -123,7 +130,8 @@ export function createImagePanel() {
     group.add(q);
   }
 
-  // Caption under the photo (Steer): one quad, its texture cached per text.
+  // Caption under the photo: one quad, its texture cached per text. What shows: the noise view's caption, else a
+  // passing one (Steer's live map, a probe), else the image's own (v3: the adversarial image's change budget).
   const captionMat = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, fog: false });
   const caption = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), captionMat);
   caption.position.set(0, -s - w - PANEL.captionGap - PANEL.captionHeight / 2, 0.002);
@@ -132,6 +140,10 @@ export function createImagePanel() {
   group.add(caption);
   const captions = new Map();
   let captionText = null;
+  let passing = null;
+  let base = null;
+  let noiseOn = false;
+  let noiseFade = null;   // {from, to, t}
 
   const live = [liveTexture(), liveTexture()];
   let liveKey = null;
@@ -191,29 +203,51 @@ export function createImagePanel() {
       return this.setHeat(tex, key, instant);
     },
     get liveKey() { return currentClass === liveKey ? liveKey : null; },
-    /** Caption under the photo, or null to hide it. */
+    /** A passing caption under the photo (Steer), or null to fall back to the image's own. */
     setCaption(text) {
-      if (text === captionText) return;
-      captionText = text;
-      caption.visible = Boolean(text);
-      if (!text) return;
-      if (!captions.has(text)) captions.set(text, captionTexture(text));
-      const { tex, aspect } = captions.get(text);
-      captionMat.map = tex;
-      captionMat.needsUpdate = true;
-      caption.scale.set(PANEL.captionHeight * aspect, PANEL.captionHeight, 1);
+      passing = text ?? null;
+      showCaption();
     },
+    /** (v3) The image's own caption, shown whenever nothing else is. */
+    setBaseCaption(text) {
+      base = text ?? null;
+      showCaption();
+    },
+    /** (v3) The noise texture for this image (null: none). */
+    setNoise(texture) {
+      uniforms.uNoise.value = texture || BLANK;
+    },
+    /** (v3) Show the noise instead of the photo, crossfading over PANEL.noiseFadeMs; `instant` skips the fade. */
+    setNoiseView(on, { instant = false } = {}) {
+      noiseOn = Boolean(on);
+      const to = noiseOn ? 1 : 0;
+      if (instant) { uniforms.uNoiseMix.value = to; noiseFade = null; } else noiseFade = { from: uniforms.uNoiseMix.value, to, t: 0 };
+      showCaption();
+    },
+    get noiseView() { return noiseOn; },
+    get noiseMix() { return uniforms.uNoiseMix.value; },
     get caption() { return captionText; },
     clear() {
       currentClass = null;
       liveKey = null;
       fade = null;
-      this.setCaption(null);
+      passing = base = null;
+      noiseOn = false;
+      noiseFade = null;
+      uniforms.uNoiseMix.value = 0;
+      uniforms.uNoise.value = BLANK;
+      showCaption();
       uniforms.uCrop.value = BLANK;
       uniforms.uHeatA.value = uniforms.uHeatB.value = BLANK;
       uniforms.uWeightA.value = uniforms.uWeightB.value = 0;
     },
     update(dt) {
+      if (noiseFade) {
+        noiseFade.t += dt * 1000;
+        const k = Math.min(1, noiseFade.t / PANEL.noiseFadeMs);
+        uniforms.uNoiseMix.value = noiseFade.from + (noiseFade.to - noiseFade.from) * k * k * (3 - 2 * k);
+        if (k >= 1) noiseFade = null;
+      }
       if (!fade) return;
       fade.t += dt * 1000;
       const k = Math.min(1, fade.t / fade.ms);
@@ -222,4 +256,17 @@ export function createImagePanel() {
       if (k >= 1) fade = null;
     },
   };
+
+  function showCaption() {
+    const text = noiseOn ? PANEL.noiseCaption : passing ?? base;
+    if (text === captionText) return;
+    captionText = text;
+    caption.visible = Boolean(text);
+    if (!text) return;
+    if (!captions.has(text)) captions.set(text, captionTexture(text));
+    const { tex, aspect } = captions.get(text);
+    captionMat.map = tex;
+    captionMat.needsUpdate = true;
+    caption.scale.set(PANEL.captionHeight * aspect, PANEL.captionHeight, 1);
+  }
 }
