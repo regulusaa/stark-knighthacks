@@ -54,6 +54,8 @@ export function createHostControls({ root, onPlay, onMode, onImage, onTimeout })
       const mode = b.dataset.mode;
       b.hidden = mode === MODES.STABILITY ? medical || caps.stability !== true : mode === MODES.TRUNK ? caps.trunkInterior !== true : false;
       mark(b, mode === (valueFor('mode') || MODES.NORMAL), mode === pending.get('mode')?.value);
+      const help = root.querySelector(`[data-mode-help="${mode}"]`);
+      if (help) help.hidden = b.hidden;
     }
     // Show layers only after the confirmed mode has entered the network.
     layerWrap.hidden = display?.mode !== MODES.TRUNK || caps.layerModes !== true;

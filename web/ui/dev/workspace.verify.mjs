@@ -12,7 +12,8 @@ try {
  const h=await browser.newPage({viewport:{width:1180,height:820}});watch(h);
  await h.goto(`${base}/controller?room=${room}&role=host&key=test`);
  await h.waitForFunction(()=>window.__inspectionControllerReady,null,{timeout:45000});
- const f=await (await h.locator('#scene-preview').elementHandle()).contentFrame();
+ assert.equal(await h.locator('iframe,canvas').count(),0,'controller has no second display');
+ assert.equal(await h.evaluate(()=>performance.getEntriesByType('resource').some(r=>r.name.includes('/vendor/three/')||r.name.includes('/core/'))),false,'controller downloads no renderer');
  assert.equal(await h.locator('#modify-workspace').isVisible(),true);
  assert.equal(await h.locator('#usage-workspace').isVisible(),false);
  const tabY=await h.locator('.workspace-tabs').evaluate(e=>e.getBoundingClientRect().y);
@@ -21,10 +22,12 @@ try {
  await h.locator('[data-workspace="usage"]').click();
  for(const selector of ['#inspection-controls','#playback-panel','#modes-panel','.sensitivity-control'])assert.equal(await h.locator(selector).isVisible(),true);
  for(const part of ['brain','stem','all']){
-  await h.locator(`[data-part="${part}"]`).click();
-  await h.waitForFunction(p=>document.querySelector('.part-diagram img').getAttribute('src')===`/ui/icons/${p}.svg`,part);
-  await h.waitForFunction(()=>{const e=document.querySelector('.part-diagram img');return e.complete&&e.naturalWidth>0});
+  await h.locator(`#scene-pane [data-part="${part}"]`).click();
+  await d.waitForFunction(p=>window.__stark.api.state.scene.selected===p,part);
+  await h.waitForFunction(p=>document.querySelector(`#scene-pane [data-part="${p}"]`).getAttribute('aria-pressed')==='true',part);
  }
+ assert.equal(await h.locator('#scene-pane img').count(),3);
+ await h.waitForFunction(()=>[...document.querySelectorAll('#scene-pane img')].every(e=>e.complete&&e.naturalWidth>0));
  await h.screenshot({path:'web/ui/.shots/workspace-usage-ipad.png'});
  await h.locator('[data-workspace="modify"]').click();
  await h.locator('.demo-tutorial summary').click();await h.locator('.demo-tutorial').scrollIntoViewIfNeeded();
@@ -34,7 +37,7 @@ try {
  const parsed=await d.evaluate(async()=>{const {parse}=await import('/contract/steer-dsl.js');return parse('channel[956] = 0');});assert.equal(parsed.ok,true);
  await d.evaluate(()=>window.__stark.api.loadImage('ambig_cat'));
  await d.waitForFunction(()=>window.__stark.steer.session.ready);
- await f.waitForFunction(()=>window.__stark.api.state.image.id==='ambig_cat');
+ await h.waitForFunction(()=>document.getElementById('image-name').textContent==='Tabby cat');
  await h.locator('[data-panel="steer"]').click();await h.locator('[data-input-mode="code"]').click();
  await h.locator('textarea').fill('channel[956] = 0');await h.waitForTimeout(200);
  await h.locator('.steer-run').click();await d.waitForFunction(()=>window.__stark.api.state.top1.label==='tiger cat');
@@ -65,12 +68,12 @@ try {
   let changed=0,total=0;for(let i=0;i<on.length;i+=4){const delta=Math.abs(on[i]-off[i])+Math.abs(on[i+1]-off[i+1])+Math.abs(on[i+2]-off[i+2]);if(delta>3)changed++;total+=delta;}
   return {changed,total};
  });assert.ok(pixels.changed>1000,'Glow visibly changes lit paths');console.log('Glow pixel comparison',pixels);
- await f.waitForFunction(()=>window.__stark.glow.on&&window.__stark.api.state.bloom===true);
+
  await d.screenshot({path:'web/ui/.shots/workspace-glow-on.png'});
  await h.locator('[data-workspace="usage"]').click();await h.locator('[data-mode-field="bloom"]').click();
- await d.waitForFunction(()=>window.__stark.glow.on===false);await f.waitForFunction(()=>window.__stark.glow.on===false);
+ await d.waitForFunction(()=>window.__stark.glow.on===false);
  await d.screenshot({path:'web/ui/.shots/workspace-glow-off.png'});
- console.log('host Glow confirms and updates display + preview');
+ console.log('host Glow confirms and updates display');
  for(const [width,height] of [[1180,820],[844,390],[390,844],[320,667]]){
   await h.setViewportSize({width,height});await h.waitForTimeout(300);
   for(const tab of ['modify','usage']){
@@ -78,6 +81,10 @@ try {
    assert.equal(await h.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    assert.equal(await h.evaluate(()=>document.documentElement.scrollHeight>innerHeight),false);
    assert.equal(await h.locator('#side-panel').evaluate(e=>e.scrollTop),0);
+   const pad=await h.locator('#trackpad').boundingBox();assert.ok(pad.height>=height*.65,'pad fills controller height');
+   const parts=await h.locator('#scene-pane [data-part]').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height}}));
+   assert.equal(parts.length,3);assert.ok(parts.every(r=>r.w>=48&&r.h>=48));assert.ok(parts[0].y<parts[1].y&&parts[1].y<parts[2].y&&parts.every(r=>r.x===parts[0].x));
+   assert.equal(await h.locator('iframe,canvas').count(),0);
    const targets=await h.locator('.workspace-tabs button').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().height));assert.ok(targets.every(h=>h>=48));
    await h.screenshot({path:`web/ui/.shots/workspace-${tab}-${width}x${height}.png`});
   }

@@ -14,9 +14,6 @@ export function mountWorkspaceTabs(root) {
   const tutorial = document.createElement('details'); tutorial.className = 'demo-tutorial';
   tutorial.innerHTML = `<summary>How to modify the model</summary><ol><li>Choose <strong>Tabby cat</strong> in the gallery (ask the host if you are a guest).</li><li>Take control, then open <strong>Steer</strong> above.</li><li>Set channel <strong>956</strong> to <strong>0</strong>. In Code, run <code>channel[956] = 0</code>.</li><li>Watch the answer change to <strong>tiger cat</strong> on the screen.</li><li>Tap <strong>Reset</strong> in Steer to restore the original model response.</li></ol><p>These edits change this image’s last-layer activations. They do not retrain the model.</p>`;
   panels.modify.append(tutorial);
-  const guide = document.createElement('details'); guide.className = 'mode-guide';
-  guide.innerHTML = `<summary>What do these modes show?</summary><p><strong>Stability test</strong> replays 30 small changes to the image and counts which answer wins. It shows stability under small changes.</p><p><strong>Trunk interior</strong> opens the stem into the network’s saved activation grids. Taller, brighter cells responded more strongly to this image.</p><p><strong>Full</strong> shows all 49 saved layer grids. <strong>Reduced</strong> shows a smaller set of representative layers, so the flow is easier to follow.</p><p><strong>Glow</strong> adds a soft halo around lit paths and tips, on the screen and in this preview. It may switch off to keep movement smooth.</p><p>X-rays have independent findings and no saved layer grids. Each score stands on its own · not a diagnosis.</p>`;
-  panels.usage.append(guide);
   root.append(nav, panels.modify, panels.usage);
   function select(name, focus = false) {
     if (!panels[name]) return;

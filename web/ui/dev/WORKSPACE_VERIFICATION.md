@@ -1,5 +1,15 @@
 # Controller workspace and scene follow-up — 2026-10-11
 
+## Latest controller correction
+
+The controller no longer mounts an iframe, canvas, or 3D renderer. Brain, Stem and Complete SVG buttons stay vertically arranged beside a pad that fills the workspace height, in both Modify and Usage settings. Each button sends the existing `scene-action` with `action: "inspect"` and its part. Simple one/two-sentence Stability test and Trunk/layer explanations are directly under the mode controls.
+
+Updated `workspace.verify.mjs` and `inspection.verify.mjs` pass: no renderer downloads; exact focus events and confirmations; takeover/locked permissions; orbit/pinch; network recovery; mode/layer actions; SVG loading; 320 px overflow and touch targets. `display.verify.mjs` also passes with no console errors.
+
+New captures: `.shots/controller-pad-{390x844,1180x820,2560x1440}.png` via `npm run shot`; `.shots/controller-mode-explanations-1180x820.png`. Logs: `.shots/controller-layout-verification.log`, `.shots/controller-part-controls.log`, `.shots/controller-display-regression.log`.
+
+The notes below about the embedded preview describe the prior version. The display's geometry, saved activity values and Glow are unchanged by this UI-only correction. Physical-device confirmation of the revised layout remains pending.
+
 ## Changes
 
 - Fixed Modify / Usage settings tabs. Only the active right-hand panel scrolls; existing permissions and controls remain in place.
