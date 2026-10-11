@@ -459,6 +459,9 @@ Every event payload is an object (or `null` for `focus-state`). Unknown extra fi
 | `GET /controller?room=CODE` | Guest controller | ui |
 | `GET /controller?room=CODE&role=host&key=KEY` | Host controller | ui |
 | `GET /api/qr.svg?room=CODE` | SVG QR code of the guest URL `<origin>/controller?room=CODE`. The server builds the URL from `STARK_PUBLIC_URL` if set, otherwise from the request origin. 404 + `{code:"NO_ROOM"}` for an unknown room. | server |
+| `GET /api/room` | (CC-10) `{fixedRoom, display}`: the fixed room's code (or null) and whether a display is in it. For `tools/preflight.mjs`. | server |
+| `GET /api/restore` | (CC-10) `{imageId, mode, layerMode, bloom}` from the fixed room's last display-state, or null. A reloaded display comes back to it (display recovery); steering is not restored. | server |
+| `GET /api/perf`, `POST /api/perf` | (CC-10) `{enabled}`; with `STARK_PERF=1` the display posts a perf summary every 5 s, appended to `logs/perf-<start>.jsonl`. | server |
 | `GET /health` | `200 ok` (text/plain) | server |
 | `/assets/*` | `web/public/assets/` | pipeline output |
 | `/core/*`, `/ui/*` | `web/core/`, `web/ui/` | core, ui |

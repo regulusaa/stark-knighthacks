@@ -237,10 +237,27 @@ const DEBUG_VIEWS = {
   front: [-15, 1.5, 0.01], side: [0, 1.5, 15], back: [15, 1.5, 0.01], top: [0.01, 15, 0.5], threeq: [9.5, 5, 11],
 };
 
-const first = manifest.find((m) => m.id === params.get('image')) ?? manifest[0];
+// Display recovery (CC-10 D3): after a reload, come back to what the fixed room was showing (image and modes; not
+// steering, which restarts clean), answered at once, so the controllers in the room carry on without rescanning.
+let restore = null;
+if (params.get('offline') !== '1' && !params.has('image')) {
+  restore = await fetch('/api/restore', { cache: 'no-store', signal: AbortSignal.timeout(1500) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  if (restore && !manifest.some((m) => m.id === restore.imageId)) restore = null;
+}
+const first = manifest.find((m) => m.id === (params.get('image') ?? restore?.imageId)) ?? manifest[0];
 if (first) {
   const pulseAt = params.get('pulseAt');
-  await api.loadImage(first.id, { autoplay: pulseAt === null });
+  await api.loadImage(first.id, { autoplay: pulseAt === null && !restore });
+  if (restore) {
+    api.jumpToEnd();
+    veins.setRevealed();
+    if (restore.mode === 'stability') {   // its data loads after the image; wait for it (a second at most)
+      for (let i = 0; i < 20 && !stability.ready; i++) await new Promise((r) => setTimeout(r, 50));
+    }
+    const { mode, layerMode, bloom } = restore;
+    api.setMode({ ...(mode !== 'normal' ? { mode } : {}), ...(layerMode ? { layerMode } : {}), ...(typeof bloom === 'boolean' ? { bloom } : {}) });
+    console.info(`[stark] restored after a reload: ${restore.imageId}, mode ${mode}, ${layerMode} layers`);
+  }
   if (pulseAt === 'done' || Number(pulseAt) >= 1) api.jumpToEnd();
   else if (pulseAt !== null) trunk.freezeAt(Math.min(1, Math.max(0, Number(pulseAt) || 0)));
   if (frozenT !== null || pulseAt === 'done' || Number(pulseAt) >= 1) veins.setRevealed();

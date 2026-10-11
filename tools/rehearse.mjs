@@ -3,6 +3,7 @@
 // Every step asserts on display-state / steer-result / focus-state with a timeout and prints its latency; fps during
 // stability and the Steer drag come from window.__starkDebug; any console error on the display is a failure.
 //   npm run rehearse -- <url> [--headless] [--reload] [--steer IMAGE_ID]
+// --reload reloads the display page after the noise beat (display recovery, D3).
 // The host key comes from STARK_HOST_KEY (or the file named by STARK_KEY_FILE) and is never printed.
 import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
@@ -205,6 +206,24 @@ await step('6 noiseView on, off', async () => {
   host.emit('set-mode', { noiseView: false });
   await until(host, 'display-state', (d) => d.noiseView === false, 1000);
 });
+
+// (--reload) the display page reloads mid-demo: it comes back to the same image in the same room, and the controllers
+// carry on without registering again
+if (flag('--reload')) {
+  await step('reload the display mid-demo → restored', async () => {
+    const was = ds().image.id;
+    const back = until(host, 'display-state', (d) => d.image.id === was && d.playback.state === 'done', 15000, { fresh: true });
+    back.catch(() => {});
+    await page.reload();
+    await page.waitForFunction(() => window.__starkReady === true && window.__stark?.relay?.room, null, { timeout: 30000 });
+    const room = await page.evaluate(() => window.__stark.relay.room);
+    if (room !== ROOM) throw new Error(`the display came back in room ${room}, not ${ROOM}`);
+    await back;
+    await until(guest, 'display-state', (d) => d.image.id === was, 2000);
+    if (!host.connected || !guest.connected) throw new Error('a controller lost its connection');
+    return `${was} restored in ${ROOM}; host and guest kept their sockets`;
+  });
+}
 
 // 7. medical
 {

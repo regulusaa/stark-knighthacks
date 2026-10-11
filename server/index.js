@@ -71,6 +71,15 @@ export function start({
     res.set('Cache-Control', 'no-store').json({ fixedRoom: code, display: Boolean(code && rooms.get(code)?.display) });
   });
 
+  // Display recovery (CC-10 D3): a reloaded display asks what the fixed room was showing (image and modes only;
+  // steering restarts clean) and comes back to it, so the controllers in the room carry on without rescanning.
+  app.get('/api/restore', (_req, res) => {
+    const st = rooms.fixedRoom ? rooms.get(rooms.fixedRoom)?.displayState : null;
+    res.set('Cache-Control', 'no-store').json(st?.image?.id ? {
+      imageId: st.image.id, mode: st.mode ?? 'normal', layerMode: st.layerMode ?? 'full', bloom: st.bloom ?? null,
+    } : null);
+  });
+
   app.get('/api/qr.svg', async (req, res) => {
     const code = normalizeCode(req.query.room);
     if (!code) return res.status(400).json({ code: 'BAD_PAYLOAD', message: 'room must be a 5-character room code' });

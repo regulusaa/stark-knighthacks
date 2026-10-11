@@ -206,6 +206,8 @@ export function createStability({ api, veins, tips, labels, tissue, trunk }) {
 
   return {
     get playing() { return Boolean(play); },
+    /** mc.json of the current image is loaded (stability mode can start). */
+    get ready() { return Boolean(mc && mcFor === api.state?.image.id); },
     get counts() { return counts; },
     /** Once per frame, after Steer has applied (so a steering reset can't overwrite a run). */
     update(dt) {
