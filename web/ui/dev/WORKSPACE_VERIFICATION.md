@@ -56,3 +56,17 @@ All files are gitignored under `web/ui/.shots/`; captured and inspected:
 - Physical iPhone/iPad checks of these new tabs and rotation are pending. Portrait phones retain the shared iPad structure and show the sideways-rotation reminder.
 - Changes are local and pushed to `agent/codex-ui`; they have not been deployed to Vultr. Earlier CX-9 physical checks remain pending.
 - Reload the display first, then the controller, on the same hotspot. Local demo room is RENEW, port 3003.
+
+## Focused-answer evidence — October 11 follow-up
+
+Focused cards now show the selected class's actual precomputed/live Grad-CAM crop, a measured strongest region, and an original-activation feature-removal test. Live Steer score changes are labelled separately. Heatmap brightness is normalized per class and does not compare scores. No semantic meaning is invented for anonymous channels. Medical cards show spatial evidence only and retain the independent-score diagnosis caveat.
+
+`node web/ui/dev/build-focus-evidence.mjs` reads existing shipped model assets and the existing pure core engine; it writes only `web/ui/evidence/`. All seven ImageNet identity checks pass. Nine metadata files total 40,135 bytes (roughly 5 KB per ImageNet image), lazily requested on focus; the controller downloads neither `head.bin` nor `conv5.bin`. Regenerate these records after changing the model or original activations. Source SHA-256 values are recorded in each ImageNet file.
+
+Verification:
+- `BASE=http://localhost:3004 node web/ui/dev/focus-evidence.verify.mjs`: class-specific cat/laptop maps, exact ablation against the running model, original/live labels, controller focus, phone scroll/overflow, medical and missing maps, clearing, zero console errors.
+- `node web/ui/dev/cx8-hud.verify.mjs http://localhost:3004`: passes all contextual/full/minimal HUD states, reduced motion, timing and cleanup.
+- `npm run shot` screenshots: `.shots/focus-evidence-shot-{390x844,1180x820,2560x1440}.png`; actual renderer/controller captures: `.shots/focus-why-{tiger,laptop,medical}-1920x1080.png` and `.shots/focus-why-controller-{390x844,1180x820}.png`.
+- Exact results: `.shots/focus-evidence-verification.log`, `.shots/focus-hud-regression.log`, `.shots/focus-display-regression.log`.
+
+Physical iPhone/iPad checks of the new evidence cards remain pending. These tests establish feature-removal effects on the original activations, not a semantic explanation of what a channel detects.

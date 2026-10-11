@@ -607,7 +607,7 @@ gestures.onOrbit(({ dx, dy }) => { if (display && isDriving()) { claimHostContro
 gestures.onZoom(dz => { if (display && isDriving()) { claimHostControl(); transport.emit(EVENTS.CONTROL_ZOOM, { dz }); } });
 window.addEventListener('pagehide', event => {
   releaseWakeLock();
-  if (!event.persisted) { gestures.destroy(); sceneController?.destroy(); steerPanel.destroy(); demoRail?.destroy(); transport?.close(); }
+  if (!event.persisted) { gestures.destroy(); answerList.destroy(); sceneController?.destroy(); steerPanel.destroy(); demoRail?.destroy(); transport?.close(); }
 });
 
 startConnection();
