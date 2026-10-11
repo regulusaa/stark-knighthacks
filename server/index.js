@@ -65,6 +65,12 @@ export function start({
     });
   }
 
+  // For tools/preflight.mjs: the fixed room (it is printed on the QR anyway) and whether a display is in it.
+  app.get('/api/room', (_req, res) => {
+    const code = rooms.fixedRoom ?? null;
+    res.set('Cache-Control', 'no-store').json({ fixedRoom: code, display: Boolean(code && rooms.get(code)?.display) });
+  });
+
   app.get('/api/qr.svg', async (req, res) => {
     const code = normalizeCode(req.query.room);
     if (!code) return res.status(400).json({ code: 'BAD_PAYLOAD', message: 'room must be a 5-character room code' });

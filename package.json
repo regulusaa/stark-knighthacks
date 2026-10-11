@@ -11,7 +11,8 @@
     "start": "node server/index.js",
     "smoke": "node server/smoke.mjs",
     "shot": "node tools/shot.mjs",
-    "rehearse": "node tools/rehearse.mjs"
+    "rehearse": "node tools/rehearse.mjs",
+    "preflight": "node tools/preflight.mjs"
   },
   "dependencies": {
     "express": "^4.22.3",
