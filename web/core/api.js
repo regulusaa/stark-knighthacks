@@ -187,7 +187,7 @@ export function createApi({ manifest, panel, trunk, rig, preview = false }) {
     sceneAction(p) { return inspection?.action(p); },
     orbit(dx,dy) { inspection?.cancelCamera(); rig.orbit(dx,dy); },
     zoom(d) { inspection?.cancelCamera(); rig.zoom(d); },
-    resetView() { if (inspection && state?.mode !== 'trunk') inspection.center(); else rig.resetView(); },
+    resetView() { if (inspection && state?.mode !== 'trunk') inspection.home(); else rig.resetView(); },
     /** play-pulse: the forward pass; in stability mode (v3) the stability sequence from run 1 instead. */
     replay() {
       if (state?.mode === 'stability') { ev.emit('stability-replay'); return; }
