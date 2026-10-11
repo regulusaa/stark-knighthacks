@@ -1,0 +1,127 @@
+{
+  "room": "7KQ2M",
+  "image": {
+    "id": "ambig_cat",
+    "name": "Tabby cat",
+    "category": "ambiguous",
+    "adversarial": null
+  },
+  "scoreKind": "softmax",
+  "top1": {
+    "classId": 281,
+    "label": "tabby",
+    "score": 0.44,
+    "rank": 1,
+    "hasHeatmap": true,
+    "heatmapSource": "precomputed",
+    "isTop1": true,
+    "isTrueClass": true
+  },
+  "trueClass": {
+    "classId": 281,
+    "label": "tabby",
+    "score": 0.44,
+    "rank": 1,
+    "hasHeatmap": true,
+    "heatmapSource": "precomputed",
+    "isTop1": true,
+    "isTrueClass": true
+  },
+  "mode": "stability",
+  "layerMode": "full",
+  "playback": {
+    "state": "done",
+    "speed": 1.0
+  },
+  "focus": null,
+  "driver": {
+    "id": "c_3f9a",
+    "label": "Guest 2",
+    "isHost": false
+  },
+  "controllerCount": 3,
+  "capabilities": {
+    "stability": true,
+    "trunkInterior": false,
+    "layerModes": true,
+    "bloom": true,
+    "steer": false,
+    "noiseView": false
+  },
+  "answers": [
+    {
+      "classId": 281,
+      "label": "tabby",
+      "score": 0.44,
+      "rank": 1,
+      "hasHeatmap": true,
+      "heatmapSource": "precomputed",
+      "isTop1": true,
+      "isTrueClass": true
+    },
+    {
+      "classId": 282,
+      "label": "tiger cat",
+      "score": 0.41,
+      "rank": 2,
+      "hasHeatmap": true,
+      "heatmapSource": "precomputed",
+      "isTop1": false,
+      "isTrueClass": false
+    },
+    {
+      "classId": 285,
+      "label": "Egyptian cat",
+      "score": 0.07,
+      "rank": 3,
+      "hasHeatmap": true,
+      "heatmapSource": "precomputed",
+      "isTop1": false,
+      "isTrueClass": false
+    }
+  ],
+  "noiseView": false,
+  "bloom": true,
+  "stability": {
+    "active": true,
+    "phase": "summary",
+    "run": 30,
+    "runs": 30,
+    "current": {
+      "classId": 281,
+      "label": "tabby",
+      "score": 0.44,
+      "rank": 1,
+      "hasHeatmap": true,
+      "heatmapSource": "precomputed",
+      "isTop1": true,
+      "isTrueClass": true
+    },
+    "matchesClean": true,
+    "distinctWinners": 2,
+    "winners": [
+      {
+        "classId": 282,
+        "label": "tiger cat",
+        "count": 18
+      },
+      {
+        "classId": 281,
+        "label": "tabby",
+        "count": 12
+      }
+    ],
+    "cleanTop1": {
+      "classId": 281,
+      "label": "tabby",
+      "score": 0.44,
+      "rank": 1,
+      "hasHeatmap": true,
+      "heatmapSource": "precomputed",
+      "isTop1": true,
+      "isTrueClass": true
+    }
+  },
+  "steerMoment": null,
+  "steer": null
+}

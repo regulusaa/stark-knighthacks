@@ -1,6 +1,8 @@
 // CC-5 checkpoint script, automated: display (1920×1080) + Codex's host controller (iPad) + guest controller (iPhone),
 // all real pages through the relay. Runs the full script RUNS times without reloading any page.
-// usage (repo root): STARK_HOST_KEY=… node web/core/checks/cc5run.mjs <baseUrl> [runs] [--metal]
+// usage (repo root): STARK_HOST_KEY=… node web/core/checks/cc5run.mjs <baseUrl> [runs] [--swiftshader]
+// Renders on the GPU (Metal) by default: on SwiftShader the Brain draws too slowly for the fly-to, reset and pulse
+// timings, and those checks fail for that reason alone.
 // The host key comes from the environment only, so it never lands in shell history or logs.
 import { chromium, devices } from 'playwright';
 
@@ -9,7 +11,7 @@ const base = args[0] ?? 'http://localhost:3000';
 const key = process.env.STARK_HOST_KEY;
 if (!key) { console.error('set STARK_HOST_KEY'); process.exit(2); }
 const RUNS = Number(args[1] ?? 3);
-const metal = process.argv.includes('--metal');
+const metal = !process.argv.includes('--swiftshader');
 const IDLE_MS = 20000;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const results = [];          // {run, step, ok, detail}

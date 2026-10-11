@@ -3,7 +3,8 @@
   "image": {
     "id": "clean_retriever",
     "name": "Golden retriever",
-    "category": "clean"
+    "category": "clean",
+    "adversarial": null
   },
   "scoreKind": "softmax",
   "top1": {
@@ -50,7 +51,8 @@
     "trunkInterior": true,
     "layerModes": true,
     "bloom": true,
-    "steer": false
+    "steer": false,
+    "noiseView": false
   },
   "answers": [
     {
@@ -107,5 +109,9 @@
       "isTop1": false,
       "isTrueClass": false
     }
-  ]
+  ],
+  "noiseView": false,
+  "bloom": true,
+  "stability": null,
+  "steerMoment": null
 }

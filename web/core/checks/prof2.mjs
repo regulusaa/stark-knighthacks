@@ -1,8 +1,10 @@
 // Per-frame render cost (render + gl.finish, so GPU time is included) per phase, vsync on; and image-switch JS cost.
-// usage (repo root): node web/core/checks/prof2.mjs [baseUrl] [dpr]
+// usage (repo root): node web/core/checks/prof2.mjs [baseUrl] [dpr] [--no-glow]
 import { chromium } from 'playwright';
-const base = process.argv[2] ?? 'http://localhost:3000';
-const dpr = Number(process.argv[3] ?? 1);
+const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const base = args[0] ?? 'http://localhost:3000';
+const dpr = Number(args[1] ?? 1);
+const noGlow = process.argv.includes('--no-glow');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const b = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 const p = await b.newPage({ viewport: { width: 2560, height: 1440 }, deviceScaleFactor: dpr });
@@ -11,13 +13,16 @@ p.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 await p.goto(`${base}/display?offline=1&image=clean_monarch&pulseAt=done`);
 await p.waitForFunction(() => window.__starkReady === true, null, { timeout: 30000 });
 await sleep(1500);
+if (noGlow) await p.evaluate(() => window.__stark.glow?.set(false));
 await p.evaluate(() => {
   const s = window.__stark;
   const gl = s.renderer.getContext();
   window.__prof = { cost: [], frames: [], marks: [], hooks: {} };
-  const render = s.renderer.render.bind(s.renderer);
-  s.renderer.render = (scene, cam) => {
-    const t0 = performance.now(); render(scene, cam); gl.finish();
+  // one sample per frame: the whole frame's rendering (with glow: the scene, the bloom passes and the overlay)
+  const owner = s.glow ?? s.renderer;
+  const render = owner.render.bind(owner);
+  owner.render = (...a) => {
+    const t0 = performance.now(); render(...a); gl.finish();
     window.__prof.cost.push([t0, performance.now() - t0]);
   };
   let last = performance.now();
@@ -52,7 +57,7 @@ await sleep(500);
 await mark('end');
 
 const prof = await p.evaluate(() => ({ ...window.__prof, pr: window.__stark.stats.pixelRatio }));
-console.log(`2560×1440 @${dpr}x (render pixel ratio ${prof.pr}); cost = render + gl.finish per frame`);
+console.log(`2560×1440 @${dpr}x (render pixel ratio ${prof.pr}), glow ${noGlow ? 'off' : 'on'}; cost = the frame's rendering + gl.finish`);
 console.log('phase                     fps   frame p95/worst   cost p50   p95  worst');
 for (let i = 0; i < prof.marks.length - 1; i++) {
   const [t0, name] = prof.marks[i]; const t1 = prof.marks[i + 1][0];

@@ -1,5 +1,5 @@
 // The display's internal API: the single boundary CC-4b (the Brain) and CC-5 (networking) code against.
-// It also builds the contract v1 section 3.2 DisplayState from the loaded tree and Grad-CAM index.
+// It also builds the contract section 3.2 DisplayState (v3 fields included) from the loaded tree and Grad-CAM index.
 import { DEFAULTS } from '/contract/contract.js';
 import { loadImageAssets, disposeImageAssets, heatmapTexture, placeholderTexture } from './assets.js';
 import { TRUNK } from './trunk.js';
@@ -50,6 +50,26 @@ export function createApi({ manifest, panel, trunk, rig }) {
   let focusImpl = null; // focus.js, attached by main once the Brain exists
   let heatProvider = null; // Steer: (classId, instant) → true if it showed a live heatmap
   const server = { room: null, driver: null, controllerCount: 0 }; // kept across image switches
+  // (v3) the adversarial pair: image id → its partner (both ways), from fgsm.json. The current image and its partner
+  // stay loaded, so switching between the two is instant; everything else is disposed when it stops being current.
+  let pairs = new Map();
+  const kept = new Map();   // image id → Promise<assets>
+  function assetsFor(entry) {
+    if (!kept.has(entry.id)) kept.set(entry.id, loadImageAssets(entry));
+    return kept.get(entry.id);
+  }
+  function keepOnly(ids) {
+    for (const [id, p] of kept) if (!ids.has(id)) { kept.delete(id); p.then(disposeImageAssets); }
+  }
+  /** Fetch a partner's assets ahead of time, Steer data included (it goes through the HTTP cache). */
+  function preload(id) {
+    const entry = manifest.find((m) => m.id === id);
+    if (!entry) return;
+    assetsFor(entry).then((a) => {
+      if (!entry.steerable) return;
+      for (const f of ['conv5.bin', 'steer.json']) fetch(a.base + f).then((r) => r.arrayBuffer()).catch(() => {});
+    });
+  }
 
   function publish() {
     if (state) ev.emit('display-state', state);
@@ -103,19 +123,23 @@ export function createApi({ manifest, panel, trunk, rig }) {
       const entry = manifest.find((m) => m.id === id);
       if (!entry) { console.warn(`[stark] unknown image ${id}`); return false; }
       const mine = ++loadToken;
-      const next = await loadImageAssets(entry);
-      if (mine !== loadToken) { disposeImageAssets(next); return false; } // a newer load won
-      const prev = assets;
+      // (v3) between the two images of an adversarial pair the camera stays exactly where it is and the answered
+      // Brain appears at once (no pulse), so the strand visibly jumps while the photo doesn't change
+      const pairSwitch = Boolean(state && pairs.get(state.image.id) === id);
+      const next = await assetsFor(entry);
+      if (mine !== loadToken) return false;   // a newer load won (these assets stay cached until evicted)
+      if (!next.ok) kept.delete(id);          // let a later select retry
       assets = next;
       panel.clear();
       panel.setCrop(next.crop || placeholderTexture());
       heatOn = false;
-      disposeImageAssets(prev);
+      keepOnly(new Set([id, pairs.get(id)].filter(Boolean)));
+      if (pairs.has(id)) preload(pairs.get(id));
 
       const tree = next.tree;
       state = {
         room: server.room,
-        image: { id: entry.id, name: entry.name, category: entry.category },
+        image: { id: entry.id, name: entry.name, category: entry.category, adversarial: null },
         scoreKind: tree?.scoreKind ?? 'softmax',
         top1: null,
         trueClass: null,
@@ -127,10 +151,14 @@ export function createApi({ manifest, panel, trunk, rig }) {
         controllerCount: server.controllerCount,
         capabilities: {
           stability: entry.files?.stability === true,
-          trunkInterior: false, layerModes: false, bloom: false, steer: false,
+          trunkInterior: false, layerModes: false, bloom: false, steer: false, noiseView: false,
         },
         steer: null,
         answers: [],
+        noiseView: false,     // (v3)
+        bloom: false,
+        stability: null,
+        steerMoment: null,
       };
       if (tree) {
         state.answers = buildAnswers(tree, next.gradcam);
@@ -141,9 +169,10 @@ export function createApi({ manifest, panel, trunk, rig }) {
       }
       const wasFocused = Boolean(focusImpl?.current !== null && focusImpl?.current !== undefined);
       focusImpl?.reset();
-      if (wasFocused) rig.resetView();
-      ev.emit('image-loaded', { id: entry.id, ok: next.ok }); // the Brain rebuilds here, before the pulse runs
-      if (autoplay) trunk.play(); else trunk.reset();
+      if (wasFocused && !pairSwitch) rig.resetView();
+      ev.emit('image-loaded', { id: entry.id, ok: next.ok, pairSwitch }); // the Brain rebuilds here, before the pulse
+      if (pairSwitch) { trunk.jumpToEnd(); ev.emit('pair-switch', entry.id); }
+      else if (autoplay) trunk.play(); else trunk.reset();
       setPlayback();
       ev.emit('focus-state', null);
       return true;
@@ -152,7 +181,11 @@ export function createApi({ manifest, panel, trunk, rig }) {
     orbit: (dx, dy) => rig.orbit(dx, dy),
     zoom: (d) => rig.zoom(d),
     resetView: () => rig.resetView(),
-    replay() { trunk.play(); setPlayback(); },
+    /** play-pulse: the forward pass; in stability mode (v3) the stability sequence from run 1 instead. */
+    replay() {
+      if (state?.mode === 'stability') { ev.emit('stability-replay'); return; }
+      trunk.play(); setPlayback();
+    },
     jumpToEnd() { trunk.jumpToEnd(); setPlayback(); },
     /** Pulse speed multiplier; the contract allows 0.25–4 (keys step through 0.5 / 1 / 2). */
     setSpeed(s) {
@@ -174,22 +207,52 @@ export function createApi({ manifest, panel, trunk, rig }) {
       Object.assign(state, server);
       publish();
     },
-    /** set-mode from the host. Only modes whose capability is true are accepted (the relay checks too). */
-    setMode({ mode, layerMode } = {}) {
+    /**
+     * set-mode from the host (v3: any subset of {mode, layerMode, noiseView, bloom}; omitted fields are unchanged).
+     * Only what its capability allows is accepted (the relay checks too). Listeners see 'mode' {from, to} first,
+     * then the state is published once.
+     */
+    setMode({ mode, layerMode, noiseView, bloom } = {}) {
       if (!state) return;
       const caps = state.capabilities;
-      if (mode === 'normal' || (mode === 'stability' && caps.stability) || (mode === 'trunk' && caps.trunkInterior)) state.mode = mode;
-      else if (mode !== undefined) console.warn(`[stark] mode ${mode} is not available for this image`);
+      if (mode !== undefined && mode !== state.mode) {
+        if (mode === 'normal' || (mode === 'stability' && caps.stability) || (mode === 'trunk' && caps.trunkInterior)) {
+          const from = state.mode;
+          state.mode = mode;
+          ev.emit('mode', { from, to: mode });
+        } else console.warn(`[stark] mode ${mode} is not available for this image`);
+      }
       if (layerMode !== undefined && caps.layerModes) state.layerMode = layerMode;
+      if (noiseView !== undefined && (!noiseView || caps.noiseView)) ev.emit('noise-view', Boolean(noiseView));
+      if (bloom !== undefined) ev.emit('bloom', Boolean(bloom));
       publish();
     },
+    /** (v3) Merge display-state fields owned by a display module (stability, steerMoment, noiseView, bloom, image,
+     *  capabilities) and publish. */
+    patchState(fields, { capabilities = null } = {}) {
+      if (!state) return;
+      for (const [k, v] of Object.entries(fields)) state[k] = v;
+      if (capabilities) Object.assign(state.capabilities, capabilities);
+      publish();
+    },
+    onMode: (cb) => ev.on('mode', cb),
+    /** (v3) image id → partner id, both ways (adversarial.js sets it from fgsm.json). */
+    setPairs(map) { pairs = map; if (state && pairs.has(state.image.id)) preload(pairs.get(state.image.id)); },
+    pairOf: (id) => pairs.get(id) ?? null,
+    /** (v3) The loaded (or loading) assets of an image the display keeps, e.g. the pair's partner; else null. */
+    assetsOf: (id) => kept.get(id) ?? null,
+    onPairSwitch: (cb) => ev.on('pair-switch', cb),
+    onNoiseView: (cb) => ev.on('noise-view', cb),
+    onBloom: (cb) => ev.on('bloom', cb),
+    onStabilityReplay: (cb) => ev.on('stability-replay', cb),
     /**
      * Steer (contract v2): turn the capability on or off for the current image. On: classes without a stored PNG
      * get live heatmaps. Off: back to the pipeline's answers.
      */
     setSteerCapability(on, { live = null } = {}) {
       if (!state || !assets?.tree) return;
-      state.capabilities.steer = Boolean(on);
+      // (v3) no steering outside normal mode, and never on medical images (they have no steer data anyway)
+      state.capabilities.steer = Boolean(on) && state.mode === 'normal';
       state.steer = on ? { active: false, changedCount: 0, top1Changed: false } : null;
       state.answers = buildAnswers(assets.tree, assets.gradcam, { live: on ? live : null });
       state.top1 = state.answers.find((a) => a.isTop1) ?? null;

@@ -1,8 +1,8 @@
-// Stark shared contract v2. CONTRACT.md is authoritative; this file mirrors it.
+// Stark shared contract v3. CONTRACT.md is authoritative; this file mirrors it.
 // Owner: Ray. Agents import it; they never edit it.
 // Works in Node (import from '../contract/contract.js') and the browser ('/contract/contract.js').
 
-export const CONTRACT_VERSION = 2;
+export const CONTRACT_VERSION = 3;
 
 /** Socket.io event names. Direction and permission: see CONTRACT.md section 5. */
 export const EVENTS = Object.freeze({
@@ -29,10 +29,16 @@ export const EVENTS = Object.freeze({
 
 export const ROLES = Object.freeze({ DISPLAY: 'display', HOST: 'host', GUEST: 'guest' });
 
-/** Display mode. Layer mode is separate (LAYER_MODES). */
+/** Display mode. Layer mode is separate (LAYER_MODES). (v3 calls TRUNK "trunkInterior"; the v1 name stays.) */
 export const MODES = Object.freeze({ NORMAL: 'normal', STABILITY: 'stability', TRUNK: 'trunk' });
 
 export const LAYER_MODES = Object.freeze({ FULL: 'full', REDUCED: 'reduced' });
+
+/** (v3) display-state.stability.phase */
+export const STABILITY_PHASES = Object.freeze({ PLAYING: 'playing', SUMMARY: 'summary' });
+
+/** (v3) How long display-state.steerMoment stays set after the top answer changes. */
+export const STEER_MOMENT_MS = 4000;
 
 export const PLAYBACK_STATES = Object.freeze({ IDLE: 'idle', PLAYING: 'playing', DONE: 'done' });
 
@@ -285,12 +291,41 @@ export const READY_FLAG = '__starkReady';
  * @property {boolean} stability
  * @property {boolean} trunkInterior
  * @property {boolean} layerModes
- * @property {boolean} bloom
+ * @property {boolean} bloom   glow is on; (v3) false when the display auto-disabled it for fps
  * @property {boolean} steer   head.bin and this image's conv5.bin loaded AND the identity check passed
+ * @property {boolean} noiseView   (v3) adversarial image with a noise file
+ *
+ * @typedef {Object} AdversarialInfo   (v3) display-state.image.adversarial
+ * @property {number} epsilon255
+ * @property {number} maxPixelChange   0–255 units
+ * @property {Answer} cleanTop1
+ * @property {string} pairedImageId
+ *
+ * @typedef {Object} StabilityState   (v3) display-state.stability
+ * @property {boolean} active
+ * @property {'playing'|'summary'} phase
+ * @property {number} run      1-based
+ * @property {number} runs
+ * @property {Answer} current  this run's top-1 ("other" is lit when it is not drawn in the Brain)
+ * @property {boolean} matchesClean
+ * @property {number} distinctWinners
+ * @property {{classId:number, label:string, count:number}[]} winners   sorted by count desc
+ * @property {Answer} cleanTop1
+ *
+ * @typedef {Object} SteerMoment   (v3) set when steering changes the top answer; cleared after STEER_MOMENT_MS
+ * @property {Answer} from
+ * @property {Answer} to
+ * @property {number} at   ms since the epoch
+ *
+ * @typedef {Object} SetMode   (v3) payload of set-mode; any subset, at least one; omitted fields are unchanged
+ * @property {Mode} [mode]
+ * @property {LayerMode} [layerMode]
+ * @property {boolean} [noiseView]
+ * @property {boolean} [bloom]
  *
  * @typedef {Object} DisplayState
  * @property {string} room
- * @property {{id:string, name:string, category:Category}} image
+ * @property {{id:string, name:string, category:Category, adversarial:AdversarialInfo|null}} image   adversarial: v3
  * @property {ScoreKind} scoreKind
  * @property {Answer} top1
  * @property {Answer|null} trueClass
@@ -303,6 +338,10 @@ export const READY_FLAG = '__starkReady';
  * @property {Capabilities} capabilities
  * @property {Answer[]} answers   top ANSWER_LIST by rank, plus the true class if outside them
  * @property {{active:boolean, changedCount:number, top1Changed:boolean}|null} steer   v2
+ * @property {boolean} noiseView   v3
+ * @property {boolean} bloom   v3
+ * @property {StabilityState|null} stability   v3
+ * @property {SteerMoment|null} steerMoment   v3
  *
  * @typedef {Answer|null} FocusState
  */

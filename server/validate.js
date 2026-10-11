@@ -113,7 +113,17 @@ export const validators = {
       if (!caps.layerModes) fail('layer modes are not available');
       out.layerMode = p.layerMode;
     }
-    if (!('mode' in out) && !('layerMode' in out)) fail('set mode or layerMode');
+    // (v3) the noise view needs its capability to turn on; off and glow are always allowed
+    if (p.noiseView !== undefined) {
+      if (typeof p.noiseView !== 'boolean') fail('noiseView must be a boolean');
+      if (p.noiseView && !caps.noiseView) fail('the noise view is not available for this image');
+      out.noiseView = p.noiseView;
+    }
+    if (p.bloom !== undefined) {
+      if (typeof p.bloom !== 'boolean') fail('bloom must be a boolean');
+      out.bloom = p.bloom;
+    }
+    if (!Object.keys(out).length) fail('set mode, layerMode, noiseView or bloom');
     return out;
   },
   [EVENTS.DISPLAY_STATE]: (p) => {

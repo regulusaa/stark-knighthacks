@@ -43,7 +43,7 @@ export function placeholderTexture() {
   return placeholder;
 }
 
-function loadTexture(url, colorSpace) {
+export function loadTexture(url, colorSpace) {
   return new Promise((resolve) => {
     loader.load(url, (tex) => {
       tex.colorSpace = colorSpace;
