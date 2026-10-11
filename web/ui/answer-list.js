@@ -1,4 +1,5 @@
 import { heatmapText, stabilityPlaying } from './presentation.js';
+import { mountFocusEvidence } from './focus-evidence.js';
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 function modelScore(score) {
@@ -21,6 +22,10 @@ export function createAnswerList({ root, onSelect, onClear, onLongLabel }) {
   const focusScore = root.querySelector('#focus-score');
   const focusRank = root.querySelector('#focus-rank');
   const heatmapStatus = root.querySelector('#focus-heatmap');
+  const evidenceRoot=document.createElement('div');
+  focusCard.insertBefore(evidenceRoot,focusCard.querySelector('.focus-caption'));
+  const evidence=mountFocusEvidence(evidenceRoot,{enabled:new URLSearchParams(location.search).get('mock')!=='1'});
+  let display=null,currentFocus=null;
   const rows = new Map();
   let answers = [];
   let answersSignature = '';
@@ -29,6 +34,9 @@ export function createAnswerList({ root, onSelect, onClear, onLongLabel }) {
   let independent = false;
   let readOnly = false;
   function setContext(state) {
+    if(display?.image?.id!==state?.image?.id)currentFocus=null;
+    display=state;
+    void evidence.update(display,currentFocus);
     const nextIndependent = state?.scoreKind === 'independent';
     if (independent !== nextIndependent) answersSignature = '';
     independent = nextIndependent;
@@ -150,6 +158,8 @@ export function createAnswerList({ root, onSelect, onClear, onLongLabel }) {
   function setFocus(value, { scroll = true } = {}) {
     const base = value && answers.find(item => item.classId === value.classId);
     const answer = base ? { ...base, ...value } : null;
+    currentFocus=answer;
+    void evidence.update(display,answer);
     const nextId = answer?.classId ?? null;
     const nextSignature = answer ? JSON.stringify([answer.classId, answer.label, answer.score, answer.rank, answer.hasHeatmap, answer.heatmapSource]) : 'none';
     if (focusSignature === nextSignature) return;
@@ -169,6 +179,7 @@ export function createAnswerList({ root, onSelect, onClear, onLongLabel }) {
     focusScore.textContent = `Model score ${modelScore(answer.score)}`;
     focusRank.textContent = `Rank ${answer.rank}`;
     heatmapStatus.textContent = heatmapText(answer);
+    focusCard.querySelector('.focus-caption').hidden=!(answer.heatmapSource || answer.heatmapSource===undefined&&answer.hasHeatmap);
     if (scroll && priorId !== nextId) {
       requestAnimationFrame(() => {
         const row = rows.get(nextId);
@@ -189,5 +200,6 @@ export function createAnswerList({ root, onSelect, onClear, onLongLabel }) {
     setFocus,
     resetScroll() { list.scrollTop = 0; },
     hasFocus() { return focusedId !== null; },
+    destroy() { evidence.destroy(); },
   };
 }

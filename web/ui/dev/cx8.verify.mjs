@@ -10,12 +10,15 @@ watch(page);
 const open = async (scene, role = 'host') => {
   await page.goto(`${base}/controller?room=7KQ2M&role=${role}&key=test&mock=1&v3=1&scene=${scene}`);
   await page.waitForSelector(`#app[data-state="${role === 'host' ? 'host' : 'guest-viewing'}"]`);
+  await page.waitForFunction(() => window.__inspectionControllerReady);
 };
+const workspace = name => page.locator(`[data-workspace="${name}"]`).click();
 const log = () => page.evaluate(() => window.__v3Mock.log);
 const state = () => page.evaluate(() => window.__v3Mock.state);
 const wait = () => page.waitForTimeout(220);
 try {
   await open('idle');
+  await workspace('usage');
   assert.equal(await page.locator('#layer-control-wrap').isVisible(), false);
   assert.equal(await page.locator('[data-mode-field="noiseView"]').isVisible(), false);
   await page.locator('[data-mode-field="bloom"]').click();
@@ -28,12 +31,16 @@ try {
   assert.match(await page.locator('.trackpad-note').innerText(), /49 layers/);
   await page.locator('[data-layer-mode="full"]').click(); await wait();
   await page.locator('[data-mode="normal"]').click(); await wait();
+  await workspace('modify');
   await page.locator('[data-pair-image="adv_retriever"]').click();
   assert.equal(await page.locator('[data-pair-image="adv_retriever"]').getAttribute('aria-busy'), 'true');
   await page.waitForTimeout(420);
+  await workspace('usage');
   await page.locator('[data-mode-field="noiseView"]').click(); await wait();
   await page.locator('[data-mode-field="noiseView"]').click(); await wait();
+  await workspace('modify');
   await page.locator('[data-pair-image="clean_retriever"]').click(); await page.waitForTimeout(420);
+  await workspace('usage');
   assert.deepEqual((await log()).map(e => [e.event, e.payload]), [
     ['set-mode', { bloom: false }], ['set-mode', { mode: 'trunk' }], ['set-mode', { layerMode: 'reduced' }], ['set-mode', { layerMode: 'full' }], ['set-mode', { mode: 'normal' }],
     ['select-image', { imageId: 'adv_retriever' }], ['set-mode', { noiseView: true }], ['set-mode', { noiseView: false }], ['select-image', { imageId: 'clean_retriever' }],
@@ -68,10 +75,12 @@ try {
   await page.evaluate(() => document.querySelector('.answer-row').dispatchEvent(new MouseEvent('click', { bubbles: true })));
   assert.equal((await log()).length, 0);
   assert.match(await page.locator('#answer-context').innerText(), /run 12 \/ 30/);
+  await workspace('usage');
   await page.locator('#replay-pulse').click(); await page.waitForTimeout(45);
   assert.equal((await state()).stability.run, 1);
   assert.deepEqual((await log()).at(-1).payload, { speed: 1, skipToEnd: false });
   await page.waitForFunction(() => window.__v3Mock.state.stability.phase === 'summary');
+  await workspace('modify');
   assert.equal(await page.locator('.answer-row:disabled').count(), 0);
   await page.locator('.answer-row').first().click(); await page.waitForTimeout(60);
   assert.equal((await log()).at(-1).event, 'focus-tip');
@@ -96,6 +105,7 @@ try {
   await page.waitForTimeout(200); await page.locator('.steer-run').click();
   await page.waitForFunction(() => window.__v3Mock.state.steerMoment?.to.classId === 208);
   const firstMoment = (await state()).steerMoment;
+  await workspace('usage');
   await page.locator('[data-mode-field="bloom"]').click(); await wait();
   assert.equal((await state()).steer.changedCount, 3);
   assert.equal((await state()).steerMoment.at, firstMoment.at);
@@ -103,16 +113,20 @@ try {
   assert.equal((await state()).capabilities.steer, true);
   assert.equal((await state()).steer.changedCount, 3);
   assert.equal((await state()).steerMoment.at, firstMoment.at);
+  await workspace('modify');
   assert.equal(await page.locator('.steer-panel[data-steer-state="steering"]').isVisible(), true);
   assert.doesNotMatch(await page.locator('.steer-panel').innerText(), /Steer unavailable|Steer is unavailable/);
+  await workspace('usage');
   await page.locator('[data-mode="normal"]').click(); await wait();
   assert.equal((await state()).steer.changedCount, 3);
+  await workspace('modify');
   await page.locator('.steer-reset').click();
   await page.waitForFunction(() => window.__v3Mock.state.steerMoment?.to.classId === 207);
   assert.equal((await state()).steerMoment.from.classId, 208);
   await page.locator('#steer-code-input').fill('channel[top(3, "golden retriever")] = 0');
   await page.waitForTimeout(200); await page.locator('.steer-run').click();
   await page.waitForFunction(() => window.__v3Mock.state.steer.changedCount === 3);
+  await workspace('usage');
   await page.locator('[data-mode="stability"]').click(); await wait();
   assert.equal((await state()).capabilities.steer, false);
   assert.equal((await state()).steer, null);

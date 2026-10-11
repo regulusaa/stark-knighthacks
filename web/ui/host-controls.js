@@ -14,6 +14,7 @@ export function createHostControls({ root, onPlay, onMode, onImage, onTimeout })
   const playbackStatus = root.querySelector('#playback-status');
   const modeStatus = root.querySelector('#mode-status');
   let display = null;
+  let pendingImage = null;
   let manifestIds = new Set();
   const pending = new Map();
   const valueFor = field => pending.get(field)?.value ?? display?.[field];
@@ -33,6 +34,8 @@ export function createHostControls({ root, onPlay, onMode, onImage, onTimeout })
     if (send() === false) { clear(field); render(); }
   }
   function render() {
+    // Until the selected image is confirmed, capabilities still describe the old image.
+    for (const button of [replay, jump, ...speedButtons, ...modeButtons, ...layerButtons, ...toggles, ...pairButtons]) button.disabled = Boolean(pendingImage);
     const playback = display?.playback;
     const nextPlayback = pending.get('playback')?.value;
     const speed = nextPlayback?.speed ?? playback?.speed ?? 1;
@@ -54,6 +57,8 @@ export function createHostControls({ root, onPlay, onMode, onImage, onTimeout })
       const mode = b.dataset.mode;
       b.hidden = mode === MODES.STABILITY ? medical || caps.stability !== true : mode === MODES.TRUNK ? caps.trunkInterior !== true : false;
       mark(b, mode === (valueFor('mode') || MODES.NORMAL), mode === pending.get('mode')?.value);
+      const help = root.querySelector(`[data-mode-help="${mode}"]`);
+      if (help) help.hidden = b.hidden;
     }
     // Show layers only after the confirmed mode has entered the network.
     layerWrap.hidden = display?.mode !== MODES.TRUNK || caps.layerModes !== true;
@@ -73,7 +78,7 @@ export function createHostControls({ root, onPlay, onMode, onImage, onTimeout })
     }
     root.querySelector('#pair-status').textContent = pending.has('imageId') ? 'Loading image…' : '';
     const names = [...pending.keys()].filter(k => !['imageId', 'playback'].includes(k)).map(k => k === 'mode' ? modeNames[valueFor(k)] : k === 'layerMode' ? `${valueFor(k)} layers` : k === 'noiseView' ? 'Noise ×50' : 'Glow');
-    modeStatus.textContent = names.length ? `Applying ${names.join(' · ')}…`
+    modeStatus.textContent = pendingImage ? 'Loading the selected image…' : names.length ? `Applying ${names.join(' · ')}…`
       : typeof display?.bloom === 'boolean' && caps.bloom === false ? 'Turned off for performance' : '';
   }
   function play(speed, skipToEnd) { request('playback', { speed, skipToEnd }, () => onPlay({ speed, skipToEnd })); }
@@ -94,6 +99,7 @@ export function createHostControls({ root, onPlay, onMode, onImage, onTimeout })
   function setDisplay(value) {
     if (display?.image?.id && display.image.id !== value?.image?.id) clearPending();
     display = value;
+    if (!value || value.image?.id === pendingImage) pendingImage = null;
     for (const [field, item] of pending) {
       if (field === 'playback') {
         const p = value?.playback;
@@ -103,5 +109,5 @@ export function createHostControls({ root, onPlay, onMode, onImage, onTimeout })
     render();
   }
   render();
-  return { setDisplay, clearPending, setManifest(value) { manifestIds = new Set(value?.images?.map(i => i.id) || []); render(); } };
+  return { setDisplay, clearPending, setImagePending(id) { pendingImage = id; render(); }, setManifest(value) { manifestIds = new Set(value?.images?.map(i => i.id) || []); render(); } };
 }
