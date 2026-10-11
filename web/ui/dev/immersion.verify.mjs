@@ -19,7 +19,7 @@ try {
  assert.equal(await f.evaluate(()=>__immersion.records.get('class:281').name),'My cat hypothesis');
  const brain=await f.evaluate(()=>__immersion.brainPoint());await drag(p,f,'class:281',brain);
  assert.equal(await f.evaluate(()=>__immersion.records.get('class:281').detached),false);
- assert.equal(await f.evaluate(()=>__immersion.records.get('class:281').tip.node.label),'My cat hypothesis');
+ assert.match(await f.evaluate(()=>__immersion.records.get('class:281').tip.node.label),/tabby.*My cat hypothesis.*note/);
  await f.waitForFunction(()=>__immersion.edges.get(__immersion.records.get('class:281').nodeId).attr.array[1]>.05);
  await p.screenshot({path:'web/ui/.shots/immersion-return-glow-1180x820.png'});await p.waitForTimeout(1100);assert.equal(await f.evaluate(()=>__immersion.edges.get(__immersion.records.get('class:281').nodeId).attr.array[1]),0);
  console.log('stationary drag: detached sphere, removed tip/text, neutral original branch; edited name/notes; arbitrary brain drop restores stream and glow ends after 1 s');

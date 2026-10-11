@@ -27,6 +27,11 @@
 .immersion-channel{display:grid!important;grid-template-columns:1fr auto;align-items:center}
 .immersion-channel input{grid-column:1/-1;min-height:48px;width:100%;margin:0}
 .immersion-caveat{font-size:14px!important;border-top:1px solid #fff3;padding-top:12px}
+.immersion-target{display:grid;gap:12px;border:1px solid #fbb61a80;padding:12px;background:#17111f}
+.immersion-target[hidden]{display:none}
+#immersion-workspace.has-selection .immersion-heading{display:none}
+.immersion-target-score{font-variant-numeric:tabular-nums;color:#fcffa4}
+.immersion-name-status{font-size:14px;color:#a79fb2}
 @media(max-width:760px){.inspection-controller .workbench[data-active-workspace="immersion"]{grid-template-columns:minmax(0,1.5fr) minmax(230px,1fr)}.workspace-tabs button{font-size:12px;padding:8px 4px}}
 @media(orientation:portrait){.inspection-controller .workbench[data-active-workspace="immersion"]{grid-template-areas:"immersion" "settings";grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.5fr) minmax(0,1fr)}.workbench[data-active-workspace="immersion"] .side-panel{border-left:1px solid #fff7;border-top:0}}
 @media(orientation:portrait){#immersion-workspace.has-selection .immersion-heading{display:none}#immersion-workspace.has-selection .immersion-editor{border-top:0;padding-top:0}#immersion-workspace.has-selection .immersion-source{font-size:13px}}
