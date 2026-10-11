@@ -34,6 +34,7 @@ export async function createV3Fixtures(room = '7KQ2M') {
   const moment = { ...clone(steering), top1: current, steer: { active: true, changedCount: 3, top1Changed: true }, steerMoment: { from: clean, to: current, at: Date.now() } };
   const outsideState = { ...clone(steering), top1: outside.result.top1, steer: { active: true, changedCount: 5, top1Changed: true } };
   const states = { idle, cat, 'stability-playing': playing, 'stability-summary': summary, adversarial, 'adversarial-noise': { ...clone(adversarial), noiseView: true }, medical: med, steering, 'steer-moment': moment, outsideBrain: outsideState,
+    'stability-summary-split': { ...clone(cat), mode: MODES.STABILITY, stability: { ...clone(stability), phase: 'summary', run: 30, cleanTop1: catTop, current: catTop, distinctWinners: 2, winners: [{ classId: 281, label: 'tabby', count: 12 }, { classId: 282, label: 'tiger cat', count: 18 }] } },
     'glow-auto-off': { ...clone(idle), bloom: false, capabilities: { ...idle.capabilities, bloom: false } },
     focused: { ...clone(idle), focus: { ...base.answers[1], heatmapSource: 'live' } }, trunk: { ...clone(idle), mode: MODES.TRUNK } };
   return { states, outside, drawnClasses: tree.nodes.filter(n => n.classId != null).map(n => n.classId) };
