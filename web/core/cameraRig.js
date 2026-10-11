@@ -13,7 +13,7 @@ export const RIG = {
   defaultTarget: new THREE.Vector3(-2.36, 9.26, 1.91),
   damping: 0.08,                 // fraction of the remaining gap closed per 60 Hz frame
   minPolar: THREE.MathUtils.degToRad(20),
-  maxPolar: THREE.MathUtils.degToRad(100),
+  maxPolar: THREE.MathUtils.degToRad(160),
   minDistance: 6,
   maxDistance: 30,
   flyMs: 1200,
@@ -51,7 +51,7 @@ export function createCameraRig(camera) {
 
   function clampSph(s) {
     s.phi = THREE.MathUtils.clamp(s.phi, RIG.minPolar, RIG.maxPolar);
-    s.radius = THREE.MathUtils.clamp(s.radius, RIG.minDistance * limitScale, RIG.maxDistance * limitScale);
+    s.radius = THREE.MathUtils.clamp(s.radius, 0.8, Math.max(100, RIG.maxDistance * limitScale));
     return s;
   }
   function viewOf(position, target, out) {
@@ -80,6 +80,13 @@ export function createCameraRig(camera) {
   apply();
 
   return {
+    /** Retarget current motion with the same damping as component placement. */
+    chase({ target, radius, back }, { snap = false } = {}) {
+      tween = null; atHome = false;
+      goal.target.fromArray(target); goal.sph.setFromVector3(tmp.fromArray(back).multiplyScalar(radius)); clampSph(goal.sph);
+      goal.sph.theta = live.sph.theta + ((((goal.sph.theta - live.sph.theta) % TAU) + TAU + Math.PI) % TAU) - Math.PI;
+      if (snap) { live.target.copy(goal.target); live.sph.copy(goal.sph); apply(); }
+    },
     /** dx, dy: drag as a fraction of the drag area (−1..1); +x = drag right, +y = drag down. */
     orbit(dx, dy) {
       tween = null;

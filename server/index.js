@@ -1,8 +1,9 @@
 // Stark server: pages, static files, health, QR and the Socket.io relay (contract v1 section 6).
 //   npm start            listens on PORT (default 3001) on all interfaces and prints the URLs phones can use
-// Env: PORT, STARK_HOST_KEY, STARK_HOST_LABEL (default "Ray"), STARK_FIXED_ROOM, STARK_PUBLIC_URL (PUBLIC_URL also accepted).
+// Env: PORT, STARK_HOST_KEY, STARK_HOST_LABEL (default "Ray"), STARK_FIXED_ROOM, STARK_PUBLIC_URL (PUBLIC_URL also accepted),
+//      STARK_PERF=1 (the display's perf summaries are appended to logs/perf-<start time>.jsonl).
 import express from 'express';
-import { existsSync } from 'node:fs';
+import { appendFile, existsSync, mkdirSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { networkInterfaces } from 'node:os';
 import { join } from 'node:path';
@@ -47,6 +48,36 @@ export function start({
   // Lets the display mount Codex's HUD only when it exists, without a 404 in the console.
   app.get('/api/ui-modules', (_req, res) => {
     res.set('Cache-Control', 'no-store').json({ hud: existsSync(join(ROOT, 'web/ui/hud.js')) });
+  });
+
+  // Perf log from the display (CC-10): the display asks first, and posts only when STARK_PERF=1.
+  app.get('/api/perf', (_req, res) => res.set('Cache-Control', 'no-store').json({ enabled: env.STARK_PERF === '1' }));
+  if (env.STARK_PERF === '1') {
+    const dir = join(ROOT, 'logs');
+    mkdirSync(dir, { recursive: true });
+    const file = join(dir, `perf-${new Date().toISOString().replace(/[:.]/g, '-')}.jsonl`);
+    log(`  perf log:      ${file}`);
+    app.post('/api/perf', express.json({ limit: '8kb' }), (req, res) => {
+      const b = req.body;
+      if (!b || typeof b !== 'object' || Array.isArray(b)) return res.status(400).end();
+      appendFile(file, JSON.stringify({ ...b, ua: String(req.get('user-agent') ?? '').slice(0, 160) }) + '\n', () => {});
+      res.status(204).end();
+    });
+  }
+
+  // For tools/preflight.mjs: the fixed room (it is printed on the QR anyway) and whether a display is in it.
+  app.get('/api/room', (_req, res) => {
+    const code = rooms.fixedRoom ?? null;
+    res.set('Cache-Control', 'no-store').json({ fixedRoom: code, display: Boolean(code && rooms.get(code)?.display) });
+  });
+
+  // Display recovery (CC-10 D3): a reloaded display asks what the fixed room was showing (image and modes only;
+  // steering restarts clean) and comes back to it, so the controllers in the room carry on without rescanning.
+  app.get('/api/restore', (_req, res) => {
+    const st = rooms.fixedRoom ? rooms.get(rooms.fixedRoom)?.displayState : null;
+    res.set('Cache-Control', 'no-store').json(st?.image?.id ? {
+      imageId: st.image.id, mode: st.mode ?? 'normal', layerMode: st.layerMode ?? 'full', bloom: st.bloom ?? null,
+    } : null);
   });
 
   app.get('/api/qr.svg', async (req, res) => {

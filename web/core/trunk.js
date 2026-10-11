@@ -59,7 +59,7 @@ void main() {
   float band = 1.0 - smoothstep(0.0, 1.0, d);          // soft falloff, 0 beyond half the band height
   band *= band;
   // hollow glowing tube: faint through the middle, brighter at the silhouette
-  vec3 col = inferno(level) * (0.22 + 1.4 * rim) + inferno(1.0) * band * (0.75 + 0.5 * rim);
+  vec3 col = vec3(level * .5) * (0.22 + 1.4 * rim) + vec3(1.0) * band * (0.75 + 0.5 * rim);
   col *= smoothstep(0.0, uFade, vY);                   // fades out with the bottom of the cord
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>

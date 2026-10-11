@@ -19,10 +19,11 @@ export async function createSteerMock({ scene = 'idle', role = ROLES.GUEST } = {
   let driver = scene==='viewer' ? {id:'c_other',label:'Guest 2',isHost:false} : scene==='unclaimed'?null:{id:status.clientId,label:status.label,isHost:role===ROLES.HOST};
   let display = {...structuredClone(base),focus:null,driver,capabilities:{...base.capabilities,steer:scene!=='unavailable'},steer:{active:false,changedCount:0,top1Changed:false}};
   if(scene==='unavailable')display.image={id:'med_xray_pneumonia',name:'Chest X-ray',category:'medical'};
-  const baselineAnswers = structuredClone(base.answers);
-  const baselineTop1 = structuredClone(base.top1);
-  const sets = structuredClone(sample.sets);
-  const allClasses = [...baselineAnswers,outside.result.outsideBrain];
+  let baselineAnswers = structuredClone(base.answers);
+  let baselineTop1 = structuredClone(base.top1);
+  let sets = structuredClone(sample.sets);
+  let flipCount = 3;
+  let allClasses = [...baselineAnswers,outside.result.outsideBrain];
   const deliver = (event,payload) => {if(!closed)for(const cb of listeners.get(event)||[])cb(structuredClone(payload))};
   const later = fn => {const timer=setTimeout(()=>{timers.delete(timer);if(!closed)fn()},30);timers.add(timer)};
   function calculate(scales,seq,source,probe=null,error=null) {
@@ -36,7 +37,7 @@ export async function createSteerMock({ scene = 'idle', role = ROLES.GUEST } = {
       if(a.classId===sets.top1.classId)a.score=Math.max(.04,.62-influence*.095);
       else if(a.classId===sets.top2.classId)a.score=Math.min(.75,.11+influence*.055);
     }
-    if(zeroed>=3){answers.find(a=>a.classId===sets.top1.classId).score=.21;answers.find(a=>a.classId===sets.top2.classId).score=.44}
+    if(zeroed>=flipCount){answers.find(a=>a.classId===sets.top1.classId).score=.21;answers.find(a=>a.classId===sets.top2.classId).score=.44}
     answers.sort((a,b)=>b.score-a.score);
     answers=answers.map((a,index)=>({...a,rank:index+1,isTop1:index===0,hasHeatmap:true,heatmapSource:scales.length?'live':'precomputed'}));
     const top1=answers[0];
@@ -69,6 +70,7 @@ export async function createSteerMock({ scene = 'idle', role = ROLES.GUEST } = {
       if(![EVENTS.STEER_UPDATE,EVENTS.STEER_RESET].includes(event))return true;
       if(role!==ROLES.HOST&&driver?.id!==status.clientId){later(()=>deliver(EVENTS.ERROR,{code:ERROR_CODES.LOCKED,event,driver,message:`${driver?.label||'Someone else'} is driving`}));return true}
       later(()=>{
+        if(status.phase!=='connected'||(role!==ROLES.HOST&&driver?.id!==status.clientId))return;
         if(event===EVENTS.STEER_RESET){publish(calculate([],0,null));return}
         if(payload.code!==undefined){
           if(!dsl){deliver(EVENTS.ERROR,{code:ERROR_CODES.FORBIDDEN,event,message:'Syntax check available after sync'});return}
@@ -83,7 +85,17 @@ export async function createSteerMock({ scene = 'idle', role = ROLES.GUEST } = {
     start(){if(scene!=='loading'&&scene!=='offline')later(initial);else deliver(EVENTS.DISPLAY_STATE,display)},
     setDriver(next){driver=next;display.driver=driver;deliver(EVENTS.DRIVER_CHANGED,{driver,reason:'take'});deliver(EVENTS.DISPLAY_STATE,display)},
     setConnection(connected){status.phase=connected?'connected':'disconnected';for(const cb of observers)cb(status);if(connected){deliver(EVENTS.DISPLAY_STATE,display);if(current)deliver(EVENTS.STEER_RESULT,current)}},
-    changeImage(id){display={...display,image:{id,name:id,category:'clean'},steer:{active:false,changedCount:0,top1Changed:false},answers:baselineAnswers,top1:baselineTop1};deliver(EVENTS.DISPLAY_STATE,display);publish(calculate([],0,null))},
+    changeImage(id){
+      baselineAnswers=structuredClone(base.answers);baselineTop1=structuredClone(base.top1);sets=structuredClone(sample.sets);flipCount=3;
+      if(id==='ambig_cat'){
+        const remap=a=>a.classId===207?{...a,classId:281,label:'tabby'}:a.classId===208?{...a,classId:282,label:'tiger cat'}:a;
+        baselineAnswers=baselineAnswers.map(remap);baselineTop1=remap(baselineTop1);
+        sets.top1={...sets.top1,classId:281,label:'tabby'};sets.top1.channels[0].channel=956;
+        sets.top2={...sets.top2,classId:282,label:'tiger cat'};flipCount=1;
+      }
+      allClasses=[...baselineAnswers,outside.result.outsideBrain];
+      display={...display,image:{id,name:id,category:id.startsWith('ambig_')?'ambiguous':'clean'},steer:{active:false,changedCount:0,top1Changed:false},answers:baselineAnswers,top1:baselineTop1};deliver(EVENTS.DISPLAY_STATE,display);publish(calculate([],0,null))
+    },
     inject(value){publish(value)},
     get display(){return structuredClone(display)},get result(){return structuredClone(current)},
     close(){closed=true;for(const timer of timers)clearTimeout(timer);listeners.clear();observers.clear()},

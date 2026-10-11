@@ -18,7 +18,7 @@ export const FIBERS = {
   strands: 5,               // along the cord's surface
   strandY: [3.15, 6.4],
   stepLen: 0.16,
-  color: 0xdcae4c,
+  color: 0xc7c7c7,
   roughness: 0.42,
   metalness: 0.25,
   endShade: 0.4,            // brightness at a fibre's far end (they fade into the dark)
@@ -122,10 +122,30 @@ export function fiberPaths(cfg = FIBERS) {
 }
 
 /** One merged, lit mesh of every fibre (decorative: not pickable, not data). */
+export function connectedFiberPaths(cfg = FIBERS) {
+  const paths = fiberPaths(cfg);
+  // Every root begins at the cord. Extend that attachment through the stem to the model trunk entry.
+  // Branches share their parent's attachment; the extension is visual anatomy, never invented model evidence.
+  const roots = paths.filter(p => p.r0 === cfg.radius[0]);
+  for (const [i, root] of roots.entries()) {
+    const start = root.points[0], a = i * 2.39996;
+    paths.push({ points: [start, [start[0]*.45, start[1]+.3, start[2]*.45],
+      [Math.cos(a)*.1, 5.85, Math.sin(a)*.1], [0,6,0]],
+      r0: cfg.radius[0], r1: .012, shade0: .8, shade1: 1 });
+  }
+  // Fine longitudinal tracks through the cord: all terminate exactly at the hierarchy entry.
+  for (let i=0;i<24;i++) {
+    const a=i*2.39996,r=.08+(i%4)*.025;
+    paths.push({points:[[Math.cos(a)*r,3.15,Math.sin(a)*r],
+      [Math.cos(a+.25)*r,4,Math.sin(a+.25)*r],[Math.cos(a+.5)*r,5.2,Math.sin(a+.5)*r],[0,6,0]],
+      r0:.009,r1:.009,shade0:.55,shade1:.9});
+  }
+  return paths;
+}
 export function createFibers(cfg = FIBERS) {
   const parts = [];
   let verts = 0, idx = 0;
-  for (const f of fiberPaths(cfg)) {
+  for (const f of connectedFiberPaths(cfg)) {
     const curve = new THREE.CatmullRomCurve3(f.points.map((p) => new THREE.Vector3(...p)), false, 'centripetal');
     const segs = Math.max(8, Math.round(curve.getLength() * 10));
     const g = new THREE.TubeGeometry(curve, segs, 1, cfg.radialSegments, false);

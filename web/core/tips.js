@@ -12,7 +12,7 @@ export const TIPS = {
   colorCeil: 0.86,            // … and confident ones are gold, like their tracts (brainMesh.js VEINS.colorCeil)
   otherRadius: 0.07,
   otherColor: 0x5d5763,
-  haloColor: 0xfff1d0,
+  haloColor: 0xffffff,
   haloOpacity: 0.85,
   ringRadius: 0.35,
   ringTube: 0.025,
@@ -27,7 +27,7 @@ export const TIPS = {
 };
 
 const tipRadius = (score) => TIPS.radiusBase + TIPS.radiusScale * Math.sqrt(Math.max(0, Math.min(1, score)));
-const tipColor = (score, out) => out.copy(inferno(TIPS.colorFloor + (TIPS.colorCeil - TIPS.colorFloor) * Math.sqrt(Math.max(0, Math.min(1, score)))));
+const tipColor = (score, out) => out.setScalar(.32 + .68 * Math.sqrt(Math.max(0, Math.min(1, score))));
 
 const sphereGeo = new THREE.SphereGeometry(1, 24, 16);
 const pickGeo = new THREE.SphereGeometry(TIPS.pickRadius, 12, 8);
@@ -98,7 +98,7 @@ export function createTips() {
         const isOther = Boolean(n.isOther);
         const score = Math.max(0, n.value ?? 0);
         const radius = isOther ? TIPS.otherRadius : TIPS.radiusBase + TIPS.radiusScale * Math.sqrt(score);
-        const color = isOther ? new THREE.Color(TIPS.otherColor) : inferno(TIPS.colorFloor + (TIPS.colorCeil - TIPS.colorFloor) * Math.sqrt(score));
+        const color = isOther ? new THREE.Color(TIPS.otherColor) : tipColor(score, new THREE.Color());
         const mesh = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({ color: color.clone() }));
         mesh.position.set(v.pos[0], v.pos[1], v.pos[2]);
         mesh.scale.setScalar(radius);

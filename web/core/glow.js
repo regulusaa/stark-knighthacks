@@ -7,6 +7,7 @@
 // Off, the display renders exactly as before (no extra passes). It turns itself off if the frame rate stays under
 // GLOW.lowFps for GLOW.lowSeconds (capabilities.bloom false, a console note); the host (set-mode bloom) or key B
 // turns it back on.
+import { KILL, DISPLAY } from './flags.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -15,8 +16,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 export const GLOW = {
   layer: 1,
   threshold: 0.7,         // linear luminance a glowing pixel must exceed: the lit strand, top tips, the pulse
-  strength: 0.6,
-  radius: 0.35,
+  strength: 0.5,
+  radius: 0.3,
   bloomScale: 0.5,        // the bloom layer renders at this fraction of the canvas resolution
   lowFps: 45,
   lowSeconds: 3,
@@ -38,8 +39,8 @@ void main() {
 /** Put an object (not its children) on the glow layer as well as its usual one. */
 export const glowing = (obj) => { obj.layers.enable(GLOW.layer); return obj; };
 
-export function createGlow({ renderer, scene, camera, stats, api }) {
-  let on = true;
+export function createGlow({ renderer, scene, camera, stats, api, preview = false }) {
+  let on = DISPLAY.bloom;
   let auto = true;           // false once it turned itself off for fps (until the host turns it back on)
   let lowFor = 0;
   const size = new THREE.Vector2();
@@ -75,7 +76,7 @@ export function createGlow({ renderer, scene, camera, stats, api }) {
   }
 
   function set(next, { manual = true } = {}) {
-    on = next;
+    on = next && !KILL.bloom;
     if (manual && next) { auto = true; lowFor = 0; }
     api.patchState({ bloom: on }, { capabilities: { bloom: auto } });
   }
@@ -91,7 +92,7 @@ export function createGlow({ renderer, scene, camera, stats, api }) {
     /** Render a frame (with or without glow). */
     render(dt) {
       // fps watchdog (stats.fps is measured over 0.5 s windows)
-      if (on) {
+      if (on && !preview) {
         lowFor = stats.fps > 0 && stats.fps < GLOW.lowFps ? lowFor + dt : 0;
         if (lowFor >= GLOW.lowSeconds) {
           auto = false;

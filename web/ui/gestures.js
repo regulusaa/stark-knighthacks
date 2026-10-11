@@ -37,7 +37,7 @@ export function create(el, { sensitivity = 1 } = {}) {
 
   function flush(time) {
     frame = 0;
-    if (destroyed) return;
+    if (destroyed || document.hidden) return;
     if (time - lastFlush < MIN_INTERVAL_MS) {
       schedule();
       return;
@@ -71,6 +71,7 @@ export function create(el, { sensitivity = 1 } = {}) {
   }
 
   function down(event) {
+    if (document.hidden) return;
     if (event.pointerType === 'mouse' && event.button !== 0) return;
     event.preventDefault();
     if (pointers.has(event.pointerId) || pointers.size >= 2) return;
@@ -103,6 +104,23 @@ export function create(el, { sensitivity = 1 } = {}) {
   }
 
   function block(event) { event.preventDefault(); }
+  function cancel() {
+    cancelAnimationFrame(frame); frame = 0;
+    orbitX = orbitY = zoom = 0;
+    for (const id of [...pointers.keys()]) {
+      pointers.delete(id);
+      if (el.hasPointerCapture?.(id)) el.releasePointerCapture(id);
+    }
+  }
+  function visibility() { if (document.hidden) cancel(); }
+  let landscape = innerWidth > innerHeight;
+  function resize() {
+    const next = innerWidth > innerHeight;
+    if (next !== landscape) { landscape = next; cancel(); }
+  }
+  document.addEventListener('visibilitychange', visibility);
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', cancel);
   function subscribe(set, listener) {
     if (typeof listener !== 'function') throw new TypeError('listener must be a function');
     set.add(listener);
@@ -129,6 +147,9 @@ export function create(el, { sensitivity = 1 } = {}) {
       pointers.clear();
       orbitListeners.clear();
       zoomListeners.clear();
+      document.removeEventListener('visibilitychange', visibility);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('orientationchange', cancel);
       el.removeEventListener('pointerdown', down);
       el.removeEventListener('pointermove', move);
       el.removeEventListener('pointerup', up);

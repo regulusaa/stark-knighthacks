@@ -15,44 +15,46 @@ import { INFERNO_GLSL, infernoTexture } from './inferno.js';
 import { ANATOMY, STEM_BOTTOM_Y } from './brainShape.js';
 
 export const TISSUE = {
-  color: 0x74345f,           // dark plum crowns (sRGB); sulci are darkened by the baked cavity colours
+  color: 0x777777,           // neutral tissue crowns (sRGB); sulci are darkened by the baked cavity colours
   roughness: 0.62,
   sheen: 0.6,
-  sheenColor: 0xb89ad8,      // lavender bounce at grazing angles
+  sheenColor: 0xaaaaaa,      // neutral bounce at grazing angles
   sheenRoughness: 0.42,
   clearcoat: 0.1,            // a thin wet layer: satin highlights on the gyrus crowns
   clearcoatRoughness: 0.5,
   glowRadius: 0.55,          // under-cortex path glow falloff (world units)
-  glowStrength: 0.9,
-  alphaFace: 0.4,            // opacity where the surface faces the camera …
-  alphaEdge: 0.92,           // … and at the silhouette
+  glowStrength: 0.12,
+  alphaFace: 0.18,            // opacity where the surface faces the camera …
+  alphaEdge: 0.58,           // … and at the silhouette
   alphaPower: 1.5,
   order: 10,                 // renderOrder of the depth pass (the colour pass is order + 1)
 };
 
 /** Tissue geometry from the worker (or built here if workers are unavailable). */
-async function loadGeometryArrays() {
+async function loadGeometryArrays(options) {
+  let worker, timer;
   try {
-    const worker = new Worker(new URL('./brainTissueWorker.js', import.meta.url), { type: 'module' });
-    const arrays = await new Promise((resolve, reject) => {
+    worker = new Worker(new URL('./brainTissueWorker.js', import.meta.url), { type: 'module' });
+    return await new Promise((resolve, reject) => {
+      timer = setTimeout(() => reject(new Error('Tissue worker did not respond')), 12000);
       worker.onmessage = (e) => resolve(e.data);
-      worker.onerror = (e) => reject(e);
-      worker.postMessage('build');
+      worker.onerror = (e) => reject(new Error(e.message || 'Tissue worker failed'));
+      worker.onmessageerror = () => reject(new Error('Tissue geometry could not be transferred'));
+      worker.postMessage(options);
     });
-    worker.terminate();
-    return arrays;
   } catch (err) {
     console.warn('[stark] tissue worker failed; building on the main thread', err?.message ?? err);
     const { buildTissueArrays } = await import('./brainTissueBuild.js');
-    return buildTissueArrays();
-  }
+    return buildTissueArrays(options);
+  } finally { clearTimeout(timer); worker?.terminate(); }
 }
 
 // ---------------------------------------------------------------------------------------------------- material
 const MAX_PATH = 48;
 
-export async function createTissue() {
-  const g = await loadGeometryArrays();
+export async function createTissue({ preview = false } = {}) {
+  const g = await loadGeometryArrays({ spacingScale: preview ? 1.7 : 1 });
+  for (let i = 0; i < g.color.length; i += 3) { const k = (g.color[i] + g.color[i + 1] + g.color[i + 2]) / 3; g.color[i] = g.color[i + 1] = g.color[i + 2] = k; }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(g.position, 3));
   geometry.setAttribute('normal', new THREE.BufferAttribute(g.normal, 3));
@@ -149,6 +151,20 @@ diffuseColor.a = tAlpha * smoothstep(uFadeY.x, uFadeY.y, vTissueY) * uDimK;
   mesh.add(depthPass);
   console.info(`[stark] brain tissue: ${g.vertices} vertices, built in ${g.ms.toFixed(0)} ms`);
 
+  const parts = {};
+  for (const name of ['brain', 'stem']) {
+    const ranges = g.ranges.filter(r => r.name === name);
+    const start = ranges[0].start, count = ranges.reduce((n,r) => n+r.count,0);
+    const geo = new THREE.BufferGeometry();
+    for (const [key, attr] of Object.entries(geometry.attributes)) geo.setAttribute(key, attr);
+    geo.setIndex(new THREE.BufferAttribute(g.index.slice(start, start+count), 1));
+    const box = new THREE.Box3(), v = new THREE.Vector3();
+    for (let i = 0; i < geo.index.count; i++) box.expandByPoint(v.fromBufferAttribute(geo.attributes.position, geo.index.getX(i)));
+    geo.boundingBox = box; geo.boundingSphere = box.getBoundingSphere(new THREE.Sphere());
+    const m = new THREE.Mesh(geo, material); m.name = name; m.renderOrder = TISSUE.order + 1;
+    const depth = new THREE.Mesh(geo, depthPass.material); depth.renderOrder = TISSUE.order; m.add(depth);
+    parts[name] = m;
+  }
   const setPts = (arr, pts) => {
     const n = Math.min(MAX_PATH, pts?.length ?? 0);
     for (let i = 0; i < n; i++) arr[i].copy(pts[i]);
@@ -156,6 +172,7 @@ diffuseColor.a = tAlpha * smoothstep(uFadeY.x, uFadeY.y, vTissueY) * uDimK;
   };
   return {
     mesh,
+    parts,
     material,
     buildMs: g.ms,
     /** Points (brain-root space) along the top-1 path, stem → leaf; null clears. */
@@ -172,13 +189,13 @@ diffuseColor.a = tAlpha * smoothstep(uFadeY.x, uFadeY.y, vTissueY) * uDimK;
 /** Soft directional light for the tissue (only the tissue is lit; everything else is self-coloured). */
 export function createTissueLights(target) {
   const group = new THREE.Group();
-  const key = new THREE.DirectionalLight(0xffe9dc, 2.9);          // warm key, upper front-left of the view
+  const key = new THREE.DirectionalLight(0xffffff, 3.1);          // key, upper front-left of the view
   key.position.set(-8, 16, 12);
-  const rim = new THREE.DirectionalLight(0xa9b8ff, 1.6);          // cool rim from behind, for the silhouette
+  const rim = new THREE.DirectionalLight(0xffffff, 1.6);          // rim from behind, for the silhouette
   rim.position.set(6, 9, -12);
-  const under = new THREE.DirectionalLight(0x9b86d6, 0.7);        // lavender bounce on the undersides
+  const under = new THREE.DirectionalLight(0xffffff, 0.6);        // soft bounce on the undersides
   under.position.set(2, -8, 6);
-  const fill = new THREE.HemisphereLight(0x9d8cc0, 0x2a0f24, 0.42);
+  const fill = new THREE.HemisphereLight(0xffffff, 0x111111, 0.65);
   for (const l of [key, rim, under]) { l.target.position.copy(target); group.add(l, l.target); }
   group.add(fill);
   return group;

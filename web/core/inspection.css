@@ -1,0 +1,17 @@
+html,body{background:#050505!important;color:#fff}
+.inspection-overlay{position:fixed;inset:0;pointer-events:none;z-index:15;font:14px/1.4 system-ui,sans-serif;color:#fff}
+.part-handle{position:absolute;transform:translate(-50%,-50%);width:48px;height:48px;border:1px solid #ffffffa0;border-radius:50%;background:#05050590;color:#fff;font:24px system-ui;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;cursor:move;-webkit-touch-callout:none}
+.part-handle:active{background:#ffffff22;border-color:#fff}.part-handle:focus-visible{outline:2px solid #fff;outline-offset:4px}
+.activity-note{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);margin:0;padding:6px 10px;background:#050505b0;text-align:center;font-size:16px;pointer-events:none}
+.inspection-toolbar{position:fixed;z-index:16;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:1px;border:1px solid #ffffff65;background:#050505d9;padding:4px;font:15px system-ui,sans-serif}
+.inspection-toolbar button{min-height:48px;min-width:58px;padding:8px 16px;background:transparent;border:1px solid transparent;color:#fff;font:inherit;cursor:pointer;touch-action:manipulation}
+.inspection-toolbar button[aria-pressed=true]{border-color:#fff;background:#fff1}.inspection-toolbar span{width:1px;background:#fff5;margin:8px}
+.inspection-toolbar button:active{background:#fff2}.inspection-toolbar button:focus-visible{outline:1px solid #fff}
+[hidden]{display:none!important}body.preview #hud,body.preview .inspection-toolbar{display:none!important}body.preview .activity-note{font-size:12px;bottom:12px;width:calc(100% - 16px)}
+.stark-hud,.stark-hud *{color:#fff!important;text-shadow:none!important}.stark-hud .hud-focus,.stark-hud .hud-mode,.stark-hud .hud-moment{background:#090909dd!important;border-color:#ffffff55!important}
+@media(max-width:650px){.inspection-toolbar{bottom:12px;max-width:calc(100% - 16px);gap:0;flex-wrap:wrap;justify-content:center}.inspection-toolbar button{padding:8px;min-width:48px;font-size:13px}.activity-note{bottom:132px;font-size:13px}}
+
+.display-startup{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;background:#050505;color:#fff;text-align:center;font:18px/1.5 system-ui,sans-serif}
+.display-startup h1{margin:0;font-size:28px;font-weight:450}.display-startup p{margin:0;max-width:440px;opacity:.7}.display-startup button{min-height:48px;padding:12px 24px;border:1px solid #fff8;background:#151515;color:#fff;font:inherit}
+
+@media(max-width:300px){body.preview .activity-note{display:none!important}}

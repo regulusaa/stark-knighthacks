@@ -35,7 +35,7 @@ function softDisc() {
   return haloTexture;
 }
 
-export function createStability({ api, veins, tips, labels, tissue, trunk }) {
+export function createStability({ api, veins, tips, labels, tissue, trunk, remote = false }) {
   let mc = null;            // mc.json of the current image (null if it has none)
   let mcFor = null;         // image id mc belongs to
   let play = null;          // {t, run} while playing
@@ -44,6 +44,26 @@ export function createStability({ api, veins, tips, labels, tissue, trunk }) {
   let leafOf = new Map();   // classId → leaf node id in the Brain
   let otherLeaf = null;
   let clean = null;         // clean top-1 Answer
+
+  // BUGS #3: the first halo draw (an additive sprite with its own texture) made the GPU build its pipeline mid-run, a
+  // visible hitch on the first play only. Draw one invisible halo for a few frames when an image with stability data
+  // loads, so that happens before anyone presses Stability. Kept (never disposed), hidden after warming.
+  let warm = null;
+  function warmHalo() {
+    if (!warm) {
+      warm = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: softDisc(), color: STABILITY.haloColor, transparent: true, depthWrite: false, fog: false,
+        blending: THREE.AdditiveBlending, opacity: 0,
+      }));
+      warm.scale.setScalar(STABILITY.haloSize);
+      warm.renderOrder = STABILITY.haloOrder;
+      warm.frustumCulled = false;
+    }
+    if (warm.parent !== tips.group) tips.group.add(warm);
+    warm.position.copy(tips.list[0]?.mesh.position ?? warm.position);
+    warm.visible = true;
+    warm.frames = 4;
+  }
 
   function clearHalos() {
     for (const h of halos.values()) { h.parent?.remove(h); h.material.dispose(); }
@@ -165,6 +185,8 @@ export function createStability({ api, veins, tips, labels, tissue, trunk }) {
     }
     clean = api.state?.top1 ?? null;
     if (!a?.entry.files?.stability || a.tree?.scoreKind === 'independent') return;
+    warmHalo();
+    if (remote) return;
     try {
       const res = await fetch(`${a.base}mc.json`, { cache: 'no-cache' });
       const json = await res.json();
@@ -178,16 +200,29 @@ export function createStability({ api, veins, tips, labels, tissue, trunk }) {
     }
   });
   api.onMode(({ from, to }) => {
+    if (remote) return;
     if (to === 'stability') start();
     else if (from === 'stability') stop();
   });
-  api.onStabilityReplay(() => { if (api.state?.mode === 'stability') start(); });
+  api.onStabilityReplay(() => { if (!remote && api.state?.mode === 'stability') start(); });
 
   return {
+    applyRemote(state) {
+      if (!remote) return;
+      if (!state?.active) { if(halos.size)clearHalos();counts=new Map();return; }
+      mc = { runs: state.runs };
+      const next = new Map((state.winners ?? []).map(w => [w.classId, w.count]));
+      if ([...counts].some(([id, count]) => (next.get(id) ?? 0) < count)) clearHalos();
+      counts = next;
+      for(const id of counts.keys())setHalo(id);
+    },
     get playing() { return Boolean(play); },
+    /** mc.json of the current image is loaded (stability mode can start). */
+    get ready() { return Boolean(mc && mcFor === api.state?.image.id); },
     get counts() { return counts; },
     /** Once per frame, after Steer has applied (so a steering reset can't overwrite a run). */
     update(dt) {
+      if (warm?.visible && --warm.frames <= 0) warm.visible = false;
       if (!play) return;
       play.t += dt * 1000;
       const step = STABILITY.runMs / Math.max(0.25, trunk.state.speed || 1);

@@ -327,7 +327,8 @@ An `Answer`, or `null`. The display emits it after each `focus-tip` / `clear-foc
   "source": "slider",                 // slider | code | null (nothing applied)
   "scales": [ { "channel": 87, "scale": 0 }, { "channel": 1187, "scale": 2 } ],  // only scale ≠ 1, sorted by channel
   "code": "channel[87] = 0\nchannel[1187] = 2",   // canonical program for the current scales (steer-dsl format()); null if none
-  "sets": {                           // 5 channels each, from the UNSTEERED image, so slider rows never reorder
+  "sets": {                           // 5 channels each, from the UNSTEERED image, so slider rows never reorder;
+                                      // (CC-10) top1 leads with steer.json's flip set when its n ≤ 5, then top contributions
     "top1": { "classId": 207, "label": "golden retriever", "channels": [ { "channel": 1187, "contribution": 0.91 } ] },
     "top2": { "classId": 208, "label": "Labrador retriever", "channels": [ { "channel": 640, "contribution": 0.52 } ] }
   },
@@ -458,6 +459,9 @@ Every event payload is an object (or `null` for `focus-state`). Unknown extra fi
 | `GET /controller?room=CODE` | Guest controller | ui |
 | `GET /controller?room=CODE&role=host&key=KEY` | Host controller | ui |
 | `GET /api/qr.svg?room=CODE` | SVG QR code of the guest URL `<origin>/controller?room=CODE`. The server builds the URL from `STARK_PUBLIC_URL` if set, otherwise from the request origin. 404 + `{code:"NO_ROOM"}` for an unknown room. | server |
+| `GET /api/room` | (CC-10) `{fixedRoom, display}`: the fixed room's code (or null) and whether a display is in it. For `tools/preflight.mjs`. | server |
+| `GET /api/restore` | (CC-10) `{imageId, mode, layerMode, bloom}` from the fixed room's last display-state, or null. A reloaded display comes back to it (display recovery); steering is not restored. | server |
+| `GET /api/perf`, `POST /api/perf` | (CC-10) `{enabled}`; with `STARK_PERF=1` the display posts a perf summary every 5 s, appended to `logs/perf-<start>.jsonl`. | server |
 | `GET /health` | `200 ok` (text/plain) | server |
 | `/assets/*` | `web/public/assets/` | pipeline output |
 | `/core/*`, `/ui/*` | `web/core/`, `web/ui/` | core, ui |
@@ -529,3 +533,15 @@ INT    0–2047        N   1–20        NUMBER  decimal ≥ 0 (0, 0.5, .5, 2, 2
     channel[87, 311, 1402] = 0
     channel[12] = 2
     ```
+
+### Component inspection extension (Ray's brain redesign)
+
+Existing v1–v3 events and field names are unchanged. `capabilities.inspection` enables shared component controls.
+`scene-action` is sent by the host or current driver, limited to 30/s. Payloads have a strictly increasing per-session `seq` plus one of:
+
+- `{action:"select"|"inspect", part:"brain"|"stem"|"all"}`
+- `{action:"split"|"join"|"center"}`
+- `{action:"move", part:"brain"|"stem", position:[x,y,z]}` (absolute offset, finite, bounded to ±16)
+
+The relay validates the action and adds `from` with the sender's client ID. The display drops stale sequences per sender.
+Optional `display-state.scene` contains version 1 visual state: selected part, arrangement, target/live offsets, camera pose and aspect-adjusted fit reference, displayed node values, lit leaf/class, reveal/pulse progress, a bounded 28×28 live heatmap preview, image-panel caption, trunk top-layer values, and the last action's `{clientId,seq}` acknowledgment. The preview is a consumer of this state, never a registered display or independent inference engine. Disconnect/permission loss cancels unsent edits.

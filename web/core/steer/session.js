@@ -26,6 +26,20 @@ async function defaultFetchJson(url) {
 
 const slotError = (message) => ({ line: 1, col: 1, message });
 
+/**
+ * Slider rows for class k: its top channels by contribution, except that the top-1's rows lead with the image's flip
+ * set (steer.json, the smallest set whose zeroing changes the answer) when it fits, so the flip is reachable from
+ * the phone (BUGS #1: on the wolf, channel 252 of the flip set was not among the top-5 by contribution).
+ */
+function rowsFor(engine, k, flip) {
+  const top = engine.topChannels(k, 64);
+  if (!flip?.channels?.length || flip.from !== k || flip.channels.length > SESSION.setSize) return top.slice(0, SESSION.setSize);
+  const v = engine.contributions(k);
+  const rows = flip.channels.map((c) => ({ channel: c, contribution: v[c] }));
+  for (const r of top) { if (rows.length >= SESSION.setSize) break; if (!flip.channels.includes(r.channel)) rows.push(r); }
+  return rows;
+}
+
 /** Validate a slider set again on the display: → {ok, scales: Map} | {ok:false, error}. */
 export function validateSet(set) {
   if (!Array.isArray(set)) return { ok: false, error: slotError('set must be a list of {channel, scale}') };
@@ -243,7 +257,7 @@ export function createSteerSession({ fetchBytes = defaultFetchBytes, fetchJson =
         const tree = assets.tree;
         const pngs = new Set((assets.gradcam?.classes ?? []).filter((c) => c.hasHeatmap).map((c) => c.classId));
         const [k1, k2] = [tree.topK[0].classId, tree.topK[1].classId];
-        const set = (k) => ({ classId: k, label: core.labels[k], channels: core.engine.topChannels(k, SESSION.setSize) });
+        const set = (k) => ({ classId: k, label: core.labels[k], channels: rowsFor(core.engine, k, steerJson?.flip) });
         img = {
           id: entry.id, tree, entry, pngs, flip: steerJson?.flip ?? null,
           trueId: tree.trueClass?.classId ?? null,

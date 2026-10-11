@@ -10,7 +10,11 @@
   "scripts": {
     "start": "node server/index.js",
     "smoke": "node server/smoke.mjs",
-    "shot": "node tools/shot.mjs"
+    "shot": "node tools/shot.mjs",
+    "rehearse": "node tools/rehearse.mjs",
+    "preflight": "node tools/preflight.mjs",
+    "demo": "node tools/demo.mjs",
+    "perftour": "node tools/perftour.mjs"
   },
   "dependencies": {
     "express": "^4.22.3",
