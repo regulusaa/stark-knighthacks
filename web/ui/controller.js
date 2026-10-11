@@ -436,8 +436,13 @@ function requestSceneAction(action) {
     queuedScene = action; takeControl(); return false;
   }
   claimHostControl();
-  const payload = { ...action, seq: ++sceneSeq };
-  return transport.emit(EVENTS.SCENE_ACTION,payload) ? payload : false;
+  let last = false;
+  for (const item of Array.isArray(action) ? action : [action]) {
+    const payload = { ...item, seq: ++sceneSeq };
+    if (!transport.emit(EVENTS.SCENE_ACTION,payload)) return false;
+    last = payload;
+  }
+  return last;
 }
 sceneController = createSceneController({ pane: document.getElementById('scene-pane'), controls: document.getElementById('inspection-controls'), onAction: requestSceneAction, notify: showNotice });
 // The result anchors the settings pane; component controls follow it on every device.

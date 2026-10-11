@@ -8,6 +8,8 @@ Updated `workspace.verify.mjs` and `inspection.verify.mjs` pass: no renderer dow
 
 New captures: `.shots/controller-pad-{390x844,1180x820,2560x1440}.png` via `npm run shot`; `.shots/controller-mode-explanations-1180x820.png`. Logs: `.shots/controller-layout-verification.log`, `.shots/controller-part-controls.log`, `.shots/controller-display-regression.log`.
 
+Double-click/double-tap on Brain or Stem now moves only that part away, keeps it selected and frames both parts. Existing `move`, `select`, and `center` events are sent in order after permission is confirmed. Single taps still focus. Join together restores both offsets. Chromium mouse/touch and WebKit touch checks cover permissions, early taps before the control acknowledgment, and immediate separation after joining. Evidence: `.shots/double-tap-verification.log`, `.shots/double-tap-{390x844,1180x820,2560x1440}.png` and `.shots/display-separated-stem-1920x1080.png`.
+
 The notes below about the embedded preview describe the prior version. The display's geometry, saved activity values and Glow are unchanged by this UI-only correction. Physical-device confirmation of the revised layout remains pending.
 
 ## Changes

@@ -1,5 +1,5 @@
 // Current controller: no embedded display, persistent SVG focus buttons and a large pad.
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 import assert from 'node:assert/strict';
 const base=process.env.BASE??'http://localhost:3004';
 const browser=await chromium.launch({args:['--use-angle=metal','--enable-gpu','--ignore-gpu-blocklist']});
@@ -10,7 +10,7 @@ try{
  await d.waitForFunction(()=>window.__starkReady&&window.__stark.relay?.room,null,{timeout:45000});
  const room=await d.evaluate(()=>window.__stark.relay.room);
  await d.evaluate(()=>{window.__partEvents=[];window.__stark.relay.socket.on('scene-action',p=>window.__partEvents.push(p));});
- const h=await browser.newPage({viewport:{width:1180,height:820}});watch(h);
+ const h=await browser.newPage({viewport:{width:1180,height:820},hasTouch:true});watch(h);
  await h.goto(`${base}/controller?room=${room}&role=host&key=test`);await h.waitForFunction(()=>window.__inspectionControllerReady);
  assert.equal(await h.locator('iframe,canvas').count(),0);
  for(const part of ['brain','stem','all']){
@@ -22,9 +22,52 @@ try{
  assert.deepEqual(events.map(p=>[p.action,p.part]),[['inspect','brain'],['inspect','stem'],['inspect','all']]);
  assert.ok(events.every((p,i)=>i===0||p.seq>events[i-1].seq));
  console.log('persistent SVG buttons: exactly one inspect event per tap, confirmed highlight, increasing seq');
+ const partOffsets=()=>d.evaluate(()=>window.__stark.inspection.snapshot().offsets);
+ const joined=await partOffsets();
+ await h.locator('#scene-pane [data-part="brain"]').dblclick();
+ await d.waitForFunction(()=>Math.hypot(...window.__stark.api.state.scene.offsets.brain)>8);
+ assert.deepEqual((await partOffsets()).stem,joined.stem);
+ assert.equal(await d.evaluate(()=>window.__stark.api.state.scene.selected),'brain');
+ assert.equal(await d.evaluate(()=>window.__stark.api.state.scene.view),'all');
+ let added=await d.evaluate(()=>window.__partEvents.slice(3));
+ assert.deepEqual(added.map(p=>p.action),['inspect','move','select','center']);
+ assert.equal(added[1].part,'brain');
  await h.locator('[data-workspace="usage"]').click();
- await h.locator('[data-arrange]').click();await d.waitForFunction(()=>window.__stark.inspection.arrangement==='split');
  await h.locator('[data-arrange]').click();await d.waitForFunction(()=>window.__stark.inspection.arrangement==='joined');
+ const countBeforeTouch=await d.evaluate(()=>window.__partEvents.length);
+ await h.locator('#scene-pane [data-part="stem"]').tap();
+ await h.locator('#scene-pane [data-part="stem"]').tap();
+ await d.waitForFunction(()=>Math.hypot(...window.__stark.api.state.scene.offsets.stem)>8);
+ assert.deepEqual((await partOffsets()).brain,joined.brain);
+ assert.equal(await d.evaluate(()=>window.__stark.api.state.scene.selected),'stem');
+ added=await d.evaluate(n=>window.__partEvents.slice(n),countBeforeTouch);
+ assert.deepEqual(added.map(p=>p.action),['inspect','move','select','center']);
+ assert.equal(added[1].part,'stem');
+ assert.ok(added.every((p,i)=>i===0||p.seq>added[i-1].seq));
+ assert.equal(await h.evaluate(()=>visualViewport.scale),1);
+ await d.waitForFunction(()=>{
+  const s=window.__stark.inspection.snapshot();
+  return ['brain','stem'].every(p=>s.positions[p].every((n,i)=>Math.abs(n-s.offsets[p][i])<.03));
+ });
+ await h.screenshot({path:'web/ui/.shots/controller-double-tap-stem-1180x820.png'});
+ await d.screenshot({path:'web/ui/.shots/display-separated-stem-1920x1080.png'});
+ await h.locator('[data-arrange]').click();await d.waitForFunction(()=>window.__stark.inspection.arrangement==='joined');
+ console.log('mouse double-click Brain and touch double-tap Stem move only that part; exact ordered events, no page zoom; Join restores both');
+ const safari=await webkit.launch();
+ try {
+  const w=await safari.newPage({viewport:{width:844,height:390},hasTouch:true});watch(w);
+  await w.goto(`${base}/controller?room=${room}&role=host&key=test`);await w.waitForFunction(()=>window.__inspectionControllerReady);
+  await w.locator('#scene-pane [data-part="brain"]').tap();
+  await w.locator('#scene-pane [data-part="brain"]').tap();
+  await d.waitForFunction(()=>Math.hypot(...window.__stark.api.state.scene.offsets.brain)>8);
+  assert.equal(await w.evaluate(()=>visualViewport.scale),1);
+  await w.locator('[data-workspace="usage"]').click();await w.locator('[data-arrange]').click();
+  await d.waitForFunction(()=>window.__stark.inspection.arrangement==='joined');
+  console.log('WebKit double-tap separates Brain without page zoom');
+ } finally {await safari.close();}
+ await h.locator('[data-workspace="usage"]').click();
+ await h.locator('[data-arrange]').filter({hasText:'Split up'}).click();await d.waitForFunction(()=>window.__stark.inspection.arrangement==='split');
+ await h.locator('[data-arrange]').filter({hasText:'Join together'}).click();await d.waitForFunction(()=>window.__stark.inspection.arrangement==='joined');
  await d.evaluate(()=>window.__stark.api.loadImage('ambig_cat'));
  await h.waitForFunction(()=>document.getElementById('image-name').textContent==='Tabby cat');
  await h.locator('[data-mode="stability"]').waitFor({state:'visible'});
@@ -47,15 +90,30 @@ try{
  const g=await browser.newPage({viewport:{width:844,height:390},hasTouch:true});watch(g);
  await g.goto(`${base}/controller?room=${room}`);await g.waitForSelector('#app[data-state="guest-viewing"]');
  const count=await d.evaluate(()=>window.__partEvents.length);
- await g.locator('#scene-pane [data-part="stem"]').click();
+ await g.locator('#scene-pane [data-part="stem"]').dblclick();
  assert.match(await g.locator('#notice').innerText(),/is driving/);
  assert.equal(await d.evaluate(()=>window.__partEvents.length),count);
  await h.close();
  await g.waitForFunction(()=>document.getElementById('driver-label').textContent.includes('Ready'));
- await g.locator('#scene-pane [data-part="stem"]').click();
+ // Both clicks occur before any network driver confirmation can arrive.
+ await g.evaluate(()=>{
+  const button=document.querySelector('#scene-pane [data-part="stem"]');
+  for(const detail of [1,2])button.dispatchEvent(new MouseEvent('click',{bubbles:true,detail}));
+ });
  await g.waitForSelector('#app[data-state="guest-driving"]');await d.waitForFunction(()=>window.__stark.api.state.scene.selected==='stem');
- assert.equal(await d.evaluate(()=>window.__partEvents.length),count+1);
- console.log('viewer emits nothing while locked; unclaimed part tap takes control then focuses once');
+ await d.waitForFunction(()=>Math.hypot(...window.__stark.api.state.scene.offsets.stem)>8);
+ const queuedEvents=await d.evaluate(n=>window.__partEvents.slice(n),count);
+ assert.deepEqual(queuedEvents.map(p=>p.action),['move','select','center']);
+ assert.ok(queuedEvents.every((p,i)=>i===0||p.seq>queuedEvents[i-1].seq));
+ console.log('unclaimed double-tap queues the whole operation until control is confirmed, exactly once');
+ await g.locator('[data-workspace="usage"]').click();
+ await g.locator('[data-arrange]').filter({hasText:'Join together'}).click();await d.waitForFunction(()=>window.__stark.inspection.arrangement==='joined');
+ const beforeGuestBrain=await partOffsets();
+ await g.locator('#scene-pane [data-part="brain"]').tap();
+ await g.locator('#scene-pane [data-part="brain"]').tap();
+ await d.waitForFunction(()=>Math.hypot(...window.__stark.api.state.scene.offsets.brain)>8);
+ assert.deepEqual((await partOffsets()).stem,beforeGuestBrain.stem);
+ console.log('guest driver double-tap separates Brain; locked viewer double-click emits nothing');
  const b=await g.locator('#trackpad').boundingBox(),before=await d.evaluate(()=>window.__stark.rig.state.spherical.theta);
  await g.mouse.move(b.x+b.width*.35,b.y+b.height*.5);await g.mouse.down();await g.mouse.move(b.x+b.width*.65,b.y+b.height*.6,{steps:10});await g.mouse.up();
  await d.waitForFunction(t=>Math.abs(window.__stark.rig.state.spherical.theta-t)>.1,before);
