@@ -34,8 +34,8 @@ Live box: https://64-177-50-154.sslip.io, on main d0e56d5 (deployed by Codex 202
 | Preload of every demo file + head.bin (125 files, 12.9 MB) | WORKS | rehearse "display preload"; 0.2 s local, 15–17 s over the iPhone hotspot to Vultr |
 | Kill switches `?nosteer ?nostability ?nomedical ?nointerior ?nobloom ?reduced ?pr=` | WORKS | `flags.js`; FREEZE.md |
 | Display recovery after a reload (fixed room) | WORKS | `rehearse --reload`: restored in 1.4–1.5 s, controllers keep their sockets; trunk + reduced survives |
-| `npm run rehearse` | WORKS | 3× local 20–32 s; Vultr pending the deploy (old build: stability select > 1 s without preload) |
-| `npm run preflight` | WORKS | local 0.2 s, Vultr 15.7 s |
+| `npm run rehearse` | WORKS | 3× local 20–32 s; Vultr new build 2/3 (the miss was a cellular hiccup), 42–68 s |
+| `npm run preflight` | WORKS | local 0.2 s, Vultr 14.5 s |
 | `npm run demo` (hotspot fallback) | WORKS | rehearse --reload passes against http://172.20.10.14:3000 (this Mac on the iPhone hotspot) |
 | `?perf=1` + `STARK_PERF=1` + `npm run perftour` | WORKS | stand-in run: every mode p50 59.9, p95 ≥ 57 at 2560×1440 @1× |
 

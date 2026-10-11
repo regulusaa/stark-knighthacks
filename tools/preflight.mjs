@@ -53,7 +53,8 @@ if (url.protocol === 'https:') {
   }));
 } else row('TLS certificate', 'WARN', 'plain http (local fallback)');
 
-await check('assets: HEAD 200, right sizes', async () => {
+// the asset HEADs and the 8 MB head.bin download run side by side (cellular: ~15 s each)
+const assetsCheck = check('assets: HEAD 200, right sizes', async () => {
   const dir = join(ROOT, 'web/public/assets');
   const files = [];
   const walk = (d) => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) walk(p); else if (!f.startsWith('.')) files.push(p); } };
@@ -79,13 +80,15 @@ await check('assets: HEAD 200, right sizes', async () => {
   return `${files.length} files, ${(bytes / 1e6).toFixed(1)} MB`;
 });
 
-await check('head.bin sha256 = head.json', async () => {
+const headCheck = check('head.bin sha256 = head.json', async () => {
   const meta = await (await fetch(`${BASE}/assets/steer/head.json`)).json();
   const buf = Buffer.from(await (await timed(fetch(`${BASE}/assets/steer/head.bin`), 15000, 'head.bin')).arrayBuffer());
   const sha = createHash('sha256').update(buf).digest('hex');
   if (sha !== meta.sha256 || buf.length !== meta.bytes) throw new Error(`sha ${sha.slice(0, 12)}… (${buf.length} bytes), want ${meta.sha256.slice(0, 12)}… (${meta.bytes})`);
   return `${sha.slice(0, 12)}…, ${buf.length} bytes`;
 });
+
+await Promise.all([assetsCheck, headCheck]);
 
 let room = roomArg;
 let displayOn = null;
