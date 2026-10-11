@@ -2,7 +2,7 @@
 // tips, labels, tissue glow) and the image panel. main.js creates it after the Brain's own image-loaded handler, so
 // the Brain is rebuilt for a new image before Steer starts moving it.
 import { createSteerSession } from './session.js';
-import { DEFAULTS } from '../../../contract/contract.js';
+import { DEFAULTS, STEER_MOMENT_MS } from '../../../contract/contract.js';
 
 export const LINK = {
   glowFadeMs: 300,        // the tissue glow above the lit path fades out and back in on the new path
@@ -19,6 +19,8 @@ export function linkSteer({ api, panel, veins, tips, labels, tissue }) {
   let glow = null;          // {t, swapped, pts} while the tissue glow moves to a new path
   let glowK = 1;
   let steeringShown = false; // the panel is showing a Steer map (live CAM or probe)
+  let shownTop1 = null;      // the top answer the Brain shows (null until this image's first result)
+  let momentTimer = null;
 
   function showLive(classId, instant = false) {
     const m = session.cam(classId, heat);
@@ -75,7 +77,16 @@ export function linkSteer({ api, panel, veins, tips, labels, tissue }) {
   session.on('result', (st) => api.publishSteer(st));
 
   session.on('applied', (r) => {
+    // (v3) the Steer moment: steering (or its reset) changed the top answer
+    const changed = Boolean(shownTop1 && r.top1.classId !== shownTop1.classId && api.state?.capabilities.steer);
+    if (changed) {
+      clearTimeout(momentTimer);
+      api.patchState({ steerMoment: { from: shownTop1, to: r.top1, at: Date.now() } });
+      momentTimer = setTimeout(() => api.patchState({ steerMoment: null }), STEER_MOMENT_MS);
+    }
+    shownTop1 = r.top1;
     veins.setValues(r.values, r.litLeaf);
+    if (changed) veins.pulseLitPath();   // down the new lit path
     tips.setScores((k) => r.probs[k], r.outsideBrain ? null : r.top1.classId);
     labels.setTop1(r.outsideBrain ? null : r.top1.classId);
     api.applySteer(r);
@@ -98,6 +109,8 @@ export function linkSteer({ api, panel, veins, tips, labels, tissue }) {
   api.onFocus(() => { if (session.state?.active) refreshHeat(); });
 
   api.onImageLoaded(() => {
+    shownTop1 = null;
+    clearTimeout(momentTimer);
     litLeaf = null;
     glow = null;
     glowK = 1;

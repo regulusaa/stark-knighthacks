@@ -33,6 +33,8 @@ export const VEINS = {
   hiddenOrder: 12,             // after the tissue (brainTissue.js TISSUE.order), against its depth
   pickPx: 9,                   // a click this close (CSS px) to a tract selects it
   pickSamples: 24,
+  momentMs: 600,               // (v3) the Steer moment: one bright pulse down the new lit path, root → tip
+  momentWidth: 0.12,           // … as a fraction of the path
 };
 
 const vertexShader = /* glsl */ `
@@ -100,6 +102,8 @@ uniform float uLivePeriod;
 uniform float uHidden;        // 0: normal pass; 1: the pass behind tissue
 uniform float uHiddenPath;
 uniform float uHiddenOther;
+uniform float uMoment;        // (v3) Steer moment pulse head along the lit path (fraction); -1 = none
+uniform float uMomentWidth;
 uniform vec3 uKeyLight;
 uniform vec3 uSpecular;
 uniform float uShininess;
@@ -153,6 +157,11 @@ void main() {
     float band = 1.0 - smoothstep(0.0, uHiWidth * 0.5, abs(s - head));
     col += inferno(uColorCeil) * band * lit * onPath * (0.6 + 0.6 * rim);
   }
+  // the Steer moment: one bright pulse down the new lit path (root → tip)
+  if (uMoment > -0.5 && onPath > 0.0) {
+    float m = 1.0 - smoothstep(0.0, uMomentWidth, abs(vS / uPathLen - uMoment));
+    col += inferno(uColorCeil) * m * onPath * 1.6;
+  }
   // living pulse: softer, slower, leaf → root, on every lit vein
   float headD = (1.0 - fract(uTime / uLivePeriod)) * (uMaxDist + 1.0);
   float live = exp(-pow((vS - headD) / 0.45, 2.0));
@@ -175,6 +184,8 @@ export function createBrainMesh() {
     uDim: { value: VEINS.dim },
     uColorFloor: { value: VEINS.colorFloor },
     uColorCeil: { value: VEINS.colorCeil },
+    uMoment: { value: -1 },
+    uMomentWidth: { value: VEINS.momentWidth },
     uPathLen: { value: 1 },
     uMaxDist: { value: 1 },
     uHiPeriod: { value: VEINS.highlightPeriod },
@@ -206,6 +217,7 @@ export function createBrainMesh() {
   let reveal = null;    // {t, ms} while animating
   let litFade = null;   // {t} while the lit path crossfades
   let litLeaf = null;   // node id of the lit (top-1) leaf
+  let moment = null;    // {t} while the Steer moment pulse runs
   let moving = false;   // any spring not yet at rest
 
   function dispose() {
@@ -296,6 +308,8 @@ export function createBrainMesh() {
         litFade = { t: 0, ms: Math.max(1, fadeMs) };
       }
     },
+    /** (v3) The Steer moment: one bright pulse travels down the lit path from root to tip. */
+    pulseLitPath() { moment = { t: 0 }; },
     /** Only move the lit path (stability playback: a quick crossfade, values untouched). */
     setLit(leafId, fadeMs) { this.setValues(new Map(), leafId, fadeMs); },
     /** Back to the values the Brain was built with (no Steer). */
@@ -415,6 +429,13 @@ export function createBrainMesh() {
         if (k >= 1) litFade = null;
       }
       for (const m of meshes) writeLive(m);
+      if (moment) {
+        moment.t += dt * 1000;
+        // the head starts just before the root and leaves just past the tip, so the whole band is seen
+        const k = moment.t / VEINS.momentMs;
+        uniforms.uMoment.value = -VEINS.momentWidth + k * (1 + 2 * VEINS.momentWidth);
+        if (k >= 1) { moment = null; uniforms.uMoment.value = -1; }
+      }
       if (reveal) {
         reveal.t += dt * 1000;
         uniforms.uReveal.value = Math.min(1, reveal.t / reveal.ms);
