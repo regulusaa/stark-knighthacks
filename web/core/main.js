@@ -51,8 +51,6 @@ const panel = createImagePanel();
 const trunk = createTrunk();
 const brainAssembly = new THREE.Group(), stemAssembly = new THREE.Group();
 scene.add(panel.group, brainAssembly, stemAssembly); stemAssembly.add(trunk.mesh);
-panel.screenPinned = true;
-for (const child of panel.group.children) if (child.material) { child.material.depthTest = false; child.material.depthWrite = false; child.renderOrder = 40; }
 const rig = createCameraRig(camera);
 
 // The Brain lives in a pivot at its centre so the whole mass can breathe (scale) about that point.
@@ -103,7 +101,16 @@ if (!preview) attachInput(canvas, api, hud, steerKeys);
 
 const tissue = await tissueReady;
 brainRoot.add(tissue.parts.brain); stemAssembly.add(tissue.parts.stem);
-const inspection = createInspection({ brain: brainAssembly, stem: stemAssembly, tissue, fibers, rig, camera, preview });
+// the assessed image's world-space corners, so the 'all' view frames it beside the Brain
+// (photo, frame and caption: the whole group's world box)
+const panelBox = new THREE.Box3();
+function panelPoints() {
+  panel.group.updateWorldMatrix(true, true);
+  const b = panelBox.setFromObject(panel.group), out = [];
+  for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) out.push([x, y, z]);
+  return out;
+}
+const inspection = createInspection({ brain: brainAssembly, stem: stemAssembly, tissue, fibers, rig, camera, preview, extraPoints: panelPoints });
 api.attachInspection(inspection);
 const activity = createSignalActivity({ scene, camera, inspection, veins, labels });
 let previewContext = { driving: false, clientId: null }, localSeq = -1, latestRemote = null, remoteToken = 0;
@@ -113,7 +120,8 @@ const previewHeatPixels = preview ? new Uint8Array(224*224) : null;
 const input = mountInspectionInput({ canvas, camera, inspection, tissue, preview,
   onAction: p => { if (preview) parent.postMessage({type:'stark-scene-action',payload:p},location.origin); else api.sceneAction(p); } });
 
-// Fit the complete assembly independently of the camera-pinned source image.
+// The default view (normal, Reset, resize) fits the complete assembly and the assessed image beside it, which sits in
+// world space (imagePanel.js PANEL.position), so orbit and pinch show where it is relative to the Brain.
 let framing = null;
 function applyFraming() {
   if (!inspection) return;
@@ -203,7 +211,7 @@ setTimeout(() => { netSettled = true; }, 3000); // an unreachable relay must not
 const clock = new THREE.Clock();
 const frozenT = params.get('t') !== null ? Number(params.get('t')) : null;
 let animTime = 0, lastScenePublish = -Infinity, lastSceneJson = "";
-const stemDelta = new THREE.Vector3(), pinned = new THREE.Vector3();
+const stemDelta = new THREE.Vector3();
 const viewSize = new THREE.Vector2();
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.1); // a stalled tab must not teleport animations
@@ -240,14 +248,6 @@ function frame() {
   labels.update(camera, viewSize.x, viewSize.y, dt * 1000);
   const activityCount = activity.update(animTime, viewSize.x, viewSize.y);
   input.update(activityCount, activity.caption);
-  // Keep the source image secondary and fixed in a corner while the assembly stays centered.
-  const depth = 5, halfH = depth * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  const cropPx = preview ? Math.min(76, viewSize.x * .2) : Math.min(220, viewSize.x * .17);
-  const unit = halfH * 2 / viewSize.y, margin = preview ? 12 : 32;
-  pinned.set(-halfH * camera.aspect + (margin + cropPx/2)*unit,
-    -halfH + (margin + cropPx/2 + (preview?8:28))*unit, -depth).applyQuaternion(camera.quaternion).add(camera.position);
-  panel.setPlacement(pinned.toArray(), cropPx * unit / PANEL.size);
-  panel.group.quaternion.copy(camera.quaternion);
   if (preview && latestRemote?.scene?.interiorTop && interior.built) {
     const b = interior.built; b.valAttr.array.set(latestRemote.scene.interiorTop, b.topStart); b.valAttr.needsUpdate = true;
   }

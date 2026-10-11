@@ -88,7 +88,7 @@ export function createFocus({ api, rig, panel, tips, labels, highlight = () => {
       }
       current = classId;
       points.length = 0;
-      if (!panel.screenPinned) points.push(...panelCorners());
+      points.push(...panelCorners());   // the assessed image stays in the focused view, beside the Brain
       // pad the tip in the new view's screen axes, so its label (above it) also lands inside the frame
       const view = viewFor(tips.get(classId));
       back.setFromSphericalCoords(1, view.phi, view.theta);

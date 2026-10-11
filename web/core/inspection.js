@@ -18,7 +18,7 @@ function sample(mesh, max = 650) {
   for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z])out.push(new THREE.Vector3(x,y,z));
   return out;
 }
-export function createInspection({ brain, stem, tissue, fibers, rig, camera, preview = false }) {
+export function createInspection({ brain, stem, tissue, fibers, rig, camera, preview = false, extraPoints = null }) {
   const targets = { brain: new THREE.Vector3(), stem: new THREE.Vector3() };
   const groups = { brain, stem };
   const points = { brain: sample(tissue.parts.brain), stem: [...sample(tissue.parts.stem, 250), ...sample(fibers.mesh, 250)] };
@@ -34,6 +34,7 @@ export function createInspection({ brain, stem, tissue, fibers, rig, camera, pre
       const offset = goal ? targets[name] : groups[name].position;
       for (const p of points[name]) out.push([p.x + offset.x, p.y + offset.y, p.z + offset.z]);
     }
+    if (part === 'all' && extraPoints) out.push(...extraPoints());   // world-space extras (the assessed image)
     return out;
   }
   function fit(part = 'all', aspect = camera.aspect, direction = null, goal = true) {
@@ -42,9 +43,10 @@ export function createInspection({ brain, stem, tissue, fibers, rig, camera, pre
     const dir = direction ?? back.toArray();
     return { ...fitView(worldPoints(part, goal), { back: dir, fov: camera.fov, aspect, safe: { ...SAFE, y0: preview ? -.86 : -.72 } }), back: dir, fov: camera.fov };
   }
-  function frame(part = 'all', snap = false) {
+  let homeBack = null;   // the default view direction (captured at load): Reset returns to it
+  function frame(part = 'all', snap = false, direction = null) {
     view = part;
-    const v = fit(part);
+    const v = fit(part, camera.aspect, direction);
     if(part==='all')homeRadius=v.radius;
     // Inspect fills the pane, but keeps the complete selected part visible at the end of the fly.
     rig.chase(v, { snap: snap || reduced });
@@ -105,7 +107,13 @@ export function createInspection({ brain, stem, tissue, fibers, rig, camera, pre
     onChange(cb) { subscribers.add(cb); return () => subscribers.delete(cb); },
     center: () => action({ action: 'center' }),
     cancelCamera() { view = 'free'; },
-    initial() { frame('all', true); },
+    initial() {
+      const s = rig.state.spherical;
+      homeBack = new THREE.Vector3().setFromSphericalCoords(1, s.phi, s.theta).toArray();
+      frame('all', true);
+    },
+    /** Reset: the whole assembly and the assessed image, from the default direction (Center keeps the current one). */
+    home() { frame('all', false, homeBack); notify(); },
     resize() { if (preview && remote) applyRemote(remote); else if (view !== 'free') frame(view); },
     handlePosition(part, out = new THREE.Vector3()) {
       return out.fromArray(part === 'brain' ? ANATOMY.origin : [0,5,0]).add(groups[part].position);
