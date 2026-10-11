@@ -7,6 +7,7 @@
 // spring and the lit path crossfades; the vertex shader pushes the tube wall along its normal by the change in
 // radius, so no geometry is ever rebuilt.
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { INFERNO_GLSL, infernoTexture } from './inferno.js';
 import { veinRadius, BRAIN } from './brainLayout.js';
 
@@ -28,7 +29,7 @@ export const VEINS = {
   hiddenThin: 0.15,            // … drawn at this fraction less than its radius
   hiddenOther: 0,              // … and of every other vein (the translucent tissue already shows them)
   keyLight: [-0.45, 0.65, 0.6], // view space: upper left, toward the viewer
-  specular: [1, 0.92, 0.7],    // warm white-gold highlight
+  specular: [1, 1, 1],    // warm white-gold highlight
   shininess: 28,
   hiddenOrder: 12,             // after the tissue (brainTissue.js TISSUE.order), against its depth
   pickPx: 9,                   // a click this close (CSS px) to a tract selects it
@@ -39,6 +40,9 @@ export const VEINS = {
 
 const vertexShader = /* glsl */ `
 uniform float uTime;
+uniform vec3 uStemDelta;
+attribute float aStem;
+attribute float aRadiusK;
 uniform float uBreatheFreq;
 uniform float uBreatheAmp;
 uniform float uHidden;
@@ -76,9 +80,11 @@ void main() {
   vec3 drift = vec3(noise(q), noise(q + 17.3), noise(q + 41.9)) - 0.5;
   vec3 p = position + drift * 2.0 * uBreatheAmp * sin(3.14159265 * uv.x);
   // live value: the tube was built at radius veinRadius(aEdge.x); grow or shrink it along the (radial) normal
-  p += normal * (veinRadius(aLive.x) - veinRadius(aEdge.x));
+  p += normal * (veinRadius(aLive.x) - veinRadius(aEdge.x)) * aRadiusK;
   // behind tissue the vessel is drawn thinner: pull the tube wall toward its centre line (normal = radial here)
-  if (uHidden > 0.5) p -= normal * veinRadius(aLive.x) * uHiddenThin;
+  if (uHidden > 0.5) p -= normal * veinRadius(aLive.x) * uHiddenThin * aRadiusK;
+  p += uStemDelta * aStem;
+  p.y -= sin(3.14159265 * uv.x) * length(uStemDelta) * 0.08 * step(0.0001,aStem);
   vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
   vNormal = normalize(normalMatrix * normal);
   vView = normalize(-mvPosition.xyz);
@@ -136,7 +142,7 @@ void main() {
   float rim = pow(1.0 - facing, 1.6);
 
   // "other" is grey, unless Steer pushed the answer outside the Brain: then its path is the lit one
-  vec3 score = inferno(uColorFloor + (uColorCeil - uColorFloor) * sqrt(value));
+  vec3 score = mix(vec3(0.45), vec3(1.0), sqrt(value));
   vec3 base = isOther > 0.5 ? mix(vec3(0.16, 0.15, 0.17), score, onPath) : score;
   vec3 col;
   if (uHidden > 0.5) {
@@ -156,12 +162,12 @@ void main() {
     float head = fract(uTime / uHiPeriod) * (1.0 + uHiWidth) - uHiWidth * 0.5;
     float s = vS / uPathLen;
     float band = 1.0 - smoothstep(0.0, uHiWidth * 0.5, abs(s - head));
-    col += inferno(uColorCeil) * band * lit * onPath * (0.6 + 0.6 * rim);
+    col += vec3(1.0) * band * lit * onPath * (0.6 + 0.6 * rim);
   }
   // the Steer moment: one bright pulse down the new lit path (root → tip)
   if (uMoment > -0.5 && onPath > 0.0) {
     float m = 1.0 - smoothstep(0.0, uMomentWidth, abs(vS / uPathLen - uMoment));
-    col += inferno(uColorCeil) * m * onPath * 1.6;
+    col += vec3(1.0) * m * onPath * 1.6;
   }
   // living pulse: softer, slower, leaf → root, on every lit vein
   float headD = (1.0 - fract(uTime / uLivePeriod)) * (uMaxDist + 1.0);
@@ -180,6 +186,7 @@ export function createBrainMesh() {
   const uniforms = THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
     uInferno: { value: null },
     uTime: { value: 0 },
+    uStemDelta: { value: new THREE.Vector3() },
     uReveal: { value: 0 },
     uMaxDepth: { value: 1 },
     uDim: { value: VEINS.dim },
@@ -252,6 +259,8 @@ export function createBrainMesh() {
   return {
     group,
     material,
+    setStemOffset(delta) { uniforms.uStemDelta.value.copy(delta); },
+    visualValues() { return meshes.map(m => [m.edge.to, m.v]); },
     build(layout) {
       dispose();
       uniforms.uMaxDepth.value = layout.maxDepth;
@@ -261,7 +270,15 @@ export function createBrainMesh() {
         const curve = new THREE.CatmullRomCurve3(e.points.map((p) => new THREE.Vector3(p[0], p[1], p[2])), false, 'centripetal');
         const value = Math.max(0, Math.min(1, e.value));
         const segments = Math.max(12, Math.round(e.length * VEINS.segmentsPerUnit));
-        const geo = new THREE.TubeGeometry(curve, segments, veinRadius(value), VEINS.radialSegments, false);
+        const tubes = [new THREE.TubeGeometry(curve, segments, veinRadius(value), VEINS.radialSegments, false)];
+        // Parallel fine tracks belong to this same real edge, so their values and highlighted path stay honest.
+        const bundled = e.isStem ? Array.from({length:16},(_,i)=>(i+1)/16*Math.PI*2) : [0,Math.PI];
+        for (const angle of bundled) {
+          const pts = e.points.map((p,i) => { const d=Math.sin(Math.PI*i/(e.points.length-1))*(e.isStem?.18:.075); return new THREE.Vector3(p[0]+d*Math.cos(angle),p[1],p[2]+d*Math.sin(angle)); });
+          tubes.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), segments, .007, 4, false));
+        }
+        tubes.forEach((g,i)=>g.setAttribute("aRadiusK",new THREE.BufferAttribute(new Float32Array(g.attributes.position.count).fill(i===0?1:0),1)));
+        const geo = mergeGeometries(tubes); tubes.forEach(g=>g.dispose());
         const n = geo.attributes.position.count;
         const edgeAttr = new Float32Array(n * 4);
         const distAttr = new Float32Array(n * 2);
@@ -269,6 +286,7 @@ export function createBrainMesh() {
           edgeAttr.set([value, e.onTop1Path ? 1 : 0, e.depth, e.isOther ? 1 : 0], i * 4);
           distAttr.set([e.startDist, e.length], i * 2);
         }
+        geo.setAttribute('aStem', new THREE.BufferAttribute(Float32Array.from({length:n},(_,i)=>e.isStem?1-THREE.MathUtils.smoothstep(geo.attributes.uv.getX(i),.6,1):0),1));
         geo.setAttribute('aEdge', new THREE.BufferAttribute(edgeAttr, 4));
         geo.setAttribute('aDist', new THREE.BufferAttribute(distAttr, 2));
         geo.setAttribute('aFocus', new THREE.BufferAttribute(new Float32Array(n), 1));
@@ -354,8 +372,10 @@ export function createBrainMesh() {
       for (const m of meshes) {
         const r = veinRadius(m.v);
         let px = null, py = null, pd = 0;
-        for (const p of m.pick) {
-          v.copy(p).applyMatrix4(M);
+        for (const [pointIndex,p] of m.pick.entries()) {
+          v.copy(p);
+          if(m.edge.isStem)v.addScaledVector(uniforms.uStemDelta.value,1-THREE.MathUtils.smoothstep(pointIndex/(m.pick.length-1),.6,1));
+          v.applyMatrix4(M);
           const dist = v.distanceTo(camera.position);
           v.project(camera);
           const sx = (v.x + 1) / 2 * width, sy = (1 - v.y) / 2 * height;

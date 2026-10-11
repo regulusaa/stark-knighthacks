@@ -13,6 +13,7 @@ export const EVENTS = Object.freeze({
   DRIVER_CHANGED: 'driver-changed',
   CONTROL_ORBIT: 'control-orbit',
   CONTROL_ZOOM: 'control-zoom',
+  SCENE_ACTION: 'scene-action', // component inspection: host/current driver → display
   FOCUS_TIP: 'focus-tip',
   CLEAR_FOCUS: 'clear-focus',
   FOCUS_STATE: 'focus-state',

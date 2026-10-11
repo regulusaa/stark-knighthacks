@@ -23,7 +23,7 @@ export const PANEL = {
   captionHeight: 0.24,  // world units
   captionGap: 0.12,
   captionFontPx: 44,
-  captionColor: '#d9cbe8',
+  captionColor: '#ffffff',
 };
 
 function captionTexture(text) {
@@ -146,7 +146,7 @@ export function createImagePanel() {
   let noiseFade = null;   // {from, to, t}
 
   const live = [liveTexture(), liveTexture()];
-  let liveKey = null;
+  let liveKey = null, previewHeat = null;
 
   // Two heat slots. `active` is the slot showing (or fading in) the current heatmap.
   let active = 'A';
@@ -166,6 +166,7 @@ export function createImagePanel() {
     },
     /** Show a heatmap texture (or null to clear) with a 300 ms crossfade. `instant` skips the fade. */
     setHeat(texture, classId, instant = false) {
+      if (!texture || typeof classId !== "string") previewHeat = null;
       const my = ++token;
       if (!texture) {
         currentClass = null;
@@ -193,7 +194,9 @@ export function createImagePanel() {
      * A live heatmap (224×224 uint8, rows top to bottom) under `key` (e.g. "cam:207", "probe:31"). The same key
      * updates the map in place; a new key crossfades to it. null clears the overlay.
      */
+    get previewHeat() { return previewHeat; },
     setLiveHeat(data, key, instant = false) {
+      if (data) { const small=[]; for(let y=0;y<28;y++)for(let x=0;x<28;x++)small.push(data[(y*8+4)*224+x*8+4]); previewHeat={key,data:small}; }
       if (!data) { liveKey = null; return this.setHeat(null, null, instant); }
       const shown = uniforms[active === 'A' ? 'uHeatA' : 'uHeatB'].value;
       if (key === liveKey && currentClass === key && live.includes(shown)) { copyFlipped(data, shown); return token; }
@@ -229,7 +232,7 @@ export function createImagePanel() {
     get caption() { return captionText; },
     clear() {
       currentClass = null;
-      liveKey = null;
+      liveKey = null; previewHeat = null;
       fade = null;
       passing = base = null;
       noiseOn = false;

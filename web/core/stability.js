@@ -35,7 +35,7 @@ function softDisc() {
   return haloTexture;
 }
 
-export function createStability({ api, veins, tips, labels, tissue, trunk }) {
+export function createStability({ api, veins, tips, labels, tissue, trunk, remote = false }) {
   let mc = null;            // mc.json of the current image (null if it has none)
   let mcFor = null;         // image id mc belongs to
   let play = null;          // {t, run} while playing
@@ -186,6 +186,7 @@ export function createStability({ api, veins, tips, labels, tissue, trunk }) {
     clean = api.state?.top1 ?? null;
     if (!a?.entry.files?.stability || a.tree?.scoreKind === 'independent') return;
     warmHalo();
+    if (remote) return;
     try {
       const res = await fetch(`${a.base}mc.json`, { cache: 'no-cache' });
       const json = await res.json();
@@ -199,12 +200,22 @@ export function createStability({ api, veins, tips, labels, tissue, trunk }) {
     }
   });
   api.onMode(({ from, to }) => {
+    if (remote) return;
     if (to === 'stability') start();
     else if (from === 'stability') stop();
   });
-  api.onStabilityReplay(() => { if (api.state?.mode === 'stability') start(); });
+  api.onStabilityReplay(() => { if (!remote && api.state?.mode === 'stability') start(); });
 
   return {
+    applyRemote(state) {
+      if (!remote) return;
+      if (!state?.active) { if(halos.size)clearHalos();counts=new Map();return; }
+      mc = { runs: state.runs };
+      const next = new Map((state.winners ?? []).map(w => [w.classId, w.count]));
+      if ([...counts].some(([id, count]) => (next.get(id) ?? 0) < count)) clearHalos();
+      counts = next;
+      for(const id of counts.keys())setHalo(id);
+    },
     get playing() { return Boolean(play); },
     get counts() { return counts; },
     /** Once per frame, after Steer has applied (so a steering reset can't overwrite a run). */

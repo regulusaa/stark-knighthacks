@@ -16,8 +16,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 export const GLOW = {
   layer: 1,
   threshold: 0.7,         // linear luminance a glowing pixel must exceed: the lit strand, top tips, the pulse
-  strength: 0.6,
-  radius: 0.35,
+  strength: 0.2,
+  radius: 0.22,
   bloomScale: 0.5,        // the bloom layer renders at this fraction of the canvas resolution
   lowFps: 45,
   lowSeconds: 3,

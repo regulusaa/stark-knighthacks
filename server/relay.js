@@ -12,6 +12,7 @@ const PERMISSION = {
   [EVENTS.TAKE_CONTROL]: 'controller',
   [EVENTS.CONTROL_ORBIT]: 'driver-or-host',
   [EVENTS.CONTROL_ZOOM]: 'driver-or-host',
+  [EVENTS.SCENE_ACTION]: 'driver-or-host',
   [EVENTS.FOCUS_TIP]: 'driver-or-host',
   [EVENTS.CLEAR_FOCUS]: 'driver-or-host',
   [EVENTS.RESET_VIEW]: 'driver-or-host',
@@ -31,7 +32,7 @@ const TO_DISPLAY = new Set([
   EVENTS.SELECT_IMAGE, EVENTS.PLAY_PULSE, EVENTS.SET_MODE,
 ]);
 // Steer events also carry the sender, so the display can drop stale updates per driver (latest wins).
-const WITH_SENDER = new Set([EVENTS.STEER_UPDATE, EVENTS.STEER_RESET]);
+const WITH_SENDER = new Set([EVENTS.STEER_UPDATE, EVENTS.STEER_RESET, EVENTS.SCENE_ACTION]);
 
 const KNOWN = new Set(Object.values(EVENTS));
 const allRoom = (code) => `room:${code}`;

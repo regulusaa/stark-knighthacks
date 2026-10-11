@@ -7,6 +7,7 @@ import { connect } from '/ui/transport.js';
 import { stabilityPlaying } from '/ui/presentation.js';
 import { createSteerPanel } from '/ui/steer/panel.js';
 import { createDemoRail } from '/ui/demo-rail.js';
+import { createSceneController } from '/ui/scene-controller.js';
 
 const query = new URLSearchParams(location.search);
 const room = (query.get('room') || '').trim().toUpperCase();
@@ -43,6 +44,7 @@ let connectionWatchdog = 0;
 let connectionTimedOut = false;
 let selectedPanel = 'answers';
 let steerPanel = null;
+let sceneController = null, sceneSeq = 0, queuedScene = null;
 const drivenKey = 'stark:has-driven';
 let hasDriven = false;
 try { hasDriven = sessionStorage.getItem(drivenKey) === '1'; } catch {}
@@ -122,6 +124,7 @@ function setState(next, kind = null) {
 
 function render() {
   renderSteer();
+  sceneController?.setContext({display,driving:Boolean(isDriving()),connected:transport?.status.phase==='connected',clientId:transport?.status.clientId});
   const active = state === 'guest-viewing' || state === 'guest-driving' || state === 'host';
   stateScreen.hidden = active;
   workbench.hidden = !active;
@@ -262,6 +265,7 @@ function onDisplayState(value) {
 }
 
 function onDriverChanged({ driver, reason }) {
+  if (driver?.id !== transport?.status.clientId) { queuedScene = null; sceneController?.cancel(); }
   if (!display) return;
   const previous = display.driver;
   const wasDriving = previous?.id === transport?.status.clientId;
@@ -276,6 +280,7 @@ function onDriverChanged({ driver, reason }) {
   }
   if (driving && role === ROLES.GUEST) {
     haptic(12);
+    if (queuedScene) { const action = queuedScene; queuedScene = null; requestSceneAction(action); }
     if (queuedFocus && !stabilityPlaying(display)) {
       const { event, payload } = queuedFocus;
       queuedFocus = null;
@@ -299,6 +304,7 @@ function onError(error) {
   if (!error || typeof error !== 'object') error = { message: 'That action did not work. Try again.' };
   steerPanel?.setError(error);
   pendingControl = false;
+  queuedScene = null; sceneController?.cancel();
   if (error.event === EVENTS.TAKE_CONTROL) hostTakePending = false;
   if ([EVENTS.TAKE_CONTROL, EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS].includes(error.event)) {
     queuedFocus = null;
@@ -322,7 +328,7 @@ function onError(error) {
     if (mockScene === 'error-locked') window.__cx2Ready = true;
     haptic(6);
   } else if (error.code === ERROR_CODES.FORBIDDEN) {
-    const driverEvent = [EVENTS.CONTROL_ORBIT, EVENTS.CONTROL_ZOOM, EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS, EVENTS.RESET_VIEW, EVENTS.STEER_UPDATE, EVENTS.STEER_RESET].includes(error.event);
+    const driverEvent = [EVENTS.CONTROL_ORBIT, EVENTS.CONTROL_ZOOM, EVENTS.SCENE_ACTION, EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS, EVENTS.RESET_VIEW, EVENTS.STEER_UPDATE, EVENTS.STEER_RESET].includes(error.event);
     if (driverEvent && role === ROLES.GUEST && display?.driver?.id === transport?.status.clientId) {
       display = { ...display, driver: null };
       setState('guest-viewing');
@@ -337,6 +343,7 @@ function onError(error) {
 }
 
 function startConnection() {
+  queuedScene = null; sceneController?.cancel();
   stopConnectionWatchdog();
   connectionTimedOut = false;
   transport?.close();
@@ -421,6 +428,23 @@ function clearFocus() {
   if (answerList.hasFocus()) requestFocus(EVENTS.CLEAR_FOCUS, {}, null);
 }
 
+function requestSceneAction(action) {
+  if (document.hidden || !display?.capabilities?.inspection || transport?.status.phase !== 'connected') return false;
+  if (!isDriving()) {
+    if (display.driver) { showNotice(`${display.driver.label} is driving · Take control in a moment`); return false; }
+    queuedScene = action; takeControl(); return false;
+  }
+  claimHostControl();
+  const payload = { ...action, seq: ++sceneSeq };
+  return transport.emit(EVENTS.SCENE_ACTION,payload) ? payload : false;
+}
+sceneController = createSceneController({ pane: document.getElementById('scene-pane'), controls: document.getElementById('inspection-controls'), onAction: requestSceneAction, notify: showNotice });
+// The result anchors the settings pane; component controls follow it on every device.
+const currentImage = document.querySelector('.current-image');
+document.getElementById('side-panel').insertBefore(currentImage, document.getElementById('inspection-controls'));
+// Keep the guest's existing Reset view action in the scrollable settings pane.
+if (role === ROLES.GUEST) document.getElementById('side-panel').insertBefore(resetBottom, document.querySelector('.sensitivity-control'));
+
 const answerList = createAnswerList({
   root: document.getElementById('answers-panel'),
   onSelect: selectAnswer,
@@ -501,6 +525,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') { transport?.reconnect?.(); void acquireWakeLock(); }
   else {
     releaseWakeLock();
+    queuedScene = null; sceneController?.cancel();
     queuedFocus = null;
     optimisticFocus = null;
     demoRail?.cancel();
@@ -574,7 +599,7 @@ gestures.onOrbit(({ dx, dy }) => { if (display && isDriving()) { claimHostContro
 gestures.onZoom(dz => { if (display && isDriving()) { claimHostControl(); transport.emit(EVENTS.CONTROL_ZOOM, { dz }); } });
 window.addEventListener('pagehide', event => {
   releaseWakeLock();
-  if (!event.persisted) { gestures.destroy(); steerPanel.destroy(); demoRail?.destroy(); transport?.close(); }
+  if (!event.persisted) { gestures.destroy(); sceneController?.destroy(); steerPanel.destroy(); demoRail?.destroy(); transport?.close(); }
 });
 
 startConnection();

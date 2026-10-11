@@ -2,7 +2,7 @@
 import { DISPLAY } from './flags.js';
 import * as THREE from 'three';
 
-export const BACKGROUND = 0x050208;
+export const BACKGROUND = 0x050505;
 export const FOG_DENSITY = 0.022;
 
 /**

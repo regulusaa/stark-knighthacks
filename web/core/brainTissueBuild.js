@@ -385,7 +385,7 @@ function normalsFor(part) {
 }
 
 /** All parts' geometry as one set of arrays: {position, normal, color, index, vertices, ms}. */
-export function buildTissueArrays() {
+export function buildTissueArrays({ spacingScale = 1 } = {}) {
   const t0 = (globalThis.performance ?? Date).now();
   const H = ANATOMY.hemi;
   const O = ANATOMY.origin;
@@ -396,7 +396,7 @@ export function buildTissueArrays() {
       sdf: (x, y, z) => hemisphereSdf(side, x, y, z),
       center: fromBrain(0.3, -0.1, side * H.center),
       extents: [H.rAp, 2.6, H.rLat / 2],
-      spacing: FOLDS.spacing.hemi,
+      spacing: FOLDS.spacing.hemi * spacingScale,
       fold: (x, y, z, nx, ny, nz) => folds(O[0] - x, y - O[1], side * (z - O[2]), -nx, ny, side * nz),
       // the medial wall darkens toward the midline, so the longitudinal fissure reads as a deep cleft
       shade: (x, y, z) => 0.18 + 0.82 * smooth01((side * (z - O[2]) - H.medial) / 0.8),
@@ -409,7 +409,7 @@ export function buildTissueArrays() {
     sdf: cerebellumSdf,
     center: fromBrain(C.ap, C.y),
     extents: [C.rAp, C.rY, C.lat + C.rLat],
-    spacing: FOLDS.spacing.cerebellum,
+    spacing: FOLDS.spacing.cerebellum * spacingScale,
     fold: (x, y, z) => cf(O[0] - x, y - O[1], z - O[2]),
     tint: FOLDS.cerebellumTint,
     maxT: 3.6,
@@ -417,7 +417,7 @@ export function buildTissueArrays() {
   const K = ANATOMY.callosum;
   parts.push(buildPart({
     sdf: callosumSdf, center: fromBrain(K.ap, K.y), extents: [K.rAp, K.rY, K.rLat],
-    spacing: FOLDS.spacing.callosum, tint: FOLDS.callosumTint, maxT: 4,
+    spacing: FOLDS.spacing.callosum * spacingScale, tint: FOLDS.callosumTint, maxT: 4,
   }));
   parts.push(buildStem());
 
@@ -427,8 +427,10 @@ export function buildTissueArrays() {
   const normal = new Float32Array(verts * 3);
   const color = new Float32Array(verts * 3);
   const index = new Uint32Array(idx);
+  const ranges = [];
   let vo = 0, io = 0;
-  for (const p of parts) {
+  for (const [partIndex, p] of parts.entries()) {
+    ranges.push({ name: partIndex === parts.length - 1 ? "stem" : "brain", start: io, count: p.index.length });
     position.set(p.position, vo * 3);
     normal.set(normalsFor(p), vo * 3);
     color.set(p.color, vo * 3);
@@ -436,5 +438,5 @@ export function buildTissueArrays() {
     vo += p.position.length / 3;
     io += p.index.length;
   }
-  return { position, normal, color, index, vertices: verts, ms: (globalThis.performance ?? Date).now() - t0 };
+  return { position, normal, color, index, ranges, vertices: verts, ms: (globalThis.performance ?? Date).now() - t0 };
 }

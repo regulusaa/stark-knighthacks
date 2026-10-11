@@ -8,10 +8,10 @@ import { retireLater } from './scene.js';
 export const LABELS = {
   fontPx: 64,
   worldHeight: 0.35,
-  backing: 'rgba(5, 2, 8, 0.6)',
-  text: '#f4ecff',
-  top1Text: '#ffd98a',
-  trueText: '#9ef0ff',
+  backing: 'rgba(5, 5, 5, 0.72)',
+  text: '#ffffff',
+  top1Text: '#ffffff',
+  trueText: '#ffffff',
   nearDistance: 7,
   checkEveryMs: 100,
   lift: 0.32,          // world units above the tip
@@ -74,7 +74,7 @@ export function createLabels({ isHidden = () => false } = {}) {
         const n = t.node;
         const isTop1 = n.onTop1Path;
         const isTrue = n.isTrueLabel;
-        const text = `${n.label}  ${t.score.toFixed(2)}`;
+        const text = `${n.label}  ${(t.score * 100).toFixed(1)}%`;
         const { tex, aspect } = makeTexture(text, isTop1 ? LABELS.top1Text : isTrue ? LABELS.trueText : LABELS.text);
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, depthWrite: false, fog: false, transparent: true }));
         sprite.scale.set(LABELS.worldHeight * aspect, LABELS.worldHeight, 1);
@@ -129,7 +129,7 @@ export function createLabels({ isHidden = () => false } = {}) {
       sinceCheck = 0;
       // Steer: redraw a label whose score (2 decimals) or colour changed
       for (const l of labels) {
-        const text = `${l.tip.node.label}  ${l.tip.score.toFixed(2)}`;
+        const text = `${l.tip.node.label}  ${(l.tip.score * 100).toFixed(1)}%`;
         if (text === l.text) continue;
         l.text = text;
         const old = l.sprite.material.map;
