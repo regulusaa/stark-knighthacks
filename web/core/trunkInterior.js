@@ -147,7 +147,7 @@ void main() {
   #include <fog_fragment>
 }`;
 
-export function createTrunkInterior({ api, scene, rig, camera, trunk, steer, dimBrain }) {
+export function createTrunkInterior({ api, scene, rig, camera, trunk, steer, dimBrain, preview = false }) {
   const group = new THREE.Group();
   group.visible = false;
   scene.add(group);
@@ -321,12 +321,12 @@ export function createTrunkInterior({ api, scene, rig, camera, trunk, steer, dim
     const W = INTERIOR.width / 2;
     const pts = [];
     for (const x of [-W - 1.2, W + 0.9]) for (const y of [INTERIOR.y0, INTERIOR.y1 + 0.2]) for (const z of [-W, W]) pts.push(new THREE.Vector3(x, y, z));
-    rig.flyToFit(pts, INTERIOR.openMs, 0.86, 0.74, { theta: rig.defaultView.theta, phi: THREE.MathUtils.degToRad(INTERIOR.viewPhiDeg) });
+    if (!preview) rig.flyToFit(pts.map(p=>p.add(group.parent.position)), INTERIOR.openMs, 0.86, 0.74, { theta: rig.defaultView.theta, phi: THREE.MathUtils.degToRad(INTERIOR.viewPhiDeg) });
   }
 
   function exit() {
     target = 0;
-    rig.resetView(INTERIOR.openMs);
+    if (!preview) api.resetView();
   }
 
   api.onImageLoaded(({ id }) => {

@@ -73,6 +73,22 @@ export const validators = {
   [EVENTS.STEER_RESET]: empty,
   [EVENTS.CONTROL_ORBIT]: (p) => (obj(p), { dx: num(p.dx, 'dx', -1, 1), dy: num(p.dy, 'dy', -1, 1) }),
   [EVENTS.CONTROL_ZOOM]: (p) => (obj(p), { dz: num(p.dz, 'dz', -1, 1) }),
+  [EVENTS.SCENE_ACTION]: (p, room) => {
+    obj(p);
+    if (room?.displayState?.capabilities?.inspection !== true) fail('component inspection is not available on this display');
+    const seq = int(p.seq, 'seq', 0, Number.MAX_SAFE_INTEGER);
+    if (!['select','split','join','move','inspect','center'].includes(p.action)) fail('unknown scene action');
+    const out = { seq, action: p.action };
+    if (['select','inspect','move'].includes(p.action)) {
+      if (!(p.action === 'move' ? ['brain','stem'] : ['brain','stem','all']).includes(p.part)) fail('unknown scene part');
+      out.part = p.part;
+    }
+    if (p.action === 'move') {
+      if (!Array.isArray(p.position) || p.position.length !== 3) fail('position needs three coordinates');
+      out.position = p.position.map(n => num(n, 'position', -16, 16));
+    }
+    return out;
+  },
   [EVENTS.FOCUS_TIP]: (p, room) => {
     obj(p);
     const classId = int(p.classId, 'classId', 0, 999);

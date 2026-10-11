@@ -102,12 +102,7 @@ export function frameFor(aspect, { brainPoints, stemPoints = [], panel, authored
   if (aspect >= 1) {
     const all = [...tissue, ...panelCorners(panel.position, 1)];
     const radius0 = Math.hypot(...sub(authored.position, authored.target));
-    if (aspect >= FRAMING.wideAspect) {
-      const n = ndcBounds(all, { target: authored.target, radius: radius0, back, fov: authored.fov, aspect });
-      if (inside(n, { x0: -0.97, x1: 0.97, y0: -0.97, y1: 0.75 }, 0)) {
-        return { kind: 'authored', fov: authored.fov, target: authored.target.slice(), radius: radius0, back, panel: { position: panel.position.slice(), scale: 1 } };
-      }
-    }
+    // Refit wide screens too: being inside the viewport does not mean the subject is centred.
     const v = fitView(all, { back, fov: authored.fov, aspect, safe: FRAMING.safe, start: { target: authored.target, radius: radius0 } });
     return { kind: 'landscape', fov: authored.fov, ...v, back, panel: { position: panel.position.slice(), scale: 1 } };
   }

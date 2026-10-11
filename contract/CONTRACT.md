@@ -533,3 +533,15 @@ INT    0–2047        N   1–20        NUMBER  decimal ≥ 0 (0, 0.5, .5, 2, 2
     channel[87, 311, 1402] = 0
     channel[12] = 2
     ```
+
+### Component inspection extension (Ray's brain redesign)
+
+Existing v1–v3 events and field names are unchanged. `capabilities.inspection` enables shared component controls.
+`scene-action` is sent by the host or current driver, limited to 30/s. Payloads have a strictly increasing per-session `seq` plus one of:
+
+- `{action:"select"|"inspect", part:"brain"|"stem"|"all"}`
+- `{action:"split"|"join"|"center"}`
+- `{action:"move", part:"brain"|"stem", position:[x,y,z]}` (absolute offset, finite, bounded to ±16)
+
+The relay validates the action and adds `from` with the sender's client ID. The display drops stale sequences per sender.
+Optional `display-state.scene` contains version 1 visual state: selected part, arrangement, target/live offsets, camera pose and aspect-adjusted fit reference, displayed node values, lit leaf/class, reveal/pulse progress, a bounded 28×28 live heatmap preview, image-panel caption, trunk top-layer values, and the last action's `{clientId,seq}` acknowledgment. The preview is a consumer of this state, never a registered display or independent inference engine. Disconnect/permission loss cancels unsent edits.

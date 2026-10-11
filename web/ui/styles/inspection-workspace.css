@@ -1,0 +1,91 @@
+/* One workspace on iPad and phone: scene | settings, with one full-width gesture pad. */
+:root{--color-background:#050505;--color-surface:#0b0b0b;--color-surface-raised:#151515;--color-text:#fff;--color-text-secondary:#fff;--color-true-class:#fff;--inferno-0:#050505;--inferno-1:#222;--inferno-2:#444;--inferno-3:#666;--inferno-4:#aaa;--inferno-5:#eee;--inferno-6:#fff;--radius:0px}
+.inspection-controller{background:#050505;font-weight:400}
+.inspection-controller *{color:#fff!important;text-shadow:none!important;box-shadow:none!important;scrollbar-color:#777 #111}
+.inspection-controller button{border-radius:0!important;min-height:48px;touch-action:manipulation;font-weight:450}
+.inspection-controller button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.inspection-controller .status-bar{min-height:52px;padding:calc(8px + var(--safe-top)) calc(16px + var(--safe-right)) 8px calc(16px + var(--safe-left));border-color:#ffffff45}
+.inspection-controller .brand{font-weight:500;letter-spacing:.2em}.inspection-controller .brand-mark,.inspection-controller .brand small{display:none}
+.inspection-controller .connection-dot{background:#fff!important;box-shadow:none}.inspection-controller .room-pill{border:0;padding:0 0 0 8px;font-size:13px;opacity:.7}
+.inspection-controller .session{font-size:13px}.inspection-controller .session #connection-label{max-width:200px}
+.inspection-controller .main-area{width:100%;max-width:none;margin:0;padding:16px calc(16px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(16px + var(--safe-left));overflow:hidden}
+.inspection-controller .workbench,.inspection-controller.first-visit .workbench,.inspection-controller[data-role="host"] .workbench,.inspection-controller[data-role="guest"] .workbench{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) 156px;grid-template-areas:"scene settings" "pad pad";gap:0;max-width:none;min-height:0;margin:0}
+.inspection-controller .scene-pane{grid-area:scene;position:relative;min-width:0;min-height:0;overflow:hidden;border:1px solid #ffffff70;background:#050505}
+.scene-pane iframe{width:100%;height:100%;border:0;display:block;background:#050505;touch-action:none}
+.scene-pane-title{position:absolute;top:14px;left:16px;font-size:11px;letter-spacing:.18em;pointer-events:none;z-index:1}
+.scene-loading{position:absolute;inset:0;display:grid;place-items:center;padding:24px;font-size:14px;text-align:center;background:#050505}
+.inspection-controller .side-panel,.inspection-controller.first-visit .side-panel{grid-area:settings;display:flex;min-height:0;overflow-y:auto;overflow-x:hidden;border:1px solid #ffffff70;border-left:0;padding:24px;gap:20px;overscroll-behavior:contain}
+.inspection-controller .current-image{min-height:0;padding:0 0 20px;margin:0;border:0;border-bottom:1px solid #ffffff40;background:none;gap:8px;flex:none}
+.inspection-controller .current-image .eyebrow{display:none}.inspection-controller .current-image #image-name{font-size:28px;font-weight:450;line-height:1.15;letter-spacing:-.035em;white-space:normal;overflow-wrap:anywhere}
+.inspection-controller .current-image #top-answer{font-size:16px;opacity:.7}.inspection-controller .truth-status{font-size:13px;opacity:.6}.inspection-controller .truth-status strong{font-size:13px}
+.inspection-controller .eyebrow{font-size:11px;font-weight:500;letter-spacing:.15em}
+.scene-controls{flex:none;padding:0 0 20px;border-bottom:1px solid #fff4}.scene-controls>p:first-child{margin:0 0 12px}
+.part-selection{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.part-selection button,.scene-controls>button,.part-actions button{background:#080808;border:1px solid #ffffff66;padding:10px 8px;min-width:48px;font:inherit;font-size:16px;color:#fff}
+.part-selection button[aria-pressed="true"]{border-color:#fff;background:#fff2}.scene-controls>button{width:100%;margin:10px 0 8px}.part-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.scene-controls button:active{background:#fff2;border-color:#fff}
+.scene-status{font-size:13px;opacity:.7;line-height:1.5;margin:12px 0}.scene-help{font-size:14px;line-height:1.55;opacity:.65;margin:0}.rotate-note{display:none;margin:0;padding:0 0 12px;border-bottom:1px solid #fff5;font-size:13px;line-height:1.4}
+.inspection-controller .trackpad-panel,.inspection-controller.first-visit .trackpad-panel,.inspection-controller[data-role="host"] .trackpad-panel{grid-area:pad;position:relative;height:auto;min-height:0;border:1px solid #ffffff70;border-top:0;display:block}
+.inspection-controller .trackpad-frame,.inspection-controller[data-role="host"] .trackpad-frame,.inspection-controller[data-role="guest"] .trackpad-frame{height:100%;min-height:0;padding:0;border:0;border-radius:0;background:#050505;box-shadow:none}
+.inspection-controller .trackpad{border:0;border-radius:0;background:#050505}
+.inspection-controller .trackpad-grid,.inspection-controller .trackpad::after,.inspection-controller .orbit-symbol,.inspection-controller .lock-symbol{display:none}
+.inspection-controller .panel-heading,.inspection-controller.first-visit .panel-heading{display:block;position:absolute;z-index:2;top:12px;right:16px;margin:0;pointer-events:none}.inspection-controller .panel-heading>div{display:none}.inspection-controller .driver-label{font-size:12px;max-width:none;opacity:.6}
+.inspection-controller .trackpad-note{position:absolute;bottom:10px;left:16px;margin:0;font-size:12px;opacity:.6;pointer-events:none}
+.inspection-controller .trackpad-instructions strong{font-size:18px;font-weight:450}.inspection-controller .trackpad-instructions>span{font-size:14px;opacity:.65}
+.inspection-controller .trackpad-lock,.inspection-controller.first-visit .trackpad-lock{inset:0;background:#050505ed;border-radius:0;padding:10px;gap:6px}
+.inspection-controller #lock-message{display:none}.inspection-controller .trackpad-lock p.first-drive-help{margin:0;max-width:700px;font-size:13px;line-height:1.4}
+.inspection-controller #take-control-center,.inspection-controller.first-visit #take-control-center{width:240px;min-height:48px;max-width:100%;font-size:17px;background:#171717;border:1px solid #fff;font-weight:450;padding:10px}
+.inspection-controller .bottom-bar{display:none!important}
+.inspection-controller .touch-indicator,.inspection-controller .touch-indicator.second{border:1px solid #fff;background:#ffffff15}.inspection-controller .pinch-line{background:#ffffffb0}
+.inspection-controller .primary-button,.inspection-controller .secondary-button{background:#151515;color:#fff;border:1px solid #fff6}
+.inspection-controller .notice{background:#0b0b0bf5;border:1px solid #fff8;border-radius:0;bottom:24px}
+.inspection-controller .state-art span{border-color:#fff8}.inspection-controller .state-art span:nth-child(3){background:#fff1}
+.inspection-controller .state-screen{min-height:0;padding:20px}.inspection-controller .state-screen h1{font-size:clamp(26px,4vw,44px)}
+.inspection-controller .slot-index{display:none}
+.inspection-controller .answers-panel,.inspection-controller .host-block,.inspection-controller .adversarial-pair,.inspection-controller .host-slots,.inspection-controller .focus-card{background:none!important;border-radius:0!important;border-color:#fff4!important}
+.inspection-controller .answers-panel{padding:0;border:0}.inspection-controller .host-block{padding:0 0 20px;border:0;border-bottom:1px solid #fff4}.inspection-controller .host-slots{gap:20px}
+.inspection-controller .answer-row{background:#0b0b0b;border-color:#fff3}.inspection-controller .answer-row.selected{background:#202020;border-color:#fff}.inspection-controller .answer-row:active{background:#242424}
+.inspection-controller .answer-badge,.inspection-controller .true-class-badge{border-color:#fff5;border-radius:0}.inspection-controller .heatmap-badge{background:radial-gradient(circle,#eee,#333);border-color:#fff8}
+.inspection-controller .answer-list,.inspection-controller[data-role="host"] .answer-list{max-height:none;overflow:visible}.inspection-controller .answer-heading{flex-wrap:wrap;gap:4px}.inspection-controller .answer-label{flex-basis:100%}
+.inspection-controller .focus-card{padding:12px;border:1px solid #fff5}.inspection-controller .focus-caption{font-size:12px;opacity:.6}
+.inspection-controller .controller-tabs{flex:none;border-color:#fff5}.inspection-controller .controller-tabs button{background:#111;border-color:#fff5}.inspection-controller .controller-tabs button[aria-selected="true"]{background:#fff2;border-color:#fff}
+.inspection-controller .gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.inspection-controller .gallery-tile{background:#111;border-color:#fff4}.inspection-controller .gallery-tile.current{border-color:#fff;background:#222}.inspection-controller .category-chip{background:#111;border-color:#fff4}
+.inspection-controller .segmented-control button,.inspection-controller .mode-control button,.inspection-controller .mode-options button{background:#0b0b0b;border-color:#fff5}.inspection-controller button[aria-pressed=true]{background:#fff2;border-color:#fff}
+.inspection-controller .steer-panel,.inspection-controller .steer-card,.inspection-controller .steer-result,.inspection-controller .steer-slider-row,.inspection-controller .steer-readonly,.inspection-controller .steer-code-wrap{background:#0b0b0b;border-color:#fff5;border-radius:0}
+.inspection-controller textarea{background:#050505!important;color:#fff;border-color:#fff6;font-size:16px;min-width:0;width:100%}
+.inspection-controller input[type=range]{accent-color:#fff;min-width:0;max-width:100%}
+.inspection-controller .sensitivity-control{background:none;border:0;padding:16px 0;flex:none}
+.inspection-controller #demo-rail{position:relative;top:auto;border-color:#fff5;background:#080808}.inspection-controller .demo-beat{background:#111;border-color:#fff5}.inspection-controller .demo-cue{background:#080808}.inspection-controller .demo-reset{background:#111;border-color:#fff5}
+@media(max-width:760px){.inspection-controller .main-area{padding:8px calc(8px + var(--safe-right)) calc(8px + var(--safe-bottom)) calc(8px + var(--safe-left))}.inspection-controller .side-panel{padding:12px;gap:16px}.inspection-controller .current-image #image-name{font-size:22px}.inspection-controller .current-image #top-answer{font-size:14px}.inspection-controller .host-action-row{flex-wrap:wrap}.inspection-controller .host-action-row>*{flex:1 1 100%}.scene-pane-title{left:10px;top:10px;font-size:10px}}
+@media(orientation:portrait){.inspection-controller .rotate-note{display:block}.inspection-controller .workbench,.inspection-controller[data-role] .workbench{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) 140px}}
+@media(max-width:500px){.inspection-controller .side-panel{padding:10px}.inspection-controller .current-image #image-name{font-size:20px}.part-selection{grid-template-columns:repeat(2,minmax(0,1fr))}.part-selection button:last-child{grid-column:1/-1}.part-actions{grid-template-columns:1fr}.scene-controls button{font-size:14px}.inspection-controller .session #connection-label{max-width:110px}.inspection-controller .trackpad-note{display:none}.inspection-controller .driver-label{font-size:11px}.inspection-controller .truth-status{flex-wrap:wrap}.inspection-controller .gallery-grid{grid-template-columns:1fr}.inspection-controller .mode-control,.inspection-controller .segmented-control{flex-wrap:wrap}.inspection-controller .segmented-control>*{min-width:48px}.inspection-controller .answer-row{grid-template-columns:20px minmax(0,1fr);gap:4px;padding:8px 4px}.inspection-controller .answer-badges{gap:4px}.inspection-controller .answer-badge{white-space:normal;font-size:10px}}
+@media(max-height:550px){.inspection-controller .status-bar{min-height:40px;padding-top:4px;padding-bottom:4px}.inspection-controller .main-area{padding:8px calc(8px + var(--safe-right)) calc(8px + var(--safe-bottom)) calc(8px + var(--safe-left))}.inspection-controller .workbench,.inspection-controller[data-role] .workbench{grid-template-rows:minmax(0,1fr) 100px}.inspection-controller .side-panel{padding:16px}.inspection-controller .current-image{padding-bottom:12px}.inspection-controller .current-image #image-name{font-size:24px}.inspection-controller .side-panel{gap:14px}.inspection-controller .trackpad-note{display:none}.inspection-controller .trackpad-instructions strong{font-size:16px}.inspection-controller .trackpad-instructions>span{font-size:13px}.inspection-controller .trackpad-lock p.first-drive-help{font-size:12px}}
+.inspection-controller .steer-panel{--steer-ramp:linear-gradient(90deg,#333,#fff);padding:12px}
+.inspection-controller .steer-panel button,.inspection-controller .steer-explainer,.inspection-controller .steer-state-card,.inspection-controller .steer-current,.inspection-controller .steer-flip,.inspection-controller .steer-permission,.inspection-controller .steer-toggle,.inspection-controller .steer-equivalent,.inspection-controller .steer-code-chips button{background:#111!important;border-color:#fff5!important;border-radius:0!important}
+.inspection-controller .steer-toggle [aria-selected=true]{background:#fff2!important;border-color:#fff!important}
+.inspection-controller .steer-row input::-webkit-slider-runnable-track{background:linear-gradient(90deg,#ddd var(--scale-position,33.333%),#333 var(--scale-position,33.333%))}
+.inspection-controller .steer-row input::-webkit-slider-thumb{background:#fff;border-color:#111;box-shadow:none}
+.inspection-controller .steer-row input::-moz-range-track{background:#444}.inspection-controller .steer-row input::-moz-range-thumb{background:#fff;border-color:#111}
+.inspection-controller .gallery-thumb,.inspection-controller .gallery-tile.pending{background:#171717}.inspection-controller .gallery-tile{grid-template-columns:50px minmax(0,1fr)}.inspection-controller .gallery-thumb{width:50px;height:54px;border-radius:0}
+@media(max-width:500px){.inspection-controller .steer-panel{padding:8px}.inspection-controller .steer-row-head{flex-wrap:wrap}.inspection-controller .steer-contribution{display:none}.inspection-controller .host-action-row{grid-template-columns:1fr}.inspection-controller .steer-current{flex-wrap:wrap}.inspection-controller .steer-reset{width:100%}.inspection-controller .steer-permission{flex-direction:column}}
+.inspection-controller .demo-beats button{background:#111;border-color:#fff5}.inspection-controller .demo-beats button.active{background:#fff2;border-color:#fff}.inspection-controller .demo-rail{border-radius:0}.inspection-controller .demo-cue-toggle{background:#111;border:1px solid #fff5}
+.inspection-controller[data-role] .side-panel{height:100%;max-height:100%;overflow-y:auto;overflow-x:hidden;align-self:stretch;flex:none}
+.inspection-controller .side-panel>*{flex-shrink:0}
+.inspection-controller[data-state="guest-viewing"] .panel-heading{display:none}
+
+/* Fixed navigation, independently scrolling panels. */
+.inspection-controller[data-role] .side-panel{padding:0;gap:0;overflow:hidden;display:flex;flex-direction:column}
+.workspace-tabs{display:grid;grid-template-columns:1fr 1fr;flex:none;border-bottom:1px solid #fff7;background:#080808;z-index:2}
+.workspace-tabs button{background:transparent;border:0;border-bottom:2px solid transparent;font:inherit;font-size:16px;padding:12px 8px;min-width:0;min-height:56px}
+.workspace-tabs button[aria-selected=true]{background:#fff1;border-bottom-color:#fff}
+.inspection-controller .workspace-content{min-height:0;min-width:0;flex:1 1 0;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:20px;padding:20px;scrollbar-gutter:stable}
+.workspace-content>*{flex-shrink:0;min-width:0}
+.demo-tutorial,.mode-guide{border-top:1px solid #fff4;padding-top:12px;font-size:15px;line-height:1.55}
+.demo-tutorial summary,.mode-guide summary{cursor:pointer;min-height:48px;display:flex;align-items:center;list-style:none;font-weight:500}
+.demo-tutorial summary::after,.mode-guide summary::after{content:'+';margin-left:auto;font-size:22px}
+.demo-tutorial[open] summary::after,.mode-guide[open] summary::after{content:'−'}
+.demo-tutorial ol{padding-left:20px}.demo-tutorial li{margin:0 0 12px}.demo-tutorial p,.mode-guide p{opacity:.8}.demo-tutorial code{display:inline-block;overflow-wrap:anywhere}
+.part-diagram{position:absolute;left:16px;top:40px;width:100px;height:120px;margin:0;z-index:3;pointer-events:none;background:#050505c0;border:1px solid #fff4;padding:8px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center}
+.part-diagram img{width:100%;height:82px;object-fit:contain}.part-diagram figcaption{font-size:10px;letter-spacing:.08em;margin-top:4px;text-align:center}
+@media(max-width:760px){.inspection-controller .workspace-content{padding:12px;gap:16px}.workspace-tabs button{font-size:14px;line-height:1.25}.part-diagram{left:10px;top:32px;width:68px;height:88px;padding:5px}.part-diagram img{height:56px}.part-diagram figcaption{font-size:9px}}
+@media(max-width:360px){.workspace-tabs button{font-size:12px;padding:8px 4px}.inspection-controller .workspace-content{padding:8px}}
+
+@media(max-width:500px){.inspection-controller .demo-footer{flex-wrap:wrap}.inspection-controller .demo-reset{flex:1 1 100%;min-width:0;white-space:normal}.inspection-controller .demo-heading{flex-wrap:wrap}.inspection-controller .demo-beats{min-width:0}.inspection-controller .mode-options{flex-wrap:wrap}.inspection-controller .mode-options button{flex-basis:100%;min-width:0}.inspection-controller .demo-cue{white-space:normal}}

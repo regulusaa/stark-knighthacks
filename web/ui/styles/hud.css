@@ -1,5 +1,6 @@
 .stark-hud {
   --hud-margin: 32px;
+  --hud-qr-width: 300px;
   position: absolute;
   inset: 0;
   color: #f3eef7;
@@ -31,7 +32,7 @@
 .stark-hud .hud-legend { bottom: max(32px, env(safe-area-inset-bottom)); left: 50%; width: 420px; margin-left: -210px; text-align: center; color: #a79fb2; }
 .stark-hud .hud-inferno { height: 12px; border-radius: 6px; margin-bottom: 12px; background: linear-gradient(90deg, #000004, #320a5e, #781c6d, #bc3754, #ed6925, #fbb61a, #fcffa4); }
 .stark-hud .hud-legend-truth { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 12px; }
-.stark-hud .hud-qr { bottom: max(32px, env(safe-area-inset-bottom)); right: max(32px, env(safe-area-inset-right)); width: 300px; text-align: center; }
+.stark-hud .hud-qr { bottom: max(32px, env(safe-area-inset-bottom)); right: max(32px, env(safe-area-inset-right)); width: var(--hud-qr-width); text-align: center; }
 .stark-hud .hud-qr-image { display: block; width: 220px; height: 220px; margin: 0 auto 16px; padding: 12px; background: #fff; border-radius: 12px; }
 .stark-hud .hud-room { font-size: 48px; letter-spacing: .18em; padding-left: .18em; }
 .stark-hud .hud-host { font-size: 22px; color: #a79fb2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -41,7 +42,7 @@
 .stark-hud .hud-visible { opacity: 1; }
 .stark-hud [data-field], .stark-hud .hud-qr-image { transition: opacity 200ms ease; }
 @media (max-width: 1199px) {
-  .stark-hud { font-size: 18px; }
+  .stark-hud { font-size: 18px; --hud-qr-width: 230px; }
   .stark-hud .hud-brand { width: 25%; }
   .stark-hud .hud-result { width: 44%; margin-left: -22%; }
   .stark-hud .hud-wordmark, .stark-hud .hud-answer { font-size: 24px; }
@@ -50,7 +51,6 @@
   .stark-hud .hud-caption { min-height: 73px; }
   .stark-hud .hud-status { width: 28%; }
   .stark-hud .hud-legend { width: 28%; margin-left: -14%; }
-  .stark-hud .hud-qr { width: 230px; }
   .stark-hud .hud-kicker, .stark-hud .hud-host { font-size: 18px; }
 }
 @media (max-width: 600px) {
@@ -60,7 +60,8 @@
   .stark-hud .hud-focus { top: 248px; width: calc(100% - 64px); }
   .stark-hud .hud-status { bottom: 32px; width: 48%; font-size: 16px; }
   .stark-hud .hud-legend { display: none; }
-  .stark-hud .hud-qr { width: 130px; font-size: 16px; }
+  .stark-hud { --hud-qr-width: 130px; }
+  .stark-hud .hud-qr { font-size: 16px; }
   .stark-hud .hud-qr-image { width: 120px; height: 120px; padding: 8px; }
   .stark-hud .hud-room { font-size: 24px; }
   .stark-hud .hud-host { font-size: 14px; }
@@ -106,6 +107,10 @@
 .stark-hud .hud-findings .hud-ring { width: 18px; height: 18px; margin-right: 10px; }
 .stark-hud .hud-feature-status { bottom: max(32px, env(safe-area-inset-bottom)); left: max(32px, env(safe-area-inset-left)); width: min(850px, calc(100% - 64px)); }
 .stark-hud:not(.hud-compact) .hud-feature-status { bottom: 175px; }
+/* Reserve the QR column and legend independently, including long answer notices. */
+.stark-hud:not(.hud-compact) .hud-feature-status { right: calc(max(32px, env(safe-area-inset-right)) + var(--hud-qr-width) + 32px); width: auto; max-width: 850px; }
+.stark-hud .hud-feature-status .hud-mode { max-width: 100%; overflow-wrap: anywhere; }
+.stark-hud:not(.hud-compact) .hud-status { max-width: calc(50% - 266px); }
 .stark-hud .hud-outside { margin-top: 16px; line-height: 1.4; color: #f3eef7; overflow-wrap: anywhere; }
 .stark-hud .hud-outside.hud-empty { display: none; }
 .stark-hud .hud-feature-status .hud-mode.hud-empty { display: none; }

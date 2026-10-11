@@ -121,6 +121,7 @@ export async function connectRelay(api, { onStatus = () => {}, steer = null } = 
   });
   on(EVENTS.CONTROL_ORBIT, ({ dx, dy }) => api.orbit(dx * orbitGain, dy * orbitGain));
   on(EVENTS.CONTROL_ZOOM, ({ dz }) => api.zoom(dz * zoomGain));
+  on(EVENTS.SCENE_ACTION, p => api.sceneAction?.(p));
   on(EVENTS.FOCUS_TIP, ({ classId }) => api.focusTip(classId));
   on(EVENTS.CLEAR_FOCUS, () => api.clearFocus());
   on(EVENTS.RESET_VIEW, () => api.resetView());
@@ -130,7 +131,7 @@ export async function connectRelay(api, { onStatus = () => {}, steer = null } = 
     if (skipToEnd) api.jumpToEnd(); else api.replay();
   });
   // Steer: the session drops stale seqs, coalesces to one apply per frame, and answers with steer-result
-  // (v3) ignored unless Steer is available right now (contract 5: not in stability/trunk mode)
+  // (v3) ignored unless Steer is available right now (contract 5: not in stability mode)
   on(EVENTS.STEER_UPDATE, (p) => { if (api.state?.capabilities.steer) steer?.update(p); });
   on(EVENTS.STEER_RESET, () => steer?.reset());
   steer?.on('result', (state) => send(EVENTS.STEER_RESULT, state));

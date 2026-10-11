@@ -4,24 +4,12 @@
 //       top-1 (again to keep going) · X reset Steer
 //       (v3) N noise view · A the other image of the adversarial pair · B glow
 import { TRUNK } from './trunk.js';
+import { create as createGestures } from '/ui/gestures.js';
 
 export function attachInput(canvas, api, hud, steer = {}) {
-  let drag = null;
-  canvas.addEventListener('pointerdown', (e) => {
-    drag = { x: e.clientX, y: e.clientY, id: e.pointerId };
-    canvas.setPointerCapture(e.pointerId);
-  });
-  canvas.addEventListener('pointermove', (e) => {
-    if (!drag || e.pointerId !== drag.id) return;
-    const dx = (e.clientX - drag.x) / canvas.clientWidth;
-    const dy = (e.clientY - drag.y) / canvas.clientHeight;
-    drag.x = e.clientX;
-    drag.y = e.clientY;
-    api.orbit(dx, dy);
-  });
-  const end = (e) => { if (drag && e.pointerId === drag.id) drag = null; };
-  canvas.addEventListener('pointerup', end);
-  canvas.addEventListener('pointercancel', end);
+  const gestures = createGestures(canvas, { sensitivity: 1 });
+  gestures.onOrbit(({ dx, dy }) => api.orbit(dx, dy));
+  gestures.onZoom(dz => api.zoom(dz));
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     api.zoom(-e.deltaY * 0.0015);

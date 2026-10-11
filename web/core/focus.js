@@ -75,7 +75,7 @@ export function createFocus({ api, rig, panel, tips, labels, highlight = () => {
       }
       current = classId;
       points.length = 0;
-      points.push(...panelCorners());
+      if (!panel.screenPinned) points.push(...panelCorners());
       // pad the tip in the new view's screen axes, so its label (above it) also lands inside the frame
       const view = viewFor(tips.get(classId));
       back.setFromSphericalCoords(1, view.phi, view.theta);
@@ -99,7 +99,7 @@ export function createFocus({ api, rig, panel, tips, labels, highlight = () => {
       tips.setFocused(null);
       highlight(null);
       api.showHeatmap(null);
-      if (resetView) rig.resetView();
+      if (resetView) api.resetView();
       if (had || api.state?.focus) api.setFocus(null);
     },
     /** Image switched: forget the focus without flying (the new image resets the view itself). */

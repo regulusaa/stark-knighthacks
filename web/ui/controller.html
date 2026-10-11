@@ -3,15 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#050208">
+  <meta name="theme-color" content="#050505">
   <title>Stark · Controller</title>
+  <link rel="icon" href="data:,">
+  <link rel="preload" href="/socket.io/socket.io.js" as="script">
+  <link rel="modulepreload" href="/contract/contract.js">
   <link rel="stylesheet" href="/ui/styles/tokens.css">
   <link rel="stylesheet" href="/ui/controller.css">
   <link rel="stylesheet" href="/ui/styles/host.css">
   <link rel="stylesheet" href="/ui/steer/panel.css">
+  <link rel="stylesheet" href="/ui/styles/inspection-workspace.css">
 </head>
 <body>
-  <div id="app" class="controller" data-state="connecting" data-role="guest">
+  <div id="app" class="controller inspection-controller" data-state="connecting" data-role="guest">
     <header class="status-bar">
       <div class="brand"><span class="brand-mark" aria-hidden="true">S</span><span>STARK <small>CONTROL</small></span></div>
       <div class="session"><span class="connection-dot" id="connection-dot"></span><span id="connection-label">Connecting</span><span class="room-pill" id="room-code">—</span></div>
@@ -28,12 +32,13 @@
       </section>
 
       <section id="workbench" class="workbench" hidden>
+        <section class="scene-pane" id="scene-pane" aria-label="Live brain preview"><span class="scene-pane-title">LIVE SCENE</span><div class="scene-loading" role="status">Waiting for the scene…</div></section>
         <div class="trackpad-panel">
           <div class="panel-heading"><div><p class="eyebrow">CAMERA</p><h2>Move the view</h2></div><span id="driver-label" class="driver-label">Waiting</span></div>
           <div class="trackpad-frame" id="trackpad-frame">
             <div id="trackpad" class="trackpad" aria-label="Drag to orbit; pinch to zoom">
               <div class="trackpad-grid" aria-hidden="true"></div>
-              <div class="trackpad-instructions" aria-hidden="true"><span class="orbit-symbol">◎</span><strong>Drag to orbit</strong><span>Pinch to zoom</span></div>
+              <div class="trackpad-instructions" aria-hidden="true"><span class="orbit-symbol">◎</span><strong>Drag to turn</strong><span>Pinch to zoom</span></div>
               <div id="pinch-line" class="pinch-line" aria-hidden="true"></div>
               <div id="touch-one" class="touch-indicator" aria-hidden="true"></div>
               <div id="touch-two" class="touch-indicator second" aria-hidden="true"></div>
@@ -42,12 +47,16 @@
               <span class="lock-symbol" aria-hidden="true">◈</span>
               <p id="lock-message">Take the wheel</p>
               <button id="take-control-center" class="primary-button" type="button">Take control</button>
+              <p id="first-drive-help" class="first-drive-help" hidden>Drag to turn · pinch to zoom · tap an answer · Steer to edit the model</p>
             </div>
           </div>
           <p class="trackpad-note">Movement goes to the display while you drive.</p>
         </div>
 
         <aside id="side-panel" class="side-panel">
+          <p class="rotate-note">Rotate your phone sideways for more room.</p>
+          <section id="inspection-controls" class="scene-controls" aria-label="Move brain and stem" hidden></section>
+          <section id="demo-rail" hidden aria-label="Demo cue sheet"></section>
           <section id="adversarial-pair" class="adversarial-pair host-block" aria-label="Retriever comparison" hidden><span class="eyebrow">SAME IMAGE · SMALL CHANGE</span><div class="segmented-control pair-control"><button type="button" data-pair-image="clean_retriever">Original</button><button type="button" data-pair-image="adv_retriever">Adversarial</button></div><p id="pair-status" class="control-status" role="status" aria-live="polite"></p></section>
           <div class="current-image"><span class="eyebrow">NOW SHOWING</span><strong id="image-name">Waiting for image</strong><span id="top-answer">Model score will appear here</span><div id="truth-status" class="truth-status" hidden><span class="true-class-ring" aria-hidden="true"></span><strong id="correctness"></strong><span id="true-class-name"></span></div></div>
           <div id="host-gallery" hidden><section class="host-block" aria-labelledby="gallery-title"><div class="host-block-heading"><span class="slot-index">01</span><h3 id="gallery-title">Gallery</h3></div><div id="gallery-grid" class="gallery-grid" role="group" aria-label="Choose an image"></div></section></div>

@@ -6,6 +6,9 @@ import { createHostControls } from '/ui/host-controls.js';
 import { connect } from '/ui/transport.js';
 import { stabilityPlaying } from '/ui/presentation.js';
 import { createSteerPanel } from '/ui/steer/panel.js';
+import { createDemoRail } from '/ui/demo-rail.js';
+import { mountWorkspaceTabs } from '/ui/workspace-tabs.js';
+import { createSceneController } from '/ui/scene-controller.js';
 
 const query = new URLSearchParams(location.search);
 const room = (query.get('room') || '').trim().toUpperCase();
@@ -42,6 +45,10 @@ let connectionWatchdog = 0;
 let connectionTimedOut = false;
 let selectedPanel = 'answers';
 let steerPanel = null;
+let sceneController = null, sceneSeq = 0, queuedScene = null;
+const drivenKey = 'stark:has-driven';
+let hasDriven = false;
+try { hasDriven = sessionStorage.getItem(drivenKey) === '1'; } catch {}
 
 app.dataset.role = role;
 if (query.get('mock') === '1') {
@@ -60,9 +67,9 @@ window.__cx2Ready = false;
 
 const screens = {
   connecting: ['CONNECTING', 'Finding the display', 'This usually takes a moment.', false],
-  'waiting-for-display': ['CONNECTED', 'Waiting for the display', 'The room is ready. Ask Ray to open Stark on the monitor.', true],
+  'waiting-for-display': ['CONNECTED', 'Waiting for the screen…', 'Your room is connected. The screen will appear here when it is ready.', false],
   noRoom: ['ROOM NOT FOUND', 'Ask Ray for the code', 'This room is unavailable. Scan the current QR code or ask Ray for a new link.', true],
-  badKey: ['HOST ACCESS', 'Host link not accepted', 'The host key is missing or incorrect. Ask Ray for a fresh host link.', true],
+  badKey: ['HOST ACCESS', 'Host link not accepted', 'Ask Ray for a fresh host link.', true],
   offline: ['DISPLAY OFFLINE', 'The display went away', 'Keep this page open and try again when the monitor is ready.', true],
   reconnecting: ['RECONNECTING', 'Reaching the display again', 'Your connection dropped. We are trying to get you back in.', true],
   unavailable: ['NOT CONNECTED', 'Could not join the room', 'Check your connection and try again.', true],
@@ -118,10 +125,12 @@ function setState(next, kind = null) {
 
 function render() {
   renderSteer();
+  sceneController?.setContext({display,driving:Boolean(isDriving()),connected:transport?.status.phase==='connected',clientId:transport?.status.clientId});
   const active = state === 'guest-viewing' || state === 'guest-driving' || state === 'host';
   stateScreen.hidden = active;
   workbench.hidden = !active;
   bottomBar.hidden = !active || role === ROLES.HOST;
+  app.classList.toggle('first-visit', active && role === ROLES.GUEST && !hasDriven);
 
   const label = document.getElementById('connection-label');
   if (!active) {
@@ -144,10 +153,19 @@ function render() {
 
   window[READY_FLAG] = true;
   const driving = Boolean(isDriving());
+  if (driving && role === ROLES.GUEST && !hasDriven) {
+    hasDriven = true;
+    try { sessionStorage.setItem(drivenKey, '1'); } catch {}
+    app.classList.remove('first-visit');
+  }
+  const firstVisit = role === ROLES.GUEST && !hasDriven;
+  bottomBar.hidden = !active || role === ROLES.HOST || firstVisit;
+  document.getElementById('first-drive-help').hidden = !firstVisit;
   const guestViewing = role === ROLES.GUEST && !driving;
   const otherLabel = display?.driver?.id !== transport?.status.clientId ? display?.driver?.label : null;
   document.getElementById('driver-label').textContent = role === ROLES.HOST ? 'Host control' : driving ? 'You are driving' : pendingControl ? 'Requesting control' : otherLabel ? `${otherLabel} is driving` : 'Ready for a driver';
   label.textContent = role === ROLES.HOST ? 'Host' : driving ? 'Driving' : pendingControl ? 'Requesting' : otherLabel ? `${otherLabel} driving` : 'Viewing';
+  if (firstVisit && !pendingControl && !otherLabel) label.textContent = 'Connected';
   document.querySelector('.trackpad-note').textContent = display?.mode === 'trunk' ? 'Inside the network: 49 layers' : 'Movement goes to the display while you drive.';
   document.getElementById('image-name').textContent = display?.image?.name || 'Waiting for image';
   document.getElementById('top-answer').textContent = scoreText(display?.top1);
@@ -200,6 +218,7 @@ function onStatus(status) {
     hostTakePending = false;
     gallery?.clearPending();
     hostControls?.clearPending();
+    demoRail?.setDisplay(null);
     releaseWakeLock();
     setState('error', 'offline');
   } else if (status.phase === 'reconnecting') {
@@ -210,6 +229,7 @@ function onStatus(status) {
     hostTakePending = false;
     gallery?.clearPending();
     hostControls?.clearPending();
+    demoRail?.setDisplay(null);
     releaseWakeLock();
     if (!connectionWatchdog) armConnectionWatchdog();
     setState('error', 'reconnecting');
@@ -226,6 +246,7 @@ function onDisplayState(value) {
   if (value.driver?.id === transport?.status.clientId) hostTakePending = false;
   gallery?.setCurrent(value.image?.id);
   hostControls?.setDisplay(value);
+  demoRail?.setDisplay(value);
   answerList.setContext(value);
   const answersChanged = answerList.setAnswers(value.answers);
   if (stabilityPlaying(value)) { queuedFocus = null; optimisticFocus = null; }
@@ -245,6 +266,7 @@ function onDisplayState(value) {
 }
 
 function onDriverChanged({ driver, reason }) {
+  if (driver?.id !== transport?.status.clientId) { queuedScene = null; sceneController?.cancel(); }
   if (!display) return;
   const previous = display.driver;
   const wasDriving = previous?.id === transport?.status.clientId;
@@ -259,6 +281,7 @@ function onDriverChanged({ driver, reason }) {
   }
   if (driving && role === ROLES.GUEST) {
     haptic(12);
+    if (queuedScene) { const action = queuedScene; queuedScene = null; requestSceneAction(action); }
     if (queuedFocus && !stabilityPlaying(display)) {
       const { event, payload } = queuedFocus;
       queuedFocus = null;
@@ -279,8 +302,10 @@ function onFocusState(value) {
 }
 
 function onError(error) {
+  if (!error || typeof error !== 'object') error = { message: 'That action did not work. Try again.' };
   steerPanel?.setError(error);
   pendingControl = false;
+  queuedScene = null; sceneController?.cancel();
   if (error.event === EVENTS.TAKE_CONTROL) hostTakePending = false;
   if ([EVENTS.TAKE_CONTROL, EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS].includes(error.event)) {
     queuedFocus = null;
@@ -290,6 +315,7 @@ function onError(error) {
   if (role === ROLES.HOST) {
     gallery?.clearPending();
     hostControls?.clearPending();
+    demoRail?.cancel();
   }
   if (error.code === ERROR_CODES.NO_ROOM) { stopConnectionWatchdog(); releaseWakeLock(); setState('error', 'noRoom'); }
   else if (error.code === ERROR_CODES.BAD_KEY) { stopConnectionWatchdog(); releaseWakeLock(); setState('error', 'badKey'); }
@@ -303,7 +329,7 @@ function onError(error) {
     if (mockScene === 'error-locked') window.__cx2Ready = true;
     haptic(6);
   } else if (error.code === ERROR_CODES.FORBIDDEN) {
-    const driverEvent = [EVENTS.CONTROL_ORBIT, EVENTS.CONTROL_ZOOM, EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS, EVENTS.RESET_VIEW, EVENTS.STEER_UPDATE, EVENTS.STEER_RESET].includes(error.event);
+    const driverEvent = [EVENTS.CONTROL_ORBIT, EVENTS.CONTROL_ZOOM, EVENTS.SCENE_ACTION, EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS, EVENTS.RESET_VIEW, EVENTS.STEER_UPDATE, EVENTS.STEER_RESET].includes(error.event);
     if (driverEvent && role === ROLES.GUEST && display?.driver?.id === transport?.status.clientId) {
       display = { ...display, driver: null };
       setState('guest-viewing');
@@ -318,6 +344,7 @@ function onError(error) {
 }
 
 function startConnection() {
+  queuedScene = null; sceneController?.cancel();
   stopConnectionWatchdog();
   connectionTimedOut = false;
   transport?.close();
@@ -329,6 +356,7 @@ function startConnection() {
   hostTakePending = false;
   gallery?.clearPending();
   hostControls?.setDisplay(null);
+  demoRail?.setDisplay(null);
   answerList.setAnswers([]);
   answerList.setFocus(null);
   window[READY_FLAG] = false;
@@ -343,11 +371,12 @@ function startConnection() {
     if (peer.role === ROLES.DISPLAY) {
       display = null;
       releaseWakeLock();
-      setState('error', 'offline');
+      demoRail?.setDisplay(null);
+      setState('waiting-for-display');
     }
   });
   transport.on(EVENTS.PEER_JOINED, peer => {
-    if (peer.role === ROLES.DISPLAY && state === 'error' && errorKind === 'offline') setState('waiting-for-display');
+    if (peer.role === ROLES.DISPLAY && !display) setState('waiting-for-display');
   });
   transport.status.subscribe(onStatus);
 }
@@ -400,6 +429,25 @@ function clearFocus() {
   if (answerList.hasFocus()) requestFocus(EVENTS.CLEAR_FOCUS, {}, null);
 }
 
+function requestSceneAction(action) {
+  if (document.hidden || !display?.capabilities?.inspection || transport?.status.phase !== 'connected') return false;
+  if (!isDriving()) {
+    if (display.driver) { showNotice(`${display.driver.label} is driving · Take control in a moment`); return false; }
+    queuedScene = action; takeControl(); return false;
+  }
+  claimHostControl();
+  const payload = { ...action, seq: ++sceneSeq };
+  return transport.emit(EVENTS.SCENE_ACTION,payload) ? payload : false;
+}
+sceneController = createSceneController({ pane: document.getElementById('scene-pane'), controls: document.getElementById('inspection-controls'), onAction: requestSceneAction, notify: showNotice });
+// The result anchors the settings pane; component controls follow it on every device.
+const currentImage = document.querySelector('.current-image');
+document.getElementById('side-panel').insertBefore(currentImage, document.getElementById('inspection-controls'));
+// Keep the guest's existing Reset view action in the scrollable settings pane.
+if (role === ROLES.GUEST) document.getElementById('side-panel').insertBefore(resetBottom, document.querySelector('.sensitivity-control'));
+
+const workspaceTabs = mountWorkspaceTabs(document.getElementById('side-panel'));
+
 const answerList = createAnswerList({
   root: document.getElementById('answers-panel'),
   onSelect: selectAnswer,
@@ -416,7 +464,7 @@ steerPanel = createSteerPanel({
   },
   requestControl: takeControl,
   notify: showNotice,
-  onImageChange() { document.getElementById('side-panel').scrollTop = 0; },
+  onImageChange() { document.getElementById('modify-workspace').scrollTop = 0; },
 });
 function renderSteer() {
   const available = display?.capabilities?.steer === true;
@@ -443,13 +491,25 @@ const hostControls = role === ROLES.HOST ? createHostControls({
   onImage: imageId => { haptic(); return transport.emit(EVENTS.SELECT_IMAGE, { imageId }); },
   onTimeout: () => showNotice('The display did not confirm that control. Try again.'),
 }) : null;
+const demoRail = role === ROLES.HOST ? createDemoRail({
+  root: document.getElementById('demo-rail'),
+  emit: (event, payload) => transport?.emit(event, payload) ?? false,
+  notify: showNotice,
+  onSteer: () => {
+    workspaceTabs.select('modify'); selectedPanel = 'steer'; renderSteer();
+    const panel = document.getElementById('steer-panel');
+    panel.style.scrollMarginTop = `${document.getElementById('demo-rail').offsetHeight + 16}px`;
+    requestAnimationFrame(() => panel.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }));
+  },
+  mock: query.get('mock') === '1',
+}) : null;
 
 if (gallery) {
   const manifestUrl = query.get('mock') === '1' ? '/contract/fixtures/manifest.json' : '/assets/manifest.json';
   fetch(manifestUrl).then(response => {
     if (!response.ok) throw new Error('Gallery manifest unavailable');
     return response.json();
-  }).then(manifest => { gallery.setManifest(manifest); hostControls.setManifest(manifest); }).catch(() => showNotice('Gallery unavailable. Try again later.'));
+  }).then(manifest => { gallery.setManifest(manifest); hostControls.setManifest(manifest); demoRail.setManifest(manifest); }).catch(() => showNotice('Gallery unavailable. Try again later.'));
 }
 
 takeCenter.addEventListener('click', takeControl);
@@ -464,8 +524,16 @@ retry.addEventListener('click', () => {
   startConnection();
 });
 document.addEventListener('visibilitychange', () => {
+  app.dataset.pageHidden = String(document.hidden);
   if (document.visibilityState === 'visible') { transport?.reconnect?.(); void acquireWakeLock(); }
-  else releaseWakeLock();
+  else {
+    releaseWakeLock();
+    queuedScene = null; sceneController?.cancel();
+    queuedFocus = null;
+    optimisticFocus = null;
+    demoRail?.cancel();
+    clearTouches();
+  }
 });
 window.addEventListener('pageshow', () => transport?.reconnect?.());
 window.addEventListener('online', () => transport?.reconnect?.());
@@ -515,6 +583,8 @@ function renderTouches() {
   }
   trackpad.classList.toggle('active', points.length > 0);
 }
+function clearTouches() { touchPoints.clear(); renderTouches(); }
+window.addEventListener('orientationchange', clearTouches);
 
 trackpad.addEventListener('pointerdown', event => {
   if (touchPoints.size < 2) touchPoints.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -532,7 +602,7 @@ gestures.onOrbit(({ dx, dy }) => { if (display && isDriving()) { claimHostContro
 gestures.onZoom(dz => { if (display && isDriving()) { claimHostControl(); transport.emit(EVENTS.CONTROL_ZOOM, { dz }); } });
 window.addEventListener('pagehide', event => {
   releaseWakeLock();
-  if (!event.persisted) { gestures.destroy(); steerPanel.destroy(); transport?.close(); }
+  if (!event.persisted) { gestures.destroy(); sceneController?.destroy(); steerPanel.destroy(); demoRail?.destroy(); transport?.close(); }
 });
 
 startConnection();

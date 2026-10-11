@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Stark display</title>
+  <link rel="stylesheet" href="/core/inspection.css">
   <link rel="icon" href="data:,">
   <script type="importmap">
     { "imports": {
@@ -20,6 +21,7 @@
 <body>
   <canvas id="stage"></canvas>
   <div id="hud"></div>
-  <script type="module" src="/core/main.js"></script>
+  <section id="display-startup" class="display-startup" role="status"><h1>Loading the brain…</h1><p>The scene will appear here when it is ready.</p><button type="button" hidden>Retry display</button></section>
+  <script type="module" src="/core/boot.js"></script>
 </body>
 </html>

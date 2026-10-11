@@ -49,8 +49,8 @@ export const BRAIN = {
   samples: 18,            // points per tract (brainMesh threads a Catmull-Rom through them)
   insideMargin: 0.06,     // tracts stay this far (plus their radius) under the smooth cortex cap …
   leafTail: 0.25,         // … except a leaf's last quarter, which crosses the cortex to its tip
-  veinRadiusBase: 0.035,
-  veinRadiusScale: 0.16,  // vein radius = base + scale · sqrt(value)
+  veinRadiusBase: 0.014,
+  veinRadiusScale: 0.055,  // vein radius = base + scale · sqrt(value)
 };
 
 /** Vein radius for a branch value (shared with brainMesh.js). */

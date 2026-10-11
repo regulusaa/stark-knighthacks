@@ -42,12 +42,13 @@ export function buildAnswers(tree, gradcam, { live = null } = {}) {
   return answers;
 }
 
-export function createApi({ manifest, panel, trunk, rig }) {
+export function createApi({ manifest, panel, trunk, rig, preview = false }) {
   const ev = emitter();
   let assets = null;
   let loadToken = 0;
   let state = null;
   let heatOn = false;
+  let inspection = null;
   let focusImpl = null; // focus.js, attached by main once the Brain exists
   let heatProvider = null; // Steer: (classId, instant) → true if it showed a live heatmap
   const server = { room: null, driver: null, controllerCount: 0 }; // kept across image switches
@@ -67,7 +68,7 @@ export function createApi({ manifest, panel, trunk, rig }) {
     const entry = manifest.find((m) => m.id === id);
     if (!entry) return;
     assetsFor(entry).then((a) => {
-      if (!entry.steerable) return;
+      if (preview || !entry.steerable) return;
       for (const f of ['conv5.bin', 'steer.json']) fetch(a.base + f).then((r) => r.arrayBuffer()).catch(() => {});
     });
   }
@@ -182,9 +183,11 @@ export function createApi({ manifest, panel, trunk, rig }) {
       return true;
     },
 
-    orbit: (dx, dy) => rig.orbit(dx, dy),
-    zoom: (d) => rig.zoom(d),
-    resetView: () => rig.resetView(),
+    attachInspection(impl) { inspection = impl; },
+    sceneAction(p) { return inspection?.action(p); },
+    orbit(dx,dy) { inspection?.cancelCamera(); rig.orbit(dx,dy); },
+    zoom(d) { inspection?.cancelCamera(); rig.zoom(d); },
+    resetView() { if (inspection && state?.mode !== 'trunk') inspection.center(); else rig.resetView(); },
     /** play-pulse: the forward pass; in stability mode (v3) the stability sequence from run 1 instead. */
     replay() {
       if (state?.mode === 'stability') { ev.emit('stability-replay'); return; }
@@ -199,7 +202,7 @@ export function createApi({ manifest, panel, trunk, rig }) {
     },
     showHeatmap,
     /** Focus one tip: fly to it and the panel, show its heatmap if it has one, emit focus-state. */
-    focusTip(classId) { return focusImpl ? focusImpl.focusTip(classId) : false; },
+    focusTip(classId) { inspection?.cancelCamera(); return focusImpl ? focusImpl.focusTip(classId) : false; },
     clearFocus() { focusImpl?.clearFocus(); },
     attachFocus(impl) { focusImpl = impl; },
     /** Relay bookkeeping (net.js): room, driver, controller count. The server stays authoritative. */

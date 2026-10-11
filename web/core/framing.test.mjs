@@ -8,6 +8,7 @@ import { frameFor, ndcBounds, FRAMING } from './framing.js';
 import { STEM_FRAME_Y } from './brainShape.js';
 import { RIG } from './cameraRig.js';
 import { PANEL, panelExtentBelow } from './imagePanel.js';
+import { fiberPaths } from './brainFibers.js';
 
 const g = buildTissueArrays();
 const pts = [];
@@ -17,6 +18,8 @@ for (let i = 0; i < g.position.length / 3; i += 23) {
   (p[1] < STEM_FRAME_Y ? stem : pts).push(p);
 }
 assert.ok(Math.min(...stem.map((p) => p[1])) < STEM_FRAME_Y - 3, 'the cord hangs well below the cerebellum');
+for (const path of fiberPaths()) stem.push(...path.points);
+for (const x of [-0.35, 0.35]) for (const z of [-0.35, 0.35]) stem.push([x, 0, z], [x, 6, z]);
 const authored = { position: RIG.defaultPosition.toArray(), target: RIG.defaultTarget.toArray(), fov: RIG.fov };
 const panel = { size: PANEL.size, extentBelow: panelExtentBelow(), position: PANEL.position.toArray() };
 const dir = (a) => { const l = Math.hypot(...a); return a.map((x) => x / l); };
@@ -26,10 +29,6 @@ for (const [w, h] of [[2560, 1440], [1920, 1080], [1180, 820], [390, 844]]) {
   const aspect = w / h;
   const f = frameFor(aspect, { brainPoints: pts, stemPoints: stem, panel, authored });
   assert.ok(f.back.every((x, i) => Math.abs(x - authoredBack[i]) < 1e-12), `${w}×${h}: viewing direction changed`);
-  if (aspect >= 16 / 9 - 1e-9) {
-    assert.equal(f.kind, 'authored', `${w}×${h} should keep the authored view`);
-    assert.deepEqual(f.target, authored.target);
-  }
   const s = f.kind === 'portrait' ? FRAMING.portrait.safe : f.kind === 'authored' ? { x0: -0.97, x1: 0.97, y0: -0.97, y1: 0.75 } : FRAMING.safe;
   const hs = (PANEL.size / 2) * f.panel.scale;
   const corners = [];
@@ -47,6 +46,9 @@ for (const [w, h] of [[2560, 1440], [1920, 1080], [1180, 820], [390, 844]]) {
     assert.ok(n.x0 >= s.x0 - 1e-3 && n.x1 <= s.x1 + 1e-3 && n.y0 >= s.y0 - 1e-3 && n.y1 <= s.y1 + 1e-3,
       `${w}×${h}: ${name} outside the safe area (${[n.x0, n.x1, n.y0, n.y1].map((x) => x.toFixed(2))})`);
   }
+  const all = ndcBounds([...pts, ...stem, ...corners], {...f, aspect});
+  assert.ok(Math.abs((all.x0 + all.x1) / 2 - (s.x0 + s.x1) / 2) < 0.02, `${w}×${h}: horizontal centre drift`);
+  assert.ok(Math.abs((all.y0 + all.y1) / 2 - (s.y0 + s.y1) / 2) < 0.02, `${w}×${h}: vertical centre drift`);
   if (f.kind === 'portrait') {
     const { photo, cord } = box;
     assert.ok(photo.x1 <= cord.x0 + 1e-3, `${w}×${h}: the photo overlaps the cord (${photo.x1.toFixed(2)} > ${cord.x0.toFixed(2)})`);
@@ -57,4 +59,4 @@ for (const [w, h] of [[2560, 1440], [1920, 1080], [1180, 820], [390, 844]]) {
     console.log(`  ${w}×${h} portrait: photo ${(photo.x1 - photo.x0).toFixed(2)}×${(photo.y1 - photo.y0).toFixed(2)} NDC, brain ${(box.brain.x1 - box.brain.x0).toFixed(2)}×${brainH.toFixed(2)}`);
   }
 }
-console.log('framing: ok (2560×1440, 1920×1080 authored; 1180×820, 390×844 fitted; cord in frame)');
+console.log('framing: ok (2560×1440, 1920×1080, 1180×820, 390×844 centred; full trunk and nerve roots in frame)');
