@@ -104,6 +104,7 @@ uniform float uHiddenPath;
 uniform float uHiddenOther;
 uniform float uMoment;        // (v3) Steer moment pulse head along the lit path (fraction); -1 = none
 uniform float uMomentWidth;
+uniform float uFade;          // the trunk interior dims the Brain
 uniform vec3 uKeyLight;
 uniform vec3 uSpecular;
 uniform float uShininess;
@@ -169,7 +170,7 @@ void main() {
   // behind tissue: only the chosen path shows through (strongly)
   if (uHidden > 0.5) col *= isOther > 0.5 ? onPath * uHiddenPath : mix(uHiddenOther * (0.5 + value), uHiddenPath, chosen);
 
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = vec4(col * uFade, 1.0);
   #include <colorspace_fragment>
   #include <fog_fragment>
 }`;
@@ -186,6 +187,7 @@ export function createBrainMesh() {
     uColorCeil: { value: VEINS.colorCeil },
     uMoment: { value: -1 },
     uMomentWidth: { value: VEINS.momentWidth },
+    uFade: { value: 1 },
     uPathLen: { value: 1 },
     uMaxDist: { value: 1 },
     uHiPeriod: { value: VEINS.highlightPeriod },
@@ -310,6 +312,8 @@ export function createBrainMesh() {
     },
     /** (v3) The Steer moment: one bright pulse travels down the lit path from root to tip. */
     pulseLitPath() { moment = { t: 0 }; },
+    /** 0..1: every tract's brightness (the trunk interior dims the Brain). */
+    setFade(k) { uniforms.uFade.value = k; },
     /** Only move the lit path (stability playback: a quick crossfade, values untouched). */
     setLit(leafId, fadeMs) { this.setValues(new Map(), leafId, fadeMs); },
     /** Back to the values the Brain was built with (no Steer). */

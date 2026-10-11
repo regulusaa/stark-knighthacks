@@ -27,6 +27,7 @@ import { createStability } from './stability.js';
 import { createAdversarial } from './adversarial.js';
 import { createMedical } from './medical.js';
 import { createGlow, glowing } from './glow.js';
+import { createTrunkInterior } from './trunkInterior.js';
 
 // The anatomy's bounding box; the whole Brain breathes about the cerebrum's centre.
 export const BRAIN_VOLUME = {
@@ -142,6 +143,16 @@ const adversarial = await createAdversarial({ api, panel });
 const medical = createMedical({ api, tips, parent: brainRoot });
 // glow on the strands, the tips and the pulse only (after the Brain's own image-loaded handler has rebuilt them)
 const glow = createGlow({ renderer, scene, camera, stats, api });
+// the trunk interior (mode "trunk"): the Brain dims while the trunk is open
+function dimBrain(k) {
+  tissue.setDim(k);
+  veins.setFade(k);
+  const show = k > 0.97;
+  tips.group.visible = show;
+  labels.group.visible = show;
+  fibers.mesh.visible = show;
+}
+const interior = createTrunkInterior({ api, scene, rig, camera, trunk, steer, dimBrain });
 glowing(trunk.mesh);
 api.onImageLoaded(() => {
   for (const m of veins.group.children) if (m.material === veins.material) glowing(m);
@@ -151,7 +162,7 @@ api.onImageLoaded(() => {
 api.onPairSwitch(() => veins.setRevealed());
 
 // Exposed for CC-4b/CC-5 code in this lane and for test scripts.
-const stark = { get framing() { return framing; }, fibers, pickTrack, api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, tissue, tipHidden, steer, stability, adversarial, medical, glow, relay: null };
+const stark = { get framing() { return framing; }, fibers, pickTrack, api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, tissue, tipHidden, steer, stability, adversarial, medical, glow, interior, relay: null };
 window.__stark = stark;
 
 let readyPending = true;
@@ -172,6 +183,7 @@ function frame() {
   panel.update(dt);
   steer.tick();
   stability.update(dt);
+  interior.update(dt);
   veins.update(animTime, dt);
   brainPivot.scale.setScalar(1 + BREATHE.amp * Math.sin((2 * Math.PI * animTime) / BREATHE.period));
   tips.setLit(veins.revealProgress);

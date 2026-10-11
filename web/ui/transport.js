@@ -144,6 +144,17 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
 
   async function beginMock() {
     try {
+      if (params.get('v3') === '1') {
+        const { createV3Mock } = await import('/ui/dev/contract-v3-shim.js');
+        steerMock = await createV3Mock({ room, role, scene });
+        status.clientId = steerMock.status.clientId;
+        status.label = steerMock.status.label;
+        if (closed) { steerMock.close(); return; }
+        for (const event of Object.values(EVENTS)) steerMock.on(event, payload => deliver(event, payload));
+        steerMock.status.subscribe(value => setStatus(value.phase, value.reason));
+        steerMock.start();
+        return;
+      }
       if (params.get('steer') === '1') {
         const { createSteerMock } = await import('/ui/dev/steer-engine.js');
         steerMock = await createSteerMock({ scene, role });

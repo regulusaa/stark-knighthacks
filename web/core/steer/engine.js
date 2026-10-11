@@ -245,6 +245,22 @@ export function createEngine({ W, b }) {
     },
 
     pooled(channel) { return p[channel]; },
+
+    /**
+     * The 7×7 L2 norm over channels of the (scaled) activations, row-major, into `out` (Float32Array(49)): what the
+     * activation atlas stores for conv5_block3_out (before quantization), with the Steer scales applied.
+     */
+    l2Map(scales, out = new Float32Array(HW)) {
+      const sc = new Float32Array(C).fill(1);
+      each(scales, (c, s) => { sc[c] = s; });
+      for (let ij = 0; ij < HW; ij++) {
+        let sum = 0;
+        const o = ij * C;
+        for (let c = 0; c < C; c++) { const v = A[o + c] * sc[c]; sum += v * v; }
+        out[ij] = Math.sqrt(sum);
+      }
+      return out;
+    },
   };
   return engine;
 }

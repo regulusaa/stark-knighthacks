@@ -5,11 +5,9 @@
 // each mode, measured on the display.
 // usage (repo root): BASE=https://… STARK_KEY_FILE=~/.config/stark/host-key node web/core/checks/cc8demo.mjs [shotDir]
 //   (or STARK_HOST_KEY=… for a local server). The key is never printed. Devices are Playwright presets on Chromium.
-// The controller has no noise or glow buttons yet (Codex's CX-8): those two go out as set-mode from a second host
-// socket, exactly the event the button will send; the output says so.
+// Noise ×50, Glow and the Original/Adversarial pair are tapped on Codex's host controller (CX-8).
 import { readFileSync } from 'node:fs';
 import { chromium, devices } from 'playwright';
-import { io } from 'socket.io-client';
 
 const BASE = process.env.BASE ?? 'http://localhost:3000';
 const KEY = process.env.STARK_HOST_KEY ?? readFileSync(process.env.STARK_KEY_FILE.replace(/^~/, process.env.HOME), 'utf8').trim();
@@ -42,10 +40,8 @@ const guest = await (await browser.newContext(phone(devices['iPhone 13']))).newP
 watch(guest, 'guest');
 await guest.goto(`${BASE}/controller?room=${room}`);
 await host.waitForSelector('#gallery-grid [data-image-id]', { timeout: 30000 });
-// the noise and glow toggles (see the header)
-const tools = io(BASE, { transports: ['websocket'], reconnection: false });
-await new Promise((r) => tools.on('connect', r));
-check((await tools.emitWithAck('register', { role: 'host', room, key: KEY })).ok, 'host tools socket registered (for set-mode noiseView/bloom)');
+/** Tap one of the host's v3 toggles (Noise ×50, Glow) once it is shown. */
+const toggle = async (field) => { await host.waitForSelector(`[data-mode-field="${field}"]:not([hidden])`, { timeout: 5000 }); await host.click(`[data-mode-field="${field}"]`); };
 
 const S = (fn, arg) => display.evaluate(fn, arg);
 const state = () => S(() => window.__stark.api.state);
@@ -109,7 +105,7 @@ const cam = () => S(() => [...window.__stark.camera.position.toArray(), ...windo
 const c0 = await cam();
 await shot('adversarial-before');
 const t0 = Date.now();
-await host.click('#gallery-grid [data-image-id="adv_retriever"]');
+await host.click('[data-pair-image="adv_retriever"]');
 await display.waitForFunction(() => window.__stark.api.state.image.id === 'adv_retriever' && window.__stark.veins.revealProgress >= 1, null, { timeout: 5000 });
 const switchMs = Date.now() - t0;
 await sleep(300);
@@ -121,33 +117,33 @@ check(st.top1.label === 'Labrador retriever' && st.image.adversarial?.maxPixelCh
 check(await S(() => window.__stark.panel.caption) === 'Changed by at most 2/255 per pixel', 'caption: "Changed by at most 2/255 per pixel"');
 await shot('adversarial-after');
 await fps('normal (adversarial)');
-tools.emit('set-mode', { noiseView: true });
+await toggle('noiseView');
 await display.waitForFunction(() => window.__stark.panel.noiseMix > 0 && window.__stark.panel.noiseMix < 1, null, { timeout: 2000 })
   .then(() => check(true, 'noise view crossfades in'), () => check(false, 'noise view crossfades in'));
 await sleep(450);
 st = await state();
 check(st.noiseView === true && await S(() => window.__stark.panel.noiseMix) === 1 && await S(() => window.__stark.panel.caption) === 'The change, amplified 50×',
-  'noise view on (set-mode noiseView from a host socket): "The change, amplified 50×"');
+  'Noise ×50 on from the host: "The change, amplified 50×"');
 await shot('noise-view');
 await fps('noise view');
-tools.emit('set-mode', { noiseView: false });
+await toggle('noiseView');
 await sleep(450);
 check((await state()).noiseView === false && await S(() => window.__stark.panel.noiseMix) === 0, 'noise view off: the photo is back');
-tools.emit('set-mode', { noiseView: true });
+await toggle('noiseView');
 await sleep(450);
-await host.click('#gallery-grid [data-image-id="clean_retriever"]');
+await host.click('[data-pair-image="clean_retriever"]');
 await display.waitForFunction(() => window.__stark.api.state.image.id === 'clean_retriever', null, { timeout: 5000 });
 check((await state()).noiseView === false && await S(() => window.__stark.panel.noiseMix) === 0 && await cam() === c0, 'switching back with the noise on: photo again, same camera');
 
 // --- glow -----------------------------------------------------------------------------------------------------
 await shot('glow-on');
-tools.emit('set-mode', { bloom: false });
+await toggle('bloom');
 await display.waitForFunction(() => window.__stark.api.state.bloom === false, null, { timeout: 3000 });
-check(await S(() => window.__stark.glow.on) === false, 'glow off from the host (set-mode bloom)');
+check(await S(() => window.__stark.glow.on) === false, 'Glow off from the host');
 await sleep(300);
 await shot('glow-off');
 await fps('normal (retriever, glow off)');
-tools.emit('set-mode', { bloom: true });
+await toggle('bloom');
 await display.waitForFunction(() => window.__stark.api.state.bloom === true, null, { timeout: 3000 });
 
 // --- medical --------------------------------------------------------------------------------------------------
@@ -202,12 +198,28 @@ await sleep(4200);
 check((await state()).steerMoment === null, 'steerMoment cleared after 4 s');
 await fps('Steer (flipped)');
 
+// --- trunk interior (CC-9, a Q&A bonus): Codex's mode and layer buttons --------------------------------------
+await host.waitForSelector('[data-mode="trunk"]:not([hidden])', { timeout: 10000 });
+await host.click('[data-mode="trunk"]');
+await display.waitForFunction(() => window.__stark.interior.open === 1, null, { timeout: 8000 });
+check((await state()).mode === 'trunk' && await S(() => window.__stark.interior.built?.cells.geometry.instanceCount) === 54145, 'trunk interior from the host: the column is open (54,145 cells)');
+await fps('trunk interior, full');
+await host.waitForSelector('[data-layer-mode="reduced"]:not([hidden])', { timeout: 5000 });
+await host.click('[data-layer-mode="reduced"]');
+await display.waitForFunction(() => window.__stark.api.state.layerMode === 'reduced', null, { timeout: 5000 });
+await sleep(1200);
+check(true, 'reduced layers from the host');
+await fps('trunk interior, reduced');
+await host.click('[data-layer-mode="full"]');
+await host.click('[data-mode="normal"]');
+await display.waitForFunction(() => window.__stark.interior.open === 0 && window.__stark.api.state.mode === 'normal', null, { timeout: 8000 });
+check(await S(() => window.__stark.tips.group.visible && !window.__stark.interior.group.visible), 'back to normal: column folded away, Brain back');
+
 // --- wrap up --------------------------------------------------------------------------------------------------
 check(loads === 1, 'the display was never reloaded');
 check(errors.length === 0, `no console errors (${errors.length}${errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''})`);
 console.log('\nframe rate on the display (2560×1440):');
 for (const f of fpsTable) console.log(`  ${f.mode.padEnd(30)} ${f.fps.toFixed(1)} fps  ${f.long} frames > 25 ms of ${f.n} (worst ${f.worst.toFixed(1)} ms)`);
 console.log(failed ? `\n${failed} check(s) failed` : '\ncc8 demo: all checks passed');
-tools.close();
 await browser.close();
 process.exitCode = failed ? 1 : 0;

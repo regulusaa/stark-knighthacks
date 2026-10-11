@@ -371,7 +371,7 @@ The display emits `steer-result` at most `STEER_SEND_HZ` (15) times per second. 
 
 **Capabilities.** `stability` is true only when the current image has `mc.json`. `trunkInterior` is true only when the image has atlas files AND the trunk interior renderer (CC-9) has shipped. `noiseView` is true only for an adversarial image with a noise file. `bloom` is false when the display has turned glow off for performance; the host can turn it back on. Medical images: `steer` and `stability` are always false.
 
-**Modes.** Entering `stability` or `trunk` clears steering and sets `capabilities.steer` false until the mode returns to `normal`. `play-pulse` while in `stability` replays the stability sequence from run 1. There are no new events.
+**Modes.** Entering `stability` clears steering and sets `capabilities.steer` false until the mode returns to `normal`. (Amended in CC-9 at Ray's request: `trunk` keeps steering and Steer stays available there, because the interior's top slab is the layer Steer edits and follows it live.) `play-pulse` while in `stability` replays the stability sequence from run 1. There are no new events.
 
 ```jsonc
 // AdversarialInfo: display-state.image.adversarial (from the pair's fgsm.json)

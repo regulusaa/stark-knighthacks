@@ -66,12 +66,13 @@ export function linkSteer({ api, panel, veins, tips, labels, tissue }) {
     if (!steer) { api.steerAnswer = () => null; return; }
     api.steerAnswer = (k) => (session.state?.active ? session.answerFor(k) : null);
   });
-  // (v3) stability and trunk modes clear steering and suspend Steer; back in normal it returns
+  // (v3, amended in CC-9) stability clears steering and suspends Steer; back in normal it returns. The trunk interior
+  // keeps it: its top slab is the layer Steer edits and follows the steering live
   api.onMode(({ to }) => {
-    if (to !== 'normal') {
+    if (to === 'stability') {
       if (session.state?.active) session.reset();
       api.setSteerCapability(false);
-    } else if (steerable) api.setSteerCapability(true, { live });
+    } else if (steerable && !api.state?.capabilities.steer) api.setSteerCapability(true, { live });
   });
 
   session.on('result', (st) => api.publishSteer(st));
