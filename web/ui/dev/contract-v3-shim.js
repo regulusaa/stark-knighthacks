@@ -31,7 +31,8 @@ export async function createV3Fixtures(room = '7KQ2M') {
   const moment = { ...clone(steering), top1: current, steer: { active: true, changedCount: 3, top1Changed: true }, steerMoment: { from: clean, to: current, at: Date.now() } };
   const outsideState = { ...clone(steering), top1: outside.result.top1, steer: { active: true, changedCount: 5, top1Changed: true } };
   const states = { idle, 'stability-playing': playing, 'stability-summary': summary, adversarial, 'adversarial-noise': { ...clone(adversarial), noiseView: true }, medical: med, steering, 'steer-moment': moment, outsideBrain: outsideState,
-    focused: { ...clone(idle), focus: { ...base.answers[1], heatmapSource: 'live' } }, trunk: { ...clone(idle), mode: MODES.TRUNK, capabilities: { ...idle.capabilities, steer: false } } };
+    'glow-auto-off': { ...clone(idle), bloom: false, capabilities: { ...idle.capabilities, bloom: false } },
+    focused: { ...clone(idle), focus: { ...base.answers[1], heatmapSource: 'live' } }, trunk: { ...clone(idle), mode: MODES.TRUNK } };
   return { states, outside, drawnClasses: tree.nodes.filter(n => n.classId != null).map(n => n.classId) };
 }
 
@@ -44,7 +45,7 @@ export async function createV3Mock({ room, role, scene = 'idle' }) {
   const timers = new Set();
   const log = [];
   let state = clone(fixtures.states[scene] || fixtures.states.idle);
-  state.capabilities.steer = state.mode === MODES.NORMAL && state.image.id === 'clean_retriever';
+  state.capabilities.steer = state.mode !== MODES.STABILITY && state.image.id === 'clean_retriever';
   let closed = false;
   let runToken = 0;
   const status = { phase: 'connecting', clientId: role === ROLES.HOST ? 'h_mock' : 'c_local', label: role === ROLES.HOST ? 'Ray' : 'Guest 1', reason: null,
@@ -53,7 +54,7 @@ export async function createV3Mock({ room, role, scene = 'idle' }) {
   const later = (ms, cb) => { const timer = setTimeout(() => { timers.delete(timer); if (!closed) cb(); }, ms); timers.add(timer); };
   const publish = () => { if (status.phase === 'connected') deliver(EVENTS.DISPLAY_STATE, state); };
   engine.on(EVENTS.STEER_RESULT, value => {
-    if (!state.capabilities.steer || state.mode !== MODES.NORMAL || status.phase !== 'connected') return;
+    if (!state.capabilities.steer || state.mode === MODES.STABILITY || status.phase !== 'connected') return;
     const previous = state.top1;
     state.top1 = clone(value.result.top1); state.answers = clone(value.result.answers);
     state.steer = { active: value.active, changedCount: value.scales.length, top1Changed: value.result.top1Changed };
@@ -84,7 +85,7 @@ export async function createV3Mock({ room, role, scene = 'idle' }) {
     show(name) { runToken++; state = clone(fixtures.states[name] || fixtures.states.idle); state.room = room; if (state.steerMoment) state.steerMoment.at = Date.now(); publish(); deliver(EVENTS.FOCUS_STATE, state.focus); },
     inject(value) { state = clone(value); publish(); },
     setConnection(connected) { status.phase = connected ? 'connected' : 'disconnected'; for (const cb of subscribers) cb(status); if (connected) publish(); },
-    start() { later(30, () => { status.phase = 'connected'; for (const cb of subscribers) cb(status); deliver(EVENTS.PEER_JOINED, { role: ROLES.DISPLAY, clientId: 'd_mock' }); publish(); if (state.image.id === 'clean_retriever' && state.mode === MODES.NORMAL) engine.start(); }); },
+    start() { later(30, () => { status.phase = 'connected'; for (const cb of subscribers) cb(status); deliver(EVENTS.PEER_JOINED, { role: ROLES.DISPLAY, clientId: 'd_mock' }); publish(); if (state.capabilities.steer) engine.start(); }); },
     emit(event, payload = {}) {
       log.push({ event, payload: clone(payload), time: performance.now() }); console.info('[mock emit]', event, payload);
       if (closed || status.phase !== 'connected') return false;
@@ -92,13 +93,15 @@ export async function createV3Mock({ room, role, scene = 'idle' }) {
       else if (event === EVENTS.SET_MODE && role === ROLES.HOST) later(180, () => {
         const oldMode = state.mode;
         for (const field of ['mode', 'layerMode', 'noiseView', 'bloom']) if (Object.hasOwn(payload, field)) state[field] = payload[field];
-        if (state.mode !== oldMode) { state.steer = null; state.steerMoment = null; }
-        state.capabilities.steer = state.mode === MODES.NORMAL && state.image.id === 'clean_retriever';
-        if (state.mode !== oldMode) {
+        if (payload.bloom === true) state.capabilities.bloom = true;
+        state.capabilities.steer = state.mode !== MODES.STABILITY && state.image.id === 'clean_retriever';
+        if (state.mode === MODES.STABILITY && state.mode !== oldMode) {
+          state.steer = null; state.steerMoment = null;
           engine.emit(EVENTS.STEER_RESET, {});
           const baseline = fixtures.states[state.image.category === 'adversarial' ? 'adversarial' : state.scoreKind === 'independent' ? 'medical' : 'idle'];
           state.top1 = clone(baseline.top1); state.answers = clone(baseline.answers);
         }
+        if (oldMode === MODES.STABILITY && state.capabilities.steer) engine.emit(EVENTS.STEER_RESET, {});
         if (payload.mode === MODES.STABILITY) replay(); else if (payload.mode) { runToken++; state.stability = null; }
         publish();
       });

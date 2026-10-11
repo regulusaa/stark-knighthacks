@@ -60,7 +60,8 @@ export function createHostControls({ root, onPlay, onMode, onImage, onTimeout })
     for (const b of layerButtons) mark(b, b.dataset.layerMode === (valueFor('layerMode') || 'full'), b.dataset.layerMode === pending.get('layerMode')?.value);
     for (const b of toggles) {
       const field = b.dataset.modeField;
-      b.hidden = caps[field] !== true || typeof display?.[field] !== 'boolean' || (field === 'noiseView' && display?.image?.category !== 'adversarial');
+      // The host can restore Glow after the display disables it for performance.
+      b.hidden = typeof display?.[field] !== 'boolean' || (field !== 'bloom' && (caps[field] !== true || display?.image?.category !== 'adversarial'));
       mark(b, valueFor(field) === true, pending.has(field));
       b.querySelector('span').textContent = valueFor(field) ? 'On' : 'Off';
     }
@@ -72,7 +73,8 @@ export function createHostControls({ root, onPlay, onMode, onImage, onTimeout })
     }
     root.querySelector('#pair-status').textContent = pending.has('imageId') ? 'Loading image…' : '';
     const names = [...pending.keys()].filter(k => !['imageId', 'playback'].includes(k)).map(k => k === 'mode' ? modeNames[valueFor(k)] : k === 'layerMode' ? `${valueFor(k)} layers` : k === 'noiseView' ? 'Noise ×50' : 'Glow');
-    modeStatus.textContent = names.length ? `Applying ${names.join(' · ')}…` : '';
+    modeStatus.textContent = names.length ? `Applying ${names.join(' · ')}…`
+      : typeof display?.bloom === 'boolean' && caps.bloom === false ? 'Turned off for performance' : '';
   }
   function play(speed, skipToEnd) { request('playback', { speed, skipToEnd }, () => onPlay({ speed, skipToEnd })); }
   replay.addEventListener('click', () => play(pending.get('playback')?.value?.speed ?? display?.playback?.speed ?? 1, false));
