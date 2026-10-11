@@ -12,6 +12,7 @@ try{
  console.log('display ready');
  const host=await browser.newPage({viewport:{width:1180,height:820}});watch(host,'host');
  await host.goto(BASE+'/controller?room=RENEW&role=host&key=test');
+ await host.locator('[data-workspace="usage"]').click();
  await host.locator('#inspection-controls').waitFor({state:'visible'});
  const frame=await (await host.locator('#scene-preview').elementHandle()).contentFrame();
  await frame.waitForFunction(()=>window.__starkReady&&window.__stark.api.state?.image.id==='clean_retriever',null,{timeout:45000});
@@ -54,7 +55,7 @@ try{
  }
  await host.setViewportSize({width:1180,height:820});await wait(700);
  const guest=await browser.newPage({viewport:{width:844,height:390},hasTouch:true});watch(guest,'guest');
- await guest.goto(BASE+'/controller?room=RENEW');await guest.locator('#inspection-controls').waitFor({state:'visible'});
+ await guest.goto(BASE+'/controller?room=RENEW');await guest.locator('[data-workspace="usage"]').click();await guest.locator('#inspection-controls').waitFor({state:'visible'});
  const lockedPose=await display.evaluate(()=>window.__stark.inspection.snapshot().offsets);
  await guest.locator('#inspection-controls [data-arrange]').click();
  assert.ok((await guest.locator('#notice').textContent()).includes('driving'),'guest gets clear ownership message');
@@ -64,11 +65,13 @@ try{
  const pad=await host.locator('#trackpad').boundingBox();await host.mouse.move(pad.x+pad.width*.5,pad.y+pad.height*.5);await host.mouse.down();await host.mouse.move(pad.x+pad.width*.65,pad.y+pad.height*.6,{steps:10});await host.mouse.up();await wait(500);
  const pose1=await display.evaluate(()=>window.__stark.camera.position.toArray());assert.ok(Math.hypot(...pose1.map((x,i)=>x-pose0[i]))>1,'controller orbit reaches display');
  await host.locator('#inspection-controls [data-center]').click();await wait(1000);
+ await host.locator('[data-workspace="modify"]').click();
  const answer=host.locator('.answer-row').first();await answer.click();await display.waitForFunction(()=>window.__stark.api.state.focus!==null);console.log('answer focus still works');
  await host.locator('#clear-focus').click();await display.waitForFunction(()=>window.__stark.api.state.focus===null);
  await host.locator('#side-panel').evaluate(e=>e.scrollTop=0);
  const timings=await display.evaluate(async()=>{const t=[];let last=performance.now();for(let i=0;i<120;i++){await new Promise(requestAnimationFrame);const now=performance.now();t.push(now-last);last=now;}t.sort((a,b)=>a-b);return {median:t[60],p95:t[114],calls:window.__stark.renderer.info.render.calls,triangles:window.__stark.renderer.info.render.triangles};});console.log('two previews + display frame timing',timings);
  // A late-joining viewer receives the complete separated pose, then survives a network loss.
+ await host.locator('[data-workspace="usage"]').click();
  await host.locator('#inspection-controls [data-arrange]').click();await wait(1200);
  const gf=await (await guest.locator('#scene-preview').elementHandle()).contentFrame();
  await gf.waitForFunction(()=>window.__stark?.inspection.arrangement==='split');

@@ -71,7 +71,7 @@ try {
  await guest.locator('#answer-list [data-class-id="208"]').tap();
  await display.waitForFunction(()=>window.__stark.api.state.focus?.classId===208&&window.__stark.panel.heatClass===208);await waitHome();
  await display.screenshot({path:'web/ui/.shots/final-focused-2560x1440.png'});
- await guest.locator('#reset-view').tap();await waitHome();await quiet(2560);
+ await guest.locator('[data-workspace="usage"]').tap();await guest.locator('#reset-view').tap();await waitHome();await quiet(2560);
  console.log('ok real phone-sized controller: takeover, touch orbit, pinch, focus/heatmap and reset through Socket.io');
  const longLabel=await display.evaluate(async()=>{
   const {mountHud}=await import('/ui/hud.js');const s=window.__stark.api.state;

@@ -7,6 +7,7 @@ import { connect } from '/ui/transport.js';
 import { stabilityPlaying } from '/ui/presentation.js';
 import { createSteerPanel } from '/ui/steer/panel.js';
 import { createDemoRail } from '/ui/demo-rail.js';
+import { mountWorkspaceTabs } from '/ui/workspace-tabs.js';
 import { createSceneController } from '/ui/scene-controller.js';
 
 const query = new URLSearchParams(location.search);
@@ -445,6 +446,8 @@ document.getElementById('side-panel').insertBefore(currentImage, document.getEle
 // Keep the guest's existing Reset view action in the scrollable settings pane.
 if (role === ROLES.GUEST) document.getElementById('side-panel').insertBefore(resetBottom, document.querySelector('.sensitivity-control'));
 
+const workspaceTabs = mountWorkspaceTabs(document.getElementById('side-panel'));
+
 const answerList = createAnswerList({
   root: document.getElementById('answers-panel'),
   onSelect: selectAnswer,
@@ -461,7 +464,7 @@ steerPanel = createSteerPanel({
   },
   requestControl: takeControl,
   notify: showNotice,
-  onImageChange() { document.getElementById('side-panel').scrollTop = 0; },
+  onImageChange() { document.getElementById('modify-workspace').scrollTop = 0; },
 });
 function renderSteer() {
   const available = display?.capabilities?.steer === true;
@@ -493,7 +496,7 @@ const demoRail = role === ROLES.HOST ? createDemoRail({
   emit: (event, payload) => transport?.emit(event, payload) ?? false,
   notify: showNotice,
   onSteer: () => {
-    selectedPanel = 'steer'; renderSteer();
+    workspaceTabs.select('modify'); selectedPanel = 'steer'; renderSteer();
     const panel = document.getElementById('steer-panel');
     panel.style.scrollMarginTop = `${document.getElementById('demo-rail').offsetHeight + 16}px`;
     requestAnimationFrame(() => panel.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }));

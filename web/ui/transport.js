@@ -335,6 +335,8 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
       loadRetryDelay = 500;
       socket = io({
         autoConnect: false,
+        transports: ['websocket', 'polling'],
+        tryAllTransports: true,
         reconnection: true,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 500,

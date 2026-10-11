@@ -3,6 +3,7 @@ export function createSceneController({ pane, controls, onAction, notify }) {
   let pendingSeq = -1, optimistic = null;
   let context = { display: null, driving: false, connected: false, clientId: null }, frame = null, ready = false;
   const loading = pane.querySelector('.scene-loading');
+  const diagram=document.createElement('figure');diagram.className='part-diagram';diagram.innerHTML='<img src="/ui/icons/all.svg" alt="Brain and brainstem diagram"><figcaption>COMPLETE</figcaption>';pane.append(diagram);
   controls.innerHTML = `<p class="eyebrow">SELECT A PART</p><div class="part-selection"><button data-part="brain" type="button">Brain</button><button data-part="stem" type="button">Stem</button><button data-part="all" type="button">All</button></div><button data-arrange type="button">Split up</button><div class="part-actions"><button data-inspect type="button">Inspect</button><button data-center type="button">Center view</button></div><p class="scene-status" role="status">Assembled · All selected</p><p class="scene-help">Select a part, then drag its handle to move it. Use the pad below to turn the view.</p>`;
   const post = (type,payload) => { if(ready)frame.contentWindow.postMessage({type,payload},location.origin); };
   function sync() {
@@ -25,6 +26,10 @@ export function createSceneController({ pane, controls, onAction, notify }) {
   controls.querySelector('[data-center]').onclick=()=>request({action:'center'});
   function renderScene(s) {
     if(!s)return;
+    const part=['brain','stem'].includes(s.selected)?s.selected:'all';
+    diagram.querySelector('img').src=`/ui/icons/${part}.svg`;
+    diagram.querySelector('img').alt=part==='all'?'Brain and brainstem diagram':`${part==='brain'?'Brain':'Brainstem'} diagram`;
+    diagram.querySelector('figcaption').textContent=part==='all'?'COMPLETE':part==='brain'?'BRAIN':'BRAINSTEM';
     for(const b of controls.querySelectorAll('[data-part]'))b.setAttribute('aria-pressed',String(b.dataset.part===s.selected));
     controls.querySelector('[data-arrange]').textContent=s.arrangement==='joined'?'Split up':'Join together';
     controls.querySelector('.scene-status').textContent=`${s.arrangement==='joined'?'Assembled':s.arrangement==='split'?'Separated':'Manually positioned'} · ${s.selected==='all'?'All':s.selected==='brain'?'Brain':'Stem'} selected`;
