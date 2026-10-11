@@ -68,10 +68,23 @@ export function createFocus({ api, rig, panel, tips, labels, highlight = () => {
   return {
     get current() { return current; },
     focusTip(classId) {
-      const answer = answerFor(classId);
-      if (!answer || !tips.worldPosition(classId, tipPos)) {
-        console.warn(`[stark] focusTip: class ${classId} is not a tip on this image`);
+      // a listed or drawn class, else (Steer ready) any ImageNet class scored by the model's own head under the current
+      // scales; classes outside the 1,000 outputs are never scored
+      const answer = answerFor(classId) ?? api.steerAnswerAny?.(classId) ?? null;
+      if (!answer) {
+        console.warn(`[stark] focusTip: class ${classId} has no score on this image`);
         return false;
+      }
+      if (!tips.worldPosition(classId, tipPos)) {
+        // no tip drawn for it: no path is invented and the camera stays; the photo shows its Grad-CAM (live, under
+        // the current scales) or nothing when there is no positive evidence
+        current = classId;
+        labels.setFocused(null);
+        tips.setFocused(null);
+        highlight(null);
+        api.showHeatmap(answer.hasHeatmap ? classId : null);
+        api.setFocus(answer);
+        return true;
       }
       current = classId;
       points.length = 0;

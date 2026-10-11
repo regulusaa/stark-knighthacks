@@ -43,6 +43,25 @@ function size(p) {
 // Manifest image ids, re-read when the file changes.
 const MANIFEST = join(import.meta.dirname, '..', 'web', 'public', 'assets', 'manifest.json');
 let manifestCache = { mtime: -1, ids: new Set() };
+// Classes drawn as tips on an image (its tree.json leaves), so focus-tip accepts every drawn node, not only the
+// top answers. Cached per image and file mtime.
+const drawnCache = new Map();   // imageId → {mtime, ids}
+export function drawnClasses(imageId) {
+  try {
+    const entry = JSON.parse(readFileSync(MANIFEST, 'utf8')).images.find((i) => i.id === imageId);
+    if (!entry) return new Set();
+    const file = join(import.meta.dirname, '..', 'web', 'public', entry.folder, 'tree.json');
+    const mtime = statSync(file).mtimeMs;
+    const hit = drawnCache.get(imageId);
+    if (hit && hit.mtime === mtime) return hit.ids;
+    const ids = new Set(JSON.parse(readFileSync(file, 'utf8')).nodes.filter((n) => n.isLeaf && !n.isOther && Number.isInteger(n.classId)).map((n) => n.classId));
+    drawnCache.set(imageId, { mtime, ids });
+    return ids;
+  } catch {
+    return new Set();
+  }
+}
+
 export function manifestIds() {
   try {
     const mtime = statSync(MANIFEST).mtimeMs;
@@ -92,10 +111,14 @@ export const validators = {
   [EVENTS.FOCUS_TIP]: (p, room) => {
     obj(p);
     const classId = int(p.classId, 'classId', 0, 999);
-    const answers = room?.displayState?.answers;
-    if (!Array.isArray(answers) || !answers.some((a) => a?.classId === classId)) {
-      fail(`classId ${classId} is not in the current answer list`);
-    }
+    const st = room?.displayState;
+    const answers = st?.answers;
+    // a listed answer, any class drawn as a tip on this image, or (Steer live on the display) any ImageNet class: the
+    // display scores it with the model's own head and computes its Grad-CAM, so nothing is invented
+    const ok = (Array.isArray(answers) && answers.some((a) => a?.classId === classId))
+      || (st?.image?.id && drawnClasses(st.image.id).has(classId))
+      || (st?.capabilities?.steer === true && st?.scoreKind !== 'independent');
+    if (!ok) fail(`classId ${classId} is not a class on the current image`);
     return { classId };
   },
   [EVENTS.SELECT_IMAGE]: (p) => {

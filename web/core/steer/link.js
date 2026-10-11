@@ -63,8 +63,9 @@ export function linkSteer({ api, panel, veins, tips, labels, tissue }) {
   session.on('capability', ({ steer }) => {
     steerable = steer;
     api.setSteerCapability(steer, { live });
-    if (!steer) { api.steerAnswer = () => null; return; }
+    if (!steer) { api.steerAnswer = () => null; api.steerAnswerAny = () => null; return; }
     api.steerAnswer = (k) => (session.state?.active ? session.answerFor(k) : null);
+    api.steerAnswerAny = (k) => session.answerFor(k);
   });
   // (v3, amended in CC-9) stability clears steering and suspends Steer; back in normal it returns. The trunk interior
   // keeps it: its top slab is the layer Steer edits and follows the steering live

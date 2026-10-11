@@ -287,6 +287,7 @@ export function createApi({ manifest, panel, trunk, rig, preview = false }) {
     attachHeatProvider(fn) { heatProvider = fn; },
     /** Set by the Steer link: the steered Answer for any class (null when Steer is off or inactive). */
     steerAnswer: () => null,
+    steerAnswerAny: () => null,   // Steer ready: any class's Answer under the current scales (link.js)
     get heatProviderActive() { return Boolean(heatProvider); },
     /** Used by focus.js: record the focused Answer (or null) and publish it. */
     setFocus(answer) {
