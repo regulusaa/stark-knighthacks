@@ -56,10 +56,20 @@ export function linkSteer({ api, panel, veins, tips, labels, tissue }) {
     }
   }
 
+  let steerable = false;     // the image's steer data is loaded and checked (true even while a mode suspends it)
+  const live = (k) => session.cam(k) !== null;
   session.on('capability', ({ steer }) => {
-    api.setSteerCapability(steer, { live: (k) => session.cam(k) !== null });
+    steerable = steer;
+    api.setSteerCapability(steer, { live });
     if (!steer) { api.steerAnswer = () => null; return; }
     api.steerAnswer = (k) => (session.state?.active ? session.answerFor(k) : null);
+  });
+  // (v3) stability and trunk modes clear steering and suspend Steer; back in normal it returns
+  api.onMode(({ to }) => {
+    if (to !== 'normal') {
+      if (session.state?.active) session.reset();
+      api.setSteerCapability(false);
+    } else if (steerable) api.setSteerCapability(true, { live });
   });
 
   session.on('result', (st) => api.publishSteer(st));

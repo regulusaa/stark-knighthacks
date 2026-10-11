@@ -156,7 +156,11 @@ export function createApi({ manifest, panel, trunk, rig }) {
     orbit: (dx, dy) => rig.orbit(dx, dy),
     zoom: (d) => rig.zoom(d),
     resetView: () => rig.resetView(),
-    replay() { trunk.play(); setPlayback(); },
+    /** play-pulse: the forward pass; in stability mode (v3) the stability sequence from run 1 instead. */
+    replay() {
+      if (state?.mode === 'stability') { ev.emit('stability-replay'); return; }
+      trunk.play(); setPlayback();
+    },
     jumpToEnd() { trunk.jumpToEnd(); setPlayback(); },
     /** Pulse speed multiplier; the contract allows 0.25–4 (keys step through 0.5 / 1 / 2). */
     setSpeed(s) {
@@ -178,22 +182,46 @@ export function createApi({ manifest, panel, trunk, rig }) {
       Object.assign(state, server);
       publish();
     },
-    /** set-mode from the host. Only modes whose capability is true are accepted (the relay checks too). */
-    setMode({ mode, layerMode } = {}) {
+    /**
+     * set-mode from the host (v3: any subset of {mode, layerMode, noiseView, bloom}; omitted fields are unchanged).
+     * Only what its capability allows is accepted (the relay checks too). Listeners see 'mode' {from, to} first,
+     * then the state is published once.
+     */
+    setMode({ mode, layerMode, noiseView, bloom } = {}) {
       if (!state) return;
       const caps = state.capabilities;
-      if (mode === 'normal' || (mode === 'stability' && caps.stability) || (mode === 'trunk' && caps.trunkInterior)) state.mode = mode;
-      else if (mode !== undefined) console.warn(`[stark] mode ${mode} is not available for this image`);
+      if (mode !== undefined && mode !== state.mode) {
+        if (mode === 'normal' || (mode === 'stability' && caps.stability) || (mode === 'trunk' && caps.trunkInterior)) {
+          const from = state.mode;
+          state.mode = mode;
+          ev.emit('mode', { from, to: mode });
+        } else console.warn(`[stark] mode ${mode} is not available for this image`);
+      }
       if (layerMode !== undefined && caps.layerModes) state.layerMode = layerMode;
+      if (noiseView !== undefined && (!noiseView || caps.noiseView)) ev.emit('noise-view', Boolean(noiseView));
+      if (bloom !== undefined) ev.emit('bloom', Boolean(bloom));
       publish();
     },
+    /** (v3) Merge display-state fields owned by a display module (stability, steerMoment, noiseView, bloom, image,
+     *  capabilities) and publish. */
+    patchState(fields, { capabilities = null } = {}) {
+      if (!state) return;
+      for (const [k, v] of Object.entries(fields)) state[k] = v;
+      if (capabilities) Object.assign(state.capabilities, capabilities);
+      publish();
+    },
+    onMode: (cb) => ev.on('mode', cb),
+    onNoiseView: (cb) => ev.on('noise-view', cb),
+    onBloom: (cb) => ev.on('bloom', cb),
+    onStabilityReplay: (cb) => ev.on('stability-replay', cb),
     /**
      * Steer (contract v2): turn the capability on or off for the current image. On: classes without a stored PNG
      * get live heatmaps. Off: back to the pipeline's answers.
      */
     setSteerCapability(on, { live = null } = {}) {
       if (!state || !assets?.tree) return;
-      state.capabilities.steer = Boolean(on);
+      // (v3) no steering outside normal mode, and never on medical images (they have no steer data anyway)
+      state.capabilities.steer = Boolean(on) && state.mode === 'normal';
       state.steer = on ? { active: false, changedCount: 0, top1Changed: false } : null;
       state.answers = buildAnswers(assets.tree, assets.gradcam, { live: on ? live : null });
       state.top1 = state.answers.find((a) => a.isTop1) ?? null;

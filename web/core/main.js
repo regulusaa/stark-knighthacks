@@ -23,6 +23,7 @@ import { createFocus } from './focus.js';
 import { attachPicking } from './picking.js';
 import { connectRelay } from './net.js';
 import { linkSteer } from './steer/link.js';
+import { createStability } from './stability.js';
 
 // The anatomy's bounding box; the whole Brain breathes about the cerebrum's centre.
 export const BRAIN_VOLUME = {
@@ -132,9 +133,11 @@ api.onImageLoaded(() => {
 api.onPulseComplete(() => veins.startReveal());
 // Steer (contract v2): registered after the Brain's own image-loaded handler, so it moves a Brain that exists
 const steer = linkSteer({ api, panel, veins, tips, labels, tissue });
+// v3 demo beats (registered after Steer's image-loaded handler too)
+const stability = createStability({ api, veins, tips, labels, tissue, trunk });
 
 // Exposed for CC-4b/CC-5 code in this lane and for test scripts.
-const stark = { get framing() { return framing; }, fibers, pickTrack, api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, tissue, tipHidden, steer, relay: null };
+const stark = { get framing() { return framing; }, fibers, pickTrack, api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, tissue, tipHidden, steer, stability, relay: null };
 window.__stark = stark;
 
 let readyPending = true;
@@ -154,6 +157,7 @@ function frame() {
   trunk.update(dt);
   panel.update(dt);
   steer.tick();
+  stability.update(dt);
   veins.update(animTime, dt);
   brainPivot.scale.setScalar(1 + BREATHE.amp * Math.sin((2 * Math.PI * animTime) / BREATHE.period));
   tips.setLit(veins.revealProgress);

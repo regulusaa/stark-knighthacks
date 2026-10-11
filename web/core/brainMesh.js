@@ -280,9 +280,9 @@ export function createBrainMesh() {
     },
     /**
      * Steer: new values per node id (an edge takes its child's value) and the leaf whose path is lit.
-     * Positions and topology never change; values spring to their targets and the lit path crossfades.
+     * Positions and topology never change; values spring to their targets and the lit path crossfades (over fadeMs).
      */
-    setValues(values, leafId) {
+    setValues(values, leafId, fadeMs = VEINS.litFadeMs) {
       for (const m of meshes) {
         const v = values.get(m.edge.to);
         if (v !== undefined) m.target = Math.max(0, Math.min(1, v));
@@ -293,9 +293,11 @@ export function createBrainMesh() {
         const on = new Set(pathTo(leafId));
         for (const m of meshes) { m.litFrom = m.lit; m.litTo = on.has(m) ? 1 : 0; }
         uniforms.uPathLen.value = on.size ? [...on].reduce((a, m) => a + m.edge.length, 0) : uniforms.uPathLen.value;
-        litFade = { t: 0 };
+        litFade = { t: 0, ms: Math.max(1, fadeMs) };
       }
     },
+    /** Only move the lit path (stability playback: a quick crossfade, values untouched). */
+    setLit(leafId, fadeMs) { this.setValues(new Map(), leafId, fadeMs); },
     /** Back to the values the Brain was built with (no Steer). */
     resetValues() {
       for (const m of meshes) m.target = Math.max(0, Math.min(1, m.edge.value));
@@ -407,7 +409,7 @@ export function createBrainMesh() {
       }
       if (litFade) {
         litFade.t += dt * 1000;
-        const k = Math.min(1, litFade.t / VEINS.litFadeMs);
+        const k = Math.min(1, litFade.t / litFade.ms);
         const e = k * k * (3 - 2 * k);
         for (const m of meshes) m.lit = m.litFrom + (m.litTo - m.litFrom) * e;
         if (k >= 1) litFade = null;
