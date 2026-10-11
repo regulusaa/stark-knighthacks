@@ -2,7 +2,7 @@
 // display page open (headed Chromium on the GPU) and a HOST and a GUEST on socket.io-client, exactly as the phones talk.
 // Every step asserts on display-state / steer-result / focus-state with a timeout and prints its latency; fps during
 // stability and the Steer drag come from window.__starkDebug; any console error on the display is a failure.
-//   npm run rehearse -- <url> [--headless] [--reload] [--steer IMAGE_ID]
+//   npm run rehearse -- <url> [--headless] [--reload] [--steer IMAGE_ID] [--external [--room CODE]]
 // --reload reloads the display page after the noise beat (display recovery, D3).
 // The host key comes from STARK_HOST_KEY (or the file named by STARK_KEY_FILE) and is never printed.
 import { readFileSync } from 'node:fs';
@@ -37,30 +37,43 @@ function row(step, ok, ms, note = '') {
 
 // ---- display ---------------------------------------------------------------------------------------------------
 // a covered or background window must keep animating (Chrome throttles occluded windows' frames and timers)
-const browser = await chromium.launch({ headless: flag('--headless'), args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist',
-  '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling'] });
-const page = await browser.newPage({ viewport: { width: 2560, height: 1440 } });
+// --external drives the display already open in the server's fixed room (e.g. full screen on the real monitor with
+// ?perf=1) instead of opening one: opening a second display would take the room over. Camera, fps and console checks
+// need the page, so they are skipped there (the perf log has the fps).
+const EXTERNAL = flag('--external');
+let browser = null;
+let page = null;
+let ROOM = null;
 const consoleErrors = [];
-page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
-page.on('pageerror', (e) => consoleErrors.push(`pageerror ${e.message}`));
-page.on('crash', () => { consoleErrors.push('the display page crashed'); console.log(red('!! the display page crashed')); });
-page.on('close', () => { if (!closing) console.log(red('!! the display window was closed during the run')); });
 let closing = false;
-await page.goto(`${BASE}/display`);
-await page.waitForFunction(() => window.__starkReady === true && window.__stark?.relay?.room, null, { timeout: 60000 });
-const ROOM = await page.evaluate(() => window.__stark.relay.room);
-{
+if (EXTERNAL) {
+  const r = await (await fetch(`${BASE}/api/room`)).json().catch(() => ({}));
+  ROOM = opt('--room', r.fixedRoom);
+  if (!ROOM || r.display === false) { console.error('--external needs a display open in the fixed room'); process.exit(2); }
+} else {
+  browser = await chromium.launch({ headless: flag('--headless'), args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist',
+    '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling'] });
+  page = await browser.newPage({ viewport: { width: 2560, height: 1440 } });
+  page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
+  page.on('pageerror', (e) => consoleErrors.push(`pageerror ${e.message}`));
+  page.on('crash', () => { consoleErrors.push('the display page crashed'); console.log(red('!! the display page crashed')); });
+  page.on('close', () => { if (!closing) console.log(red('!! the display window was closed during the run')); });
+  await page.goto(`${BASE}/display`);
+  await page.waitForFunction(() => window.__starkReady === true && window.__stark?.relay?.room, null, { timeout: 60000 });
+  ROOM = await page.evaluate(() => window.__stark.relay.room);
+}
+if (!EXTERNAL) {
   const t = Date.now();
   await page.waitForFunction(() => !window.__starkDebug?.preload || window.__starkDebug.preload.finished, null, { timeout: 60000 });
   const p = await page.evaluate(() => window.__starkDebug?.preload ?? null);
   if (p) row('display preload', p.failed === 0, Date.now() - t, `${p.done} files, ${(p.bytes / 1e6).toFixed(1)} MB in ${(p.ms / 1000).toFixed(1)} s${p.failed ? `, ${p.failed} failed` : ''}`);
 }
-const dbg = () => page.evaluate(() => {
+const dbg = () => (EXTERNAL ? Promise.resolve({ camera: null, fps: null }) : page.evaluate(() => {
   const d = window.__starkDebug;
   if (d) return { camera: d.camera, fps: d.perf.fps };
   const s = window.__stark;   // builds before CC-10
   return { camera: { position: s.camera.position.toArray(), target: s.rig.state.target.toArray(), moving: s.rig.moving }, fps: s.stats.fps };
-});
+}));
 
 // ---- controllers -----------------------------------------------------------------------------------------------
 async function controller(role) {
@@ -102,6 +115,7 @@ async function step(name, fn) {
 }
 /** Wait until the camera has stopped: no tween and the same pose for 300 ms (orbit damping included). */
 async function settleCamera(ms = 4000) {
+  if (EXTERNAL) { await sleep(1500); return; }
   const t = Date.now();
   let last = null; let still = 0;
   while (Date.now() - t < ms) {
@@ -114,7 +128,7 @@ async function settleCamera(ms = 4000) {
 const same = (a, b) => a.every((x, i) => Math.abs(x - b[i]) < 1e-4);
 async function sampleFps(whileFn, maxMs) {
   const out = []; const t = Date.now();
-  while (Date.now() - t < maxMs && (await whileFn())) { out.push((await dbg()).fps); await sleep(500); }
+  while (Date.now() - t < maxMs && (await whileFn())) { const f = (await dbg()).fps; if (f !== null) out.push(f); await sleep(500); }
   return out.length ? { min: Math.min(...out), avg: out.reduce((a, b) => a + b, 0) / out.length } : null;
 }
 const fpsNote = (f) => (f ? `fps avg ${f.avg.toFixed(1)}, min ${f.min.toFixed(1)}` : 'fps n/a');
@@ -189,10 +203,11 @@ await step('5 retriever → adversarial: top-1 differs, camera still', async () 
   await select('adv_retriever');
   await until(host, 'display-state', (d) => d.image.id === 'adv_retriever' && d.top1, 2000);
   const path = [];
-  for (let i = 0; i < 15; i++) { await sleep(100); path.push((await dbg()).camera.position.map((x) => x.toFixed(2)).join(',')); }
+  for (let i = 0; i < 15; i++) { await sleep(100); if (!EXTERNAL) path.push((await dbg()).camera.position.map((x) => x.toFixed(2)).join(',')); }
   const after = (await dbg()).camera;
   const top1 = ds().top1.label;
   if (top1 === top0) throw new Error(`top-1 did not change (${top1})`);
+  if (EXTERNAL) return `${top0} → ${top1} (camera not checked on an external display)`;
   if (!same(before.position, after.position) || !same(before.target, after.target)) {
     throw new Error(`camera moved: ${before.position.map((x) => x.toFixed(2))} → ${[...new Set(path)].join(' → ')} (before: ${JSON.stringify(pre)})`);
   }
@@ -209,7 +224,7 @@ await step('6 noiseView on, off', async () => {
 
 // (--reload) the display page reloads mid-demo: it comes back to the same image in the same room, and the controllers
 // carry on without registering again
-if (flag('--reload')) {
+if (flag('--reload') && !EXTERNAL) {
   await step('reload the display mid-demo → restored', async () => {
     const was = ds().image.id;
     const back = until(host, 'display-state', (d) => d.image.id === was && d.playback.state === 'done', 15000, { fresh: true });
@@ -309,17 +324,18 @@ await step('9 reset-view; final display-state sane', async () => {
   if (d.focus) bad.push('focused');
   if (d.playback.state !== 'done') bad.push(`playback ${d.playback.state}`);
   if (d.steer?.active) bad.push('steering');
-  if (!(await page.evaluate(() => window.__stark.relay.socket.connected))) bad.push('display offline');
+  if (!EXTERNAL && !(await page.evaluate(() => window.__stark.relay.socket.connected))) bad.push('display offline');
   if (bad.length) throw new Error(bad.join(', '));
   return `controllers ${d.controllerCount}`;
 });
 
-row('display console errors', consoleErrors.length === 0, null, consoleErrors.length ? consoleErrors.slice(0, 3).join(' | ') : '0');
+if (EXTERNAL) row('display console errors', 'warn', null, 'not visible from here (external display)');
+else row('display console errors', consoleErrors.length === 0, null, consoleErrors.length ? consoleErrors.slice(0, 3).join(' | ') : '0');
 const total = Date.now() - T0;
 row('total time < 90 s', total < 90000, total);
 
 host.close(); guest.close();
 closing = true;
-await browser.close();
+await browser?.close();
 console.log(failed ? red(`\nREHEARSE FAILED: ${failed} step(s)`) : green('\nREHEARSE PASSED'));
 process.exitCode = failed ? 1 : 0;
