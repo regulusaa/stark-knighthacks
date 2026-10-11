@@ -20,8 +20,6 @@
 
 ## AI usage
 
-> **DRAFT: Ray to edit so it matches what actually happened.**
-
 **AI usage.** This project was built during Knight Hacks with the help of generative AI coding tools, as permitted by MLH rules. Claude Code (Anthropic) was used for the Python precompute pipeline, the Node/Socket.io server, and the Three.js renderer. Codex (OpenAI) was used for the controller pages and HUD. I designed the architecture and the data contract between components, made the technical and design decisions, split the work between agents, and reviewed and integrated all generated code. Planning before the event was done with Claude (conversation only; no code was written before the event).
 
 **Models used:** ResNet50 with ImageNet weights (Keras Applications); DenseNet121 chest X-ray model from torchxrayvision. Stark is not a wrapper around an LLM or API: it visualizes the internal behavior of image models.
