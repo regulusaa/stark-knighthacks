@@ -10,3 +10,8 @@ html,body{background:#050505!important;color:#fff}
 [hidden]{display:none!important}body.preview #hud,body.preview .inspection-toolbar{display:none!important}body.preview .activity-note{font-size:12px;bottom:12px;width:calc(100% - 16px)}
 .stark-hud,.stark-hud *{color:#fff!important;text-shadow:none!important}.stark-hud .hud-focus,.stark-hud .hud-mode,.stark-hud .hud-moment{background:#090909dd!important;border-color:#ffffff55!important}
 @media(max-width:650px){.inspection-toolbar{bottom:12px;max-width:calc(100% - 16px);gap:0;flex-wrap:wrap;justify-content:center}.inspection-toolbar button{padding:8px;min-width:48px;font-size:13px}.activity-note{bottom:132px;font-size:13px}}
+
+.display-startup{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;background:#050505;color:#fff;text-align:center;font:18px/1.5 system-ui,sans-serif}
+.display-startup h1{margin:0;font-size:28px;font-weight:450}.display-startup p{margin:0;max-width:440px;opacity:.7}.display-startup button{min-height:48px;padding:12px 24px;border:1px solid #fff8;background:#151515;color:#fff;font:inherit}
+
+@media(max-width:300px){body.preview .activity-note{display:none!important}}

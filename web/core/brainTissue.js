@@ -32,20 +32,21 @@ export const TISSUE = {
 
 /** Tissue geometry from the worker (or built here if workers are unavailable). */
 async function loadGeometryArrays(options) {
+  let worker, timer;
   try {
-    const worker = new Worker(new URL('./brainTissueWorker.js', import.meta.url), { type: 'module' });
-    const arrays = await new Promise((resolve, reject) => {
+    worker = new Worker(new URL('./brainTissueWorker.js', import.meta.url), { type: 'module' });
+    return await new Promise((resolve, reject) => {
+      timer = setTimeout(() => reject(new Error('Tissue worker did not respond')), 12000);
       worker.onmessage = (e) => resolve(e.data);
-      worker.onerror = (e) => reject(e);
+      worker.onerror = (e) => reject(new Error(e.message || 'Tissue worker failed'));
+      worker.onmessageerror = () => reject(new Error('Tissue geometry could not be transferred'));
       worker.postMessage(options);
     });
-    worker.terminate();
-    return arrays;
   } catch (err) {
     console.warn('[stark] tissue worker failed; building on the main thread', err?.message ?? err);
     const { buildTissueArrays } = await import('./brainTissueBuild.js');
     return buildTissueArrays(options);
-  }
+  } finally { clearTimeout(timer); worker?.terminate(); }
 }
 
 // ---------------------------------------------------------------------------------------------------- material
