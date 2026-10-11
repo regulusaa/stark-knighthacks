@@ -222,7 +222,10 @@ export function createApi({ manifest, panel, trunk, rig }) {
           ev.emit('mode', { from, to: mode });
         } else console.warn(`[stark] mode ${mode} is not available for this image`);
       }
-      if (layerMode !== undefined && caps.layerModes) state.layerMode = layerMode;
+      if (layerMode !== undefined && caps.layerModes && layerMode !== state.layerMode) {
+        state.layerMode = layerMode;
+        ev.emit('layer-mode', layerMode);
+      }
       if (noiseView !== undefined && (!noiseView || caps.noiseView)) ev.emit('noise-view', Boolean(noiseView));
       if (bloom !== undefined) ev.emit('bloom', Boolean(bloom));
       publish();
@@ -243,6 +246,7 @@ export function createApi({ manifest, panel, trunk, rig }) {
     assetsOf: (id) => kept.get(id) ?? null,
     onPairSwitch: (cb) => ev.on('pair-switch', cb),
     onNoiseView: (cb) => ev.on('noise-view', cb),
+    onLayerMode: (cb) => ev.on('layer-mode', cb),
     onBloom: (cb) => ev.on('bloom', cb),
     onStabilityReplay: (cb) => ev.on('stability-replay', cb),
     /**

@@ -77,6 +77,7 @@ export async function createTissue() {
     uGlowStrength: { value: TISSUE.glowStrength },
     uAlpha: { value: new THREE.Vector3(TISSUE.alphaFace, TISSUE.alphaEdge, TISSUE.alphaPower) },
     uFadeY: { value: new THREE.Vector2(STEM_BOTTOM_Y, STEM_BOTTOM_Y + ANATOMY.stemFade) },
+    uDimK: { value: 1 },   // the trunk interior dims the Brain
   };
   // The glow is evaluated per vertex (the mesh is dense enough for a 0.55-wide falloff) and interpolated:
   // per fragment, the path-distance loops cost the M1 a third of its frame time at 1440p.
@@ -123,6 +124,7 @@ uniform float uTime;
 uniform float uGlowStrength;
 uniform vec3 uAlpha;
 uniform vec2 uFadeY;
+uniform float uDimK;
 varying float vGlow;
 varying float vFocusGlow;
 varying float vTissueY;
@@ -136,7 +138,7 @@ totalEmissiveRadiance += (inferno(0.82) * vGlow * (0.85 + 0.15 * sin(uTime * 2.2
 float tFacing = abs(dot(normalize(normal), normalize(vViewPosition)));
 float tAlpha = mix(uAlpha.x, uAlpha.y, pow(1.0 - tFacing, uAlpha.z));
 tAlpha = max(tAlpha, min(1.0, (vGlow * 0.85 + vFocusGlow * 0.6) * uGlow));
-diffuseColor.a = tAlpha * smoothstep(uFadeY.x, uFadeY.y, vTissueY);
+diffuseColor.a = tAlpha * smoothstep(uFadeY.x, uFadeY.y, vTissueY) * uDimK;
 #include <opaque_fragment>`);
   };
   const mesh = new THREE.Mesh(geometry, material);
@@ -161,6 +163,8 @@ diffuseColor.a = tAlpha * smoothstep(uFadeY.x, uFadeY.y, vTissueY);
     setFocusPath(pts) { glow.uFocusCount.value = setPts(glow.uFocusPath.value, pts); },
     /** 0..1: the glow follows the strand reveal. */
     setGlow(k) { glow.uGlow.value = k; },
+    /** 0..1: the whole tissue's opacity (the trunk interior dims the Brain). */
+    setDim(k) { glow.uDimK.value = k; },
     update(time) { glow.uTime.value = time; },
   };
 }
