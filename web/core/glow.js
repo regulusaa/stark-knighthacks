@@ -7,6 +7,7 @@
 // Off, the display renders exactly as before (no extra passes). It turns itself off if the frame rate stays under
 // GLOW.lowFps for GLOW.lowSeconds (capabilities.bloom false, a console note); the host (set-mode bloom) or key B
 // turns it back on.
+import { KILL, DISPLAY } from './flags.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -39,7 +40,7 @@ void main() {
 export const glowing = (obj) => { obj.layers.enable(GLOW.layer); return obj; };
 
 export function createGlow({ renderer, scene, camera, stats, api }) {
-  let on = true;
+  let on = DISPLAY.bloom;
   let auto = true;           // false once it turned itself off for fps (until the host turns it back on)
   let lowFor = 0;
   const size = new THREE.Vector2();
@@ -75,7 +76,7 @@ export function createGlow({ renderer, scene, camera, stats, api }) {
   }
 
   function set(next, { manual = true } = {}) {
-    on = next;
+    on = next && !KILL.bloom;
     if (manual && next) { auto = true; lowFor = 0; }
     api.patchState({ bloom: on }, { capabilities: { bloom: auto } });
   }

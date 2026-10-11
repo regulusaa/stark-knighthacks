@@ -1,5 +1,6 @@
 // The display's internal API: the single boundary CC-4b (the Brain) and CC-5 (networking) code against.
 // It also builds the contract section 3.2 DisplayState (v3 fields included) from the loaded tree and Grad-CAM index.
+import { KILL, DISPLAY, maskCapabilities } from './flags.js';
 import { DEFAULTS } from '/contract/contract.js';
 import { loadImageAssets, disposeImageAssets, heatmapTexture, placeholderTexture } from './assets.js';
 import { TRUNK } from './trunk.js';
@@ -72,7 +73,9 @@ export function createApi({ manifest, panel, trunk, rig }) {
   }
 
   function publish() {
-    if (state) ev.emit('display-state', state);
+    if (!state) return;
+    maskCapabilities(state.capabilities);   // kill switches (flags.js)
+    ev.emit('display-state', state);
   }
 
   function setPlayback() {
@@ -122,6 +125,7 @@ export function createApi({ manifest, panel, trunk, rig }) {
     async loadImage(id, { autoplay = true } = {}) {
       const entry = manifest.find((m) => m.id === id);
       if (!entry) { console.warn(`[stark] unknown image ${id}`); return false; }
+      if (KILL.medical && entry.category === 'medical') { console.warn(`[stark] ${id}: medical images are off (?nomedical)`); return false; }
       const mine = ++loadToken;
       // (v3) between the two images of an adversarial pair the camera stays exactly where it is and the answered
       // Brain appears at once (no pulse), so the strand visibly jumps while the photo doesn't change
@@ -144,15 +148,15 @@ export function createApi({ manifest, panel, trunk, rig }) {
         top1: null,
         trueClass: null,
         mode: 'normal',
-        layerMode: 'full',
+        layerMode: DISPLAY.layerMode,
         playback: { state: 'idle', speed: trunk.state.speed },
         focus: null,
         driver: server.driver,
         controllerCount: server.controllerCount,
-        capabilities: {
+        capabilities: maskCapabilities({
           stability: entry.files?.stability === true,
           trunkInterior: false, layerModes: false, bloom: false, steer: false, noiseView: false,
-        },
+        }),
         steer: null,
         answers: [],
         noiseView: false,     // (v3)
@@ -255,6 +259,7 @@ export function createApi({ manifest, panel, trunk, rig }) {
      */
     setSteerCapability(on, { live = null } = {}) {
       if (!state || !assets?.tree) return;
+      on = on && !KILL.steer;   // ?nosteer
       // (v3) no steering in stability mode, and never on medical images (they have no steer data anyway)
       state.capabilities.steer = Boolean(on) && state.mode !== 'stability';
       state.steer = on ? { active: false, changedCount: 0, top1Changed: false } : null;

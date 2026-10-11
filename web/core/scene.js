@@ -1,4 +1,5 @@
 // Renderer, scene, camera and frame stats. Owns the pixel-ratio governor and WebGL context-loss recovery.
+import { DISPLAY } from './flags.js';
 import * as THREE from 'three';
 
 export const BACKGROUND = 0x050208;
@@ -12,7 +13,7 @@ export const FOG_DENSITY = 0.022;
 export function retireLater(disposables, ms = 1000) {
   if (disposables.length) setTimeout(() => { for (const d of disposables) d.dispose(); }, ms);
 }
-const MAX_PIXEL_RATIO = 1.5;
+const MAX_PIXEL_RATIO = DISPLAY.maxPixelRatio;   // flags.js (default 1.5, ?pr= overrides)
 const LOW_FPS = 45;
 const LOW_FPS_SECONDS = 2;
 

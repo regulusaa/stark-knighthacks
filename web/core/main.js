@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { createScene } from './scene.js';
 import { loadManifest } from './assets.js';
+import { preloadAll, preloadProgress } from './preload.js';
 import { createImagePanel, PANEL, panelExtentBelow } from './imagePanel.js';
 import { createTrunk } from './trunk.js';
 import { createCameraRig, RIG } from './cameraRig.js';
@@ -28,6 +29,7 @@ import { createAdversarial } from './adversarial.js';
 import { createMedical } from './medical.js';
 import { createGlow, glowing } from './glow.js';
 import { createTrunkInterior } from './trunkInterior.js';
+import { createPerf } from './perf.js';
 
 // The anatomy's bounding box; the whole Brain breathes about the cerebrum's centre.
 export const BRAIN_VOLUME = {
@@ -73,6 +75,15 @@ scene.add(brainPivot, createTissueLights(BRAIN_VOLUME.center));
 if (params.get('guides') === '1') scene.add(new THREE.Box3Helper(BRAIN_VOLUME.box, 0x6b4c8a));
 
 const manifest = await loadManifest();
+// every gallery image's files into memory now, so no image switch waits on the network during the demo
+{
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;left:16px;bottom:12px;font:14px ui-monospace,monospace;color:#9d8bb3;z-index:40;pointer-events:none';
+  document.body.appendChild(el);
+  preloadAll(manifest, {
+    onProgress: (p) => { el.textContent = `Loading demo files ${p.done}/${p.total} · ${(p.bytes / 1e6).toFixed(1)} MB${p.failed ? ` · ${p.failed} failed` : ''}`; },
+  }).then((p) => setTimeout(() => el.remove(), p.failed ? 8000 : 1200));
+}
 const api = createApi({ manifest, panel, trunk, rig });
 let relay = null; // net.js, connected last
 // the room comes from the relay once registered; until then the HUD shows none
@@ -164,6 +175,14 @@ api.onPairSwitch(() => veins.setRevealed());
 // Exposed for CC-4b/CC-5 code in this lane and for test scripts.
 const stark = { get framing() { return framing; }, fibers, pickTrack, api, rig, trunk, panel, stats, renderer, scene, camera, hud, veins, tips, labels, focus, tissue, tipHidden, steer, stability, adversarial, medical, glow, interior, relay: null };
 window.__stark = stark;
+const perf = createPerf({ renderer, stats, api, params });
+// read-only numbers for tools/rehearse.mjs and the perf log: camera pose, frame times, GPU counts
+window.__starkDebug = Object.freeze({
+  get camera() { return { position: camera.position.toArray(), target: rig.state.target.toArray(), fov: camera.fov, moving: rig.moving }; },
+  get perf() { return perf.summary(); },
+  get room() { return stark.relay?.room ?? null; },
+  get preload() { return { ...preloadProgress }; },
+});
 
 let readyPending = true;
 // contract §9: ready = registered with the relay (or offline), first image loaded, a frame rendered
@@ -177,6 +196,7 @@ const BREATHE = { amp: 0.012, period: VEINS.breathePeriod };
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.1); // a stalled tab must not teleport animations
   animTime = frozenT ?? animTime + dt;
+  perf.frameStart(dt);
   tick(dt);
   rig.update(dt);
   trunk.update(dt);
