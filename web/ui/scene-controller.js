@@ -1,63 +1,79 @@
-// One relay connection lives in controller.js. The iframe is only a renderer of its confirmed state.
-export function createSceneController({ pane, controls, onAction, notify }) {
+// Part selection controls the real display through the controller's existing relay.
+// The controller intentionally mounts no 3D renderer.
+export function createSceneController({ pane, controls, onAction }) {
   let pendingSeq = -1, optimistic = null;
-  let context = { display: null, driving: false, connected: false, clientId: null }, frame = null, ready = false;
-  const loading = pane.querySelector('.scene-loading');
-  const diagram=document.createElement('figure');diagram.className='part-diagram';diagram.innerHTML='<img src="/ui/icons/all.svg" alt="Brain and brainstem diagram"><figcaption>COMPLETE</figcaption>';pane.append(diagram);
-  controls.innerHTML = `<p class="eyebrow">SELECT A PART</p><div class="part-selection"><button data-part="brain" type="button">Brain</button><button data-part="stem" type="button">Stem</button><button data-part="all" type="button">All</button></div><button data-arrange type="button">Split up</button><div class="part-actions"><button data-inspect type="button">Inspect</button><button data-center type="button">Center view</button></div><p class="scene-status" role="status">Assembled · All selected</p><p class="scene-help">Select a part, then drag its handle to move it. Use the pad below to turn the view.</p>`;
-  const post = (type,payload) => { if(ready)frame.contentWindow.postMessage({type,payload},location.origin); };
-  function sync() {
-    post('stark-scene-context',{driving:context.driving&&context.connected,clientId:context.clientId});
-    if(context.display)post('stark-scene-state',context.display);
-  }
+  let lastTap = null;
+  let context = { display: null, driving: false, connected: false, clientId: null };
+  pane.innerHTML = `<p class="eyebrow">FOCUS</p><div class="part-selection" role="group" aria-label="Focus a part on the display">${[['brain','Brain'],['stem','Stem'],['all','Complete']].map(([part,label])=>`<button data-part="${part}" type="button" aria-pressed="false"><img src="/ui/icons/${part}.svg" alt=""><span>${label}</span></button>`).join('')}</div>`;
+  controls.innerHTML = `<p class="eyebrow">VIEW</p><button data-arrange type="button">Split up</button><div class="part-actions"><button data-inspect type="button">Focus selected part</button><button data-center type="button">Center view</button></div><p class="scene-status" role="status">Assembled · Complete selected</p><p class="scene-help">Tap a part to focus it. Double-tap Brain or Stem to separate that part. Drag the pad to turn the view; pinch to zoom.</p>`;
   function request(action) {
     if(!context.connected||!context.display?.capabilities?.inspection)return;
     const payload=onAction(action);
     if(payload) {
       pendingSeq=payload.seq; optimistic={...(optimistic??context.display?.scene)};
-      if(action.action==='select'||action.action==='inspect')optimistic.selected=action.part;
-      if(action.action==='split'||action.action==='join')optimistic.arrangement=action.action==='split'?'split':'joined';
-      post('stark-scene-local',payload); controls.dataset.pending='true';renderScene(optimistic);
+      for (const item of Array.isArray(action) ? action : [action]) {
+        if(item.action==='select'||item.action==='inspect')optimistic.selected=item.part;
+        if(item.action==='split'||item.action==='join')optimistic.arrangement=item.action==='split'?'split':'joined';
+        if(item.action==='join')optimistic.offsets={brain:[0,0,0],stem:[0,0,0]};
+        if(item.action==='move') {
+          optimistic.arrangement='custom';
+          optimistic.offsets={...optimistic.offsets,[item.part]:item.position};
+        }
+      }
+      renderScene(optimistic);controls.dataset.pending=pane.dataset.pending='true';
     }
   }
-  for(const b of controls.querySelectorAll('[data-part]'))b.onclick=()=>request({action:'select',part:b.dataset.part});
+  function separate(part) {
+    const scene = optimistic ?? context.display?.scene;
+    if (!scene) return;
+    const other = scene.offsets?.[part === 'brain' ? 'stem' : 'brain'] ?? [0,0,0];
+    const back = scene.camera?.back ?? [0,0,1];
+    const length = Math.hypot(back[0],back[2]);
+    const right = length > 1e-6 ? [back[2]/length,0,-back[0]/length] : [1,0,0];
+    const direction = part === 'brain' ? -1 : 1;
+    const position = other.map((n,i) => Math.max(-16,Math.min(16,n + direction * (i === 1 ? 3.2 : right[i] * 8.6))));
+    // A single permission check queues the whole operation until control is confirmed.
+    request([{action:'move',part,position},{action:'select',part},{action:'center'}]);
+  }
+  for(const b of pane.querySelectorAll('[data-part]')) {
+    const part = b.dataset.part;
+    if (part !== 'all') {
+      b.title = `Tap to focus ${part}; double-tap to separate it`;
+      b.setAttribute('aria-label',`${part === 'brain' ? 'Brain' : 'Stem'}: tap to focus, double-tap to separate`);
+    }
+    b.onclick = event => {
+      const now = performance.now();
+      const twice = part !== 'all' && event.detail > 0 && lastTap?.part === part &&
+        (event.detail === 2 || now - lastTap.at <= 400);
+      lastTap = twice || event.detail === 0 ? null : {part,at:now};
+      if (twice) separate(part); else request({action:'inspect',part});
+    };
+  }
   controls.querySelector('[data-arrange]').onclick=()=>request({action:(optimistic??context.display?.scene)?.arrangement==='joined'?'split':'join'});
   controls.querySelector('[data-inspect]').onclick=()=>request({action:'inspect',part:(optimistic??context.display?.scene)?.selected??'all'});
   controls.querySelector('[data-center]').onclick=()=>request({action:'center'});
   function renderScene(s) {
     if(!s)return;
     const part=['brain','stem'].includes(s.selected)?s.selected:'all';
-    diagram.querySelector('img').src=`/ui/icons/${part}.svg`;
-    diagram.querySelector('img').alt=part==='all'?'Brain and brainstem diagram':`${part==='brain'?'Brain':'Brainstem'} diagram`;
-    diagram.querySelector('figcaption').textContent=part==='all'?'COMPLETE':part==='brain'?'BRAIN':'BRAINSTEM';
-    for(const b of controls.querySelectorAll('[data-part]'))b.setAttribute('aria-pressed',String(b.dataset.part===s.selected));
+    for(const b of pane.querySelectorAll('[data-part]'))b.setAttribute('aria-pressed',String(b.dataset.part===part));
     controls.querySelector('[data-arrange]').textContent=s.arrangement==='joined'?'Split up':'Join together';
-    controls.querySelector('.scene-status').textContent=`${s.arrangement==='joined'?'Assembled':s.arrangement==='split'?'Separated':'Manually positioned'} · ${s.selected==='all'?'All':s.selected==='brain'?'Brain':'Stem'} selected`;
+    controls.querySelector('.scene-status').textContent=`${s.arrangement==='joined'?'Assembled':s.arrangement==='split'?'Separated':'Manually positioned'} · ${part==='all'?'Complete':part==='brain'?'Brain':'Stem'} selected`;
   }
-  function onMessage(event) {
-    if(event.source!==frame?.contentWindow||event.origin!==location.origin)return;
-    if(event.data?.type==='stark-scene-ready'){ready=true;sync();}
-    if(event.data?.type==='stark-scene-rendered'){loading.hidden=true;window.__inspectionControllerReady=true;}
-    if(event.data?.type==='stark-scene-action')request(event.data.payload);
-  }
-  window.addEventListener('message',onMessage);
   return {
     setContext(next) {
-      const before=context;context=next;
+      if (!next.connected || next.display?.image?.id !== context.display?.image?.id || (context.driving && !next.driving)) lastTap = null;
+      context=next;
       const available=next.display?.capabilities?.inspection===true;
-      controls.hidden=!available;
-      if(available&&!frame){frame=document.createElement('iframe');frame.title='Live brain and stem preview';frame.id='scene-preview';frame.src='/display?preview=1&offline=1&pr=1';pane.prepend(frame);}
-      if(!available&&!frame)loading.textContent=next.display?'The live preview will appear when the display is updated.':'Waiting for the scene…';
+      controls.hidden=pane.hidden=!available;
+      pane.parentElement.classList.toggle('without-parts',!available);
       const confirmed=next.display?.scene;
       if(!next.driving||!next.connected||(confirmed?.ack?.clientId===next.clientId&&confirmed.ack.seq>=pendingSeq)) { optimistic=null;pendingSeq=-1; }
       renderScene(optimistic??confirmed);
-      controls.dataset.pending=String(pendingSeq>=0);
-      for(const b of controls.querySelectorAll('button'))b.disabled=!next.connected;
-      if(before.driving&&!next.driving)post('stark-scene-cancel');
-      sync();
+      controls.dataset.pending=pane.dataset.pending=String(pendingSeq>=0);
+      for(const b of [...controls.querySelectorAll('button'),...pane.querySelectorAll('button')])b.disabled=!next.connected;
+      window.__inspectionControllerReady=Boolean(next.connected&&next.display);
     },
-    cancel(){optimistic=null;pendingSeq=-1;post('stark-scene-cancel');},
-    destroy(){window.removeEventListener('message',onMessage);frame?.remove();},
-    get frame(){return frame;},
+    cancel(){lastTap=null;optimistic=null;pendingSeq=-1;renderScene(context.display?.scene);controls.dataset.pending=pane.dataset.pending='false';},
+    destroy(){pane.replaceChildren();},
   };
 }

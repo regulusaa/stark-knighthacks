@@ -16,7 +16,7 @@ const active=beat=>host.waitForFunction(id=>document.querySelector(`[data-demo-b
 try{
 await display.goto(`${base}/display?room=STRK7&image=clean_retriever&pulseAt=done`);await display.waitForFunction(()=>window.__starkReady&&window.__stark.relay.room);
 await host.goto(`${base}/controller?room=STRK7&role=host&key=test`);await host.waitForSelector('#app[data-state="host"]');
-for(const [beat,id,mode]of[['retriever','clean_retriever','normal'],['handover','clean_retriever','normal'],['stability','ambig_cat','stability'],['adversarial','adv_retriever','normal'],['xray','med_xray_pneumonia','normal'],['steer','ambig_cat','normal'],['close','clean_retriever','normal']]){
+for(const [beat,id,mode]of[['retriever','clean_retriever','normal'],['handover','clean_retriever','normal'],['stability','clean_retriever','stability'],['adversarial','adv_retriever','normal'],['xray','med_xray_pneumonia','normal'],['steer','ambig_cat','normal'],['close','clean_retriever','normal']]){
  await host.locator(`[data-demo-beat="${beat}"]`).click();await active(beat);
  await display.waitForFunction(({id,mode})=>window.__stark.api.state.image.id===id&&window.__stark.api.state.mode===mode,{id,mode});
  if(beat==='stability')await display.waitForFunction(()=>window.__stark.api.state.stability?.run>=1,null,{timeout:5000});

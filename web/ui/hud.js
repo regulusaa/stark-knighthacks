@@ -1,14 +1,15 @@
 import { percent, heatmapText } from './presentation.js';
+import { mountFocusEvidence } from './focus-evidence.js';
 
 // Owns no transport. All callbacks are isolated so HUD failures never stop the renderer.
 export function mountHud(rootEl, api) {
   const subscriptions = [], timers = new Set();
-  let hud, destroyed = false, state = {}, outside = null, drawn = null, treeImage = null;
+  let hud, focusEvidence, destroyed = false, state = {}, outside = null, drawn = null, treeImage = null;
   let momentKey = null, momentTimerKey = null;
   const seenMoments = new Set();
   const safely = fn => { try { return fn(); } catch { return undefined; } };
   const later = (ms, fn) => { const id = setTimeout(() => { timers.delete(id); if (!destroyed) safely(fn); }, ms); timers.add(id); return id; };
-  const destroy = () => { if (destroyed) return; destroyed = true; for (const id of timers) clearTimeout(id); timers.clear(); for (const off of subscriptions) safely(off); safely(() => hud?.remove()); };
+  const destroy = () => { if (destroyed) return; destroyed = true; for (const id of timers) clearTimeout(id); timers.clear(); for (const off of subscriptions) safely(off); safely(() => focusEvidence?.destroy()); safely(() => hud?.remove()); };
   safely(() => {
     if (!rootEl?.append) return;
     const href = new URL('./styles/hud.css', import.meta.url).href;
@@ -20,7 +21,7 @@ export function mountHud(rootEl, api) {
       <section class="hud-result" aria-label="Model's answer"><div data-field="answer" class="hud-answer"></div><div data-field="score" class="hud-secondary"></div><div data-field="truth" class="hud-truth"><span class="hud-ring" aria-hidden="true"></span><span data-field="correctness"></span></div></section>
       <section class="hud-medical" hidden><div class="hud-kicker">Findings (independent scores)</div><div class="hud-findings"></div><p>Each score is 0–100% on its own · not a diagnosis</p></section>
       <section class="hud-context" hidden><div class="hud-context-image" hidden><span data-field="contextImage"></span><span class="hud-adversarial-chip">Adversarial</span></div><div data-field="contextTitle" class="hud-context-title"></div><div data-field="contextAnswer" class="hud-label"></div><div data-field="original" class="hud-secondary"></div><div data-field="noise" class="hud-secondary"></div><div class="hud-progress" hidden><span></span></div><div class="hud-winners"></div><div data-field="stabilityCaption" class="hud-caption"></div></section>
-      <section class="hud-focus hud-fade" aria-label="Focused class" aria-hidden="true"><div class="hud-kicker">FOCUSED ANSWER</div><div data-field="focusLabel" class="hud-label"></div><div class="hud-focus-meta"><span data-field="focusScore"></span><span data-field="rank"></span></div><div data-field="heatmap" class="hud-heatmap"></div><p class="hud-caption">Highlights image regions associated with this class score</p></section>
+      <section class="hud-focus hud-fade" aria-label="Focused class" aria-hidden="true"><div class="hud-kicker">FOCUSED ANSWER</div><div data-field="focusLabel" class="hud-label"></div><div class="hud-focus-meta"><span data-field="focusScore"></span><span data-field="rank"></span></div><div data-field="heatmap" class="hud-heatmap"></div><div class="hud-focus-evidence"></div><p class="hud-caption">Highlights image regions associated with this class score</p></section>
       <section class="hud-status"><div data-field="controllers"></div><div data-field="driver" class="hud-secondary"></div><div data-field="mode" class="hud-mode"></div></section>
       <section class="hud-feature-status" hidden><div data-field="steeringBadge" class="hud-mode"></div><div data-field="outside" class="hud-outside"></div></section>
       <section class="hud-legend"><div class="hud-inferno" aria-hidden="true"></div><div>low → high model score</div><div class="hud-legend-truth"><span class="hud-ring" aria-hidden="true"></span>true class</div></section>
@@ -28,6 +29,7 @@ export function mountHud(rootEl, api) {
       <section class="hud-moment" hidden aria-live="polite"><div class="hud-moment-kicker">Answer changed</div><div class="hud-moment-pair"><div><div data-field="fromLabel"></div><div data-field="fromScore" class="hud-moment-score"></div></div><span class="hud-moment-arrow" aria-hidden="true">→</span><div><div data-field="toLabel"></div><div data-field="toScore" class="hud-moment-score"></div></div></div></section>`;
     if (!full) for (const el of hud.querySelectorAll('.hud-brand,.hud-status,.hud-legend,.hud-qr,.hud-truth')) el.remove();
     rootEl.replaceChildren(hud);
+    focusEvidence=mountFocusEvidence(hud.querySelector('.hud-focus-evidence'),{enabled:!full&&rootEl.dataset.focusEvidence!=='off'});
     const fields = Object.fromEntries([...hud.querySelectorAll('[data-field]')].map(e => [e.dataset.field, e]));
     const text = (name, value) => { const e = fields[name]; if (!e) return; const str = value == null ? '' : String(value); if (e.textContent !== str) e.textContent = str; e.classList.toggle('hud-empty', !str); };
     const score = value => percent(value) ? `${full ? 'model' : 'Model'} score ${percent(value)}` : '';
@@ -50,6 +52,8 @@ export function mountHud(rootEl, api) {
       const active = a && typeof a === 'object';
       card.classList.toggle('hud-visible', Boolean(active)); card.setAttribute('aria-hidden', String(!active));
       text('focusLabel', a?.label); text('focusScore', score(a?.score)); text('rank', Number.isFinite(a?.rank) ? `Rank ${a.rank}` : ''); text('heatmap', heatmapText(a));
+      hud.querySelector('.hud-focus .hud-caption').hidden=!(a?.heatmapSource || a?.heatmapSource===undefined&&a?.hasHeatmap);
+      void focusEvidence.update(state,a);
     }
     function listRows(parent, values, kind) {
       const signature = JSON.stringify(values);

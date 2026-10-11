@@ -1,0 +1,24 @@
+.focus-evidence{margin-top:16px;min-width:0;min-height:0;font-size:15px;line-height:1.45;overflow-wrap:anywhere}
+.focus-evidence [hidden]{display:none!important}
+.focus-evidence-map{display:grid;grid-template-columns:112px minmax(0,1fr);align-items:center;gap:12px;margin-bottom:16px}
+.focus-evidence .focus-map-image{width:112px;height:112px;max-width:100%;border:1px solid #ffffff40;border-radius:4px}
+.focus-evidence strong{display:block;font-weight:550}
+.focus-evidence p{margin:6px 0 0}
+.focus-evidence small{display:block;opacity:.65;font-size:12px;line-height:1.4;margin-top:6px}
+.focus-evidence-why{padding-top:12px;border-top:1px solid #ffffff35}
+.focus-evidence-edit{color:#fbb61a}
+.stark-hud .focus-evidence{font-size:24px;line-height:1.35;min-height:0}
+.stark-hud .focus-evidence-map{grid-template-columns:128px minmax(0,1fr)}
+.stark-hud .focus-evidence .focus-map-image{width:128px;height:128px}
+.stark-hud .focus-evidence small{font-size:18px}
+.stark-hud.hud-compact .hud-focus{top:180px;width:448px}
+.stark-hud.hud-compact .hud-heatmap{font-size:20px;min-height:0;margin-top:12px}
+.stark-hud.hud-compact .hud-caption{font-size:18px;min-height:0;margin-top:12px}
+@media(max-width:1199px){.stark-hud .focus-evidence{font-size:17px;min-height:0}.stark-hud .focus-evidence-map{grid-template-columns:96px minmax(0,1fr)}.stark-hud .focus-evidence .focus-map-image{width:96px;height:96px}.stark-hud .focus-evidence small{font-size:13px}.stark-hud.hud-compact .hud-focus{top:112px;width:300px}.stark-hud.hud-compact .hud-heatmap{font-size:16px}.stark-hud.hud-compact .hud-caption{font-size:14px}}
+@media(max-width:600px){.stark-hud.hud-compact .hud-focus{top:130px;bottom:auto;width:calc(100% - 64px);padding:16px}.stark-hud .focus-evidence{min-height:0;font-size:15px}.stark-hud.hud-compact .hud-caption{display:none}}
+@media(max-width:500px){.inspection-controller .focus-evidence-map{grid-template-columns:minmax(0,1fr)}.inspection-controller .focus-evidence .focus-map-image{width:100%;height:auto;max-width:160px}.inspection-controller .focus-evidence{font-size:14px}}
+
+.focus-evidence[data-has-map="true"]{min-height:280px}
+.stark-hud .focus-evidence[data-has-map="true"]{min-height:330px}
+@media(max-width:1199px){.stark-hud .focus-evidence[data-has-map="true"]{min-height:250px}}
+@media(max-width:600px){.stark-hud .focus-evidence[data-has-map="true"]{min-height:240px}}

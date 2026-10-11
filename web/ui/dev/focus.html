@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stark · Focus evidence verification</title>
+<style>html,body{margin:0;background:#050208;color:#F3EEF7;height:100%;font-family:system-ui,sans-serif}#hud{position:fixed;inset:0;pointer-events:none}</style>
+<div id="hud"></div>
+<script type="module">
+import {mountHud} from '../hud.js';
+const params=new URLSearchParams(location.search),id=params.get('image')||'ambig_cat';
+const [tree,index,manifest]=await Promise.all(['tree.json','gradcam/index.json','../manifest.json'].map(file=>fetch(`/assets/${id}/${file}`).then(r=>{if(!r.ok)throw new Error('Missing focus fixture');return r.json()})));
+const entry=manifest.images.find(m=>m.id===id);
+const answers=tree.topK.map(a=>({...a,heatmapSource:index.classes.find(h=>h.classId===a.classId)?.hasHeatmap?'precomputed':null}));
+const focus=answers.find(a=>a.classId===Number(params.get('classId')||282))||answers[0];
+const state={image:{...entry,name:entry.displayName||entry.name},answers,top1:tree.top1,trueClass:tree.trueClass,scoreKind:entry.category==='medical'?'independent':'softmax',focus,mode:'normal'};
+mountHud(document.querySelector('#hud'),{onState(cb){cb(state)},onFocus(cb){cb(focus)}});
+const started=Date.now();
+function ready(){
+ const p=document.querySelector('.focus-evidence-why p'),map=document.querySelector('.focus-evidence-map'),img=document.querySelector('.focus-map-image');
+ if(p&&!p.textContent.startsWith('Loading')&&(!focus.heatmapSource||!map.hidden&&img.complete)&&[...document.styleSheets].length>=3){requestAnimationFrame(()=>requestAnimationFrame(()=>window.__starkReady=true));return;}
+ if(Date.now()-started>20000)throw new Error('Focus evidence did not become ready');
+ setTimeout(ready,50);
+}
+ready();
+</script>
+</html>

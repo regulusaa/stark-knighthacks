@@ -5,7 +5,7 @@ const INFO = "Each channel is one of 2,048 feature detectors in ResNet50's last 
 const pct = n => `${(n * 100).toFixed(1)}%`;
 const snapped = n => n <= .05 ? 0 : Math.abs(n - 1) <= .050001 ? 1 : Math.min(3, Math.max(0, Math.round(n * 100) / 100));
 const text = (el, value = '') => { if (el.textContent !== String(value)) el.textContent = String(value); };
-export function createSteerPanel({ root, emit, requestControl, notify = () => {}, onImageChange = () => {} }) {
+export function createSteerPanel({ root, emit, requestControl, notify = () => {}, onImageChange = () => {}, onGuideChange = () => {} }) {
   root.classList.add('steer-panel');
   root.innerHTML = `
     <header class="steer-header"><div><p class="steer-eyebrow">INSIDE THE MODEL</p><h3>Steer <span>· last layer</span></h3></div><button type="button" class="steer-info" aria-label="About channels" aria-expanded="false">i</button></header>
@@ -14,7 +14,9 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
     <div class="steer-state-card" role="status"><strong class="steer-state-title"></strong><p class="steer-state-message"></p><button type="button" class="steer-retry" hidden>Try again</button></div>
     <div class="steer-content" hidden>
       <div class="steer-current"><div><strong class="steer-top-label"></strong><span class="steer-top-score"></span></div><button class="steer-reset" type="button" hidden>Reset</button></div>
+      <p class="steer-live-delta" role="status"></p>
       <p class="steer-flip" role="status" hidden></p><p class="steer-outside" hidden></p>
+      <section class="steer-demo" hidden><strong>Try an answer change</strong><p class="steer-demo-text"></p><p class="steer-demo-progress" role="status"></p><button type="button" class="steer-demo-next">Turn off next demo channel</button></section>
       <div class="steer-permission" hidden><span></span><button type="button" class="steer-take">Take control</button></div>
       <div class="steer-toggle" role="tablist" aria-label="Steer input"><button type="button" role="tab" data-input-mode="sliders" aria-selected="true">Sliders</button><button type="button" role="tab" data-input-mode="code" aria-selected="false">Code</button></div>
       <div class="steer-sliders" role="tabpanel"><div class="steer-groups"></div><div class="steer-equivalent"><div>Equivalent code</div><pre></pre><button type="button" class="steer-copy">Copy to code mode</button></div></div>
@@ -37,6 +39,7 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
   let context = { connected: false, driving: false, display: null };
   let imageId = null;
   let result = null;
+  let guide = null;
   let scales = new Map();
   let baseline = new Map();
   let mode = 'sliders';
@@ -56,7 +59,9 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
   let sent = new Map();
   let editRevision = 0;
   const edits = new Map();
-  let resetAt = -Infinity;
+  let resetPending = false;
+  let resetTimer = 0;
+  let lastResetAt = -Infinity;
   let animationFrame = 0;
   const capable = () => context.display?.capabilities?.steer === true;
   const writable = () => !document.hidden && context.connected && capable() && context.driving;
@@ -76,6 +81,7 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
   });
   function permit() {
     if (document.hidden) return false;
+    if (resetPending) { notify('Resetting feature edits…'); return false; }
     if (!context.connected || !capable()) return false;
     if (context.driving) return true;
     const driver = context.display?.driver;
@@ -96,7 +102,8 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
     cancelAnimationFrame(animationFrame);
     sender.cancel();
     clearTimeout(sendTimeout);
-    sending = running = waiting = false;
+    clearTimeout(resetTimer); resetTimer=0;
+    sending = running = waiting = resetPending = false;
     drag = null;
     sent.clear();
     edits.clear();
@@ -156,13 +163,14 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
       const strongest = Math.max(...set.channels.map(c=>Math.abs(c.contribution)), .000001);
       for (const item of set.channels.slice(0,5)) {
         const row = document.createElement('div'); row.className = 'steer-row'; row.dataset.channel = item.channel;
-        row.innerHTML = `<div class="steer-row-heading"><label></label><span class="steer-contribution" aria-hidden="true"><span></span></span><button type="button" class="steer-readout" aria-label="Double tap to restore scale to 1"></button></div><input type="range" min="0" max="3" step="0.01" value="1"><div class="steer-ticks" aria-hidden="true"><span>off</span><span>1×</span><span>3×</span></div>`;
+        row.innerHTML = `<div class="steer-row-heading"><label></label><span class="steer-contribution" aria-hidden="true"><span></span></span><button type="button" class="steer-readout" aria-label="Double tap to restore scale to 1"></button></div><input type="range" min="0" max="3" step="0.01" value="1"><div class="steer-ticks" aria-hidden="true"><span>off</span><span>1×</span><span>3×</span></div><button type="button" class="steer-zero">Turn off</button>`;
         const input = row.querySelector('input');
         input.id = `steer-${key}-${item.channel}`;
         const label = row.querySelector('label'); label.htmlFor = input.id; text(label, `#${item.channel}`);
         input.setAttribute('aria-label', `Channel ${item.channel}, pushing toward ${set.label}`);
         row.querySelector('.steer-contribution > span').style.width = `${Math.abs(item.contribution) / strongest * 100}%`;
         const readout = row.querySelector('.steer-readout');
+        row.querySelector('.steer-zero').addEventListener('click',()=>changeChannel(item.channel,0,true));
         const entries = rows.get(item.channel) || []; entries.push({input,readout,row}); rows.set(item.channel,entries);
         let denied = false;
         input.addEventListener('pointerdown', event => {
@@ -282,12 +290,39 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
     $('.steer-info').setAttribute('aria-expanded',String(!info.hidden));
   });
   $('.steer-take').addEventListener('click',()=>{ if (context.connected && capable()) requestControl(); });
-  $('.steer-reset').addEventListener('click',()=>{
+  function changeChannel(channel,scale,final=false) {
+    if (!Number.isInteger(channel) || channel<0 || channel>=2048 || !Number.isFinite(scale) || !result || !permit()) return false;
+    if (!setScale(channel,scale)) return false;
+    if (final) sender.release(sliderSet());
+    else sender.update(sliderSet(),channel);
+    render(); return true;
+  }
+  function resetChannels() {
     if (!writable()) { permit(); return; }
-    if (performance.now() - resetAt < 500) return;
-    resetAt = performance.now(); sender.cancel(); edits.clear(); sent.clear(); dirtyCode = false; localError = null; drag = null;
-    emit(EVENTS.STEER_RESET,{}); sending = true; render();
-  });
+    if (resetPending) return false;
+    sender.cancel(); edits.clear(); sent.clear(); dirtyCode = false; localError = null; drag = null;
+    resetPending = sending = true;
+    clearTimeout(sendTimeout);
+    const sendReset=()=>{
+      resetTimer=0;
+      if (!writable()) { resetPending=sending=false; render(); return; }
+      lastResetAt=performance.now();
+      sendTimeout=setTimeout(()=>{resetPending=sending=false;localError={message:'The display did not respond. Try again.'};render();},5000);
+      emit(EVENTS.STEER_RESET,{});
+    };
+    // The relay permits 2 resets/s. Retain a rapid second Reset and show feedback,
+    // instead of silently discarding it or overrunning that per-socket limit.
+    const wait=Math.max(0,510-(performance.now()-lastResetAt));
+    if (wait) resetTimer=setTimeout(sendReset,wait); else sendReset();
+    render(); return true;
+  }
+  function applyNextDemo() {
+    if (!guide) return false;
+    const channel=guide.channels.find(c=>scales.get(c)!==0);
+    return channel!==undefined && changeChannel(channel,0,true);
+  }
+  $('.steer-reset').addEventListener('click',resetChannels);
+  $('.steer-demo-next').addEventListener('click',applyNextDemo);
   $('.steer-retry').addEventListener('click',()=>{
     if (context.connected && result) { localError = null; render(); }
     else notify('Keep this page open while the display reconnects.');
@@ -325,8 +360,20 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
     $('.steer-retry').hidden = state !== 'error' && !offline;
     const top = result?.result?.top1 || context.display?.top1;
     text($('.steer-top-label'),top?.label || 'Waiting for an answer'); text($('.steer-top-score'),top ? `Model score ${pct(top.score)}` : '');
+    const original=result?.result?.baselineTop1;
+    const originalNow=result?.result?.answers?.find(a=>a.classId===original?.classId);
+    const delta=original&&originalNow?(originalNow.score-original.score)*100:null;
+    text($('.steer-live-delta'),delta!==null?`${original.label}: ${pct(original.score)} → ${pct(originalNow.score)} · ${Math.abs(delta)<.05?'unchanged':`${Math.abs(delta).toFixed(1)} points ${delta<0?'lower':'higher'}`}`:'');
+    $('.steer-demo').hidden=!guide;
+    if (guide) {
+      const count=guide.channels.filter(c=>scales.get(c)===0).length;
+      text($('.steer-demo-text'),guide.text);
+      text($('.steer-demo-progress'),`${count} / ${guide.channels.length} demo channels off · reset to replay from original settings`);
+      $('.steer-demo-next').disabled=count===guide.channels.length || offline || unavailable;
+    }
     $('.steer-reset').hidden = !result?.active && scales.size === 0;
-    $('.steer-reset').disabled = !context.driving;
+    $('.steer-reset').disabled = !context.driving || resetPending;
+    text($('.steer-reset'),resetPending?'Resetting…':'Reset');
     const flipped = result?.result?.top1Changed === true;
     $('.steer-flip').hidden = !flipped;
     text($('.steer-flip'),flipped ? `Answer changed: ${result.result.baselineTop1.label} → ${top.label}` : '');
@@ -343,7 +390,7 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
     for (const chip of root.querySelectorAll('[data-chip]')) chip.disabled = editor.readOnly;
     for (const [channel, entries] of rows) for (const {input,row} of entries) {
       input.setAttribute('aria-readonly',String(!context.driving));
-      input.disabled = offline || unavailable;
+      input.disabled = offline || unavailable || resetPending;
       row.classList.toggle('steer-dragging',drag === channel);
     }
     text($('.steer-equivalent pre'),result?.code || 'reset');
@@ -355,6 +402,14 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
       const manifest = await fetch('/assets/manifest.json').then(r=>r.ok?r.json():null);
       const entry = manifest?.images?.find(item=>item.id===display.image.id);
       if (!entry) return;
+      const recorded=entry.steerable?await fetch(`/${entry.folder}steer.json`).then(r=>r.ok?r.json():null):null;
+      if (destroyed || token!==baselineToken) return;
+      const flip=recorded?.flip;
+      if (flip?.channels?.length && flip.channels.length<=DEFAULTS.STEER_MAX_CHANNELS && flip.channels.every(c=>Number.isInteger(c)&&c>=0&&c<2048) && new Set(flip.channels).size===flip.channels.length) {
+        const from=recorded.classes?.find(c=>c.classId===flip.from)?.label || 'the original answer';
+        guide={channels:flip.channels,text:`From original settings, turn off ${flip.channels.length} channel${flip.channels.length===1?'':'s'} to change ${from} → ${flip.toLabel}.`};
+        render(); onGuideChange();
+      }
       const response = await fetch(`/${entry.folder}tree.json`);
       if (!response.ok) return;
       const tree = await response.json();
@@ -375,7 +430,7 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
       context = next;
       const nextId = next.display?.image?.id;
       if (nextId && nextId !== imageId) {
-        cancel(); imageId = nextId; result = null; scales.clear(); baseline.clear(); groupsSignature = ''; rows.clear(); $('.steer-groups').replaceChildren();
+        cancel(); imageId = nextId; result = null; guide=null; scales.clear(); baseline.clear(); groupsSignature = ''; rows.clear(); $('.steer-groups').replaceChildren();
         dirtyCode = false; mode = 'sliders'; editor.value = ''; localError = null; syntax = {ok:null};
         clearTimeout(syntaxTimer); ++syntaxRevision;
         if (!next.display.steer?.active) for (const answer of next.display.answers || []) baseline.set(answer.classId,answer.score);
@@ -397,6 +452,7 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
       if (laterOwn) return;
       const previous = result ? new Map(scales) : null;
       result = structuredClone(value);
+      if (value.seq===0 || value.error) { resetPending=false; clearTimeout(resetTimer); resetTimer=0; }
       const current = scales.get(drag) ?? 1;
       scales = new Map((value.scales || []).map(item=>[item.channel,item.scale]));
       if (own) for (const [channel,edit] of own.edits) {
@@ -425,7 +481,8 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
       cancel(); localError = error.error || error.parseError || {message:error.message}; render();
     },
     setMode: modeName => modeName === 'code' ? enterCode() : (mode='sliders',render()),
-    get state() { return { imageId, result, scales:sliderSet(), dragging:drag, mode }; },
+    changeChannel, releaseChannels() { if (context.connected&&capable()) sender.release(sliderSet()); }, resetChannels, applyNextDemo,
+    get state() { return { imageId, result, scales:sliderSet(), dragging:drag, mode, guide:guide?{...guide,completed:guide.channels.filter(c=>scales.get(c)===0).length}:null }; },
     destroy() { destroyed=true; cancel(); document.removeEventListener('visibilitychange', visibility); window.removeEventListener('resize', resize); clearTimeout(syntaxTimer); ++syntaxRevision; ++baselineToken; root.replaceChildren(); },
   };
 }
