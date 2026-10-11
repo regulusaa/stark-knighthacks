@@ -35,11 +35,16 @@ function row(step, ok, ms, note = '') {
 }
 
 // ---- display ---------------------------------------------------------------------------------------------------
-const browser = await chromium.launch({ headless: flag('--headless'), args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
+// a covered or background window must keep animating (Chrome throttles occluded windows' frames and timers)
+const browser = await chromium.launch({ headless: flag('--headless'), args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist',
+  '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling'] });
 const page = await browser.newPage({ viewport: { width: 2560, height: 1440 } });
 const consoleErrors = [];
 page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
 page.on('pageerror', (e) => consoleErrors.push(`pageerror ${e.message}`));
+page.on('crash', () => { consoleErrors.push('the display page crashed'); console.log(red('!! the display page crashed')); });
+page.on('close', () => { if (!closing) console.log(red('!! the display window was closed during the run')); });
+let closing = false;
 await page.goto(`${BASE}/display`);
 await page.waitForFunction(() => window.__starkReady === true && window.__stark?.relay?.room, null, { timeout: 60000 });
 const ROOM = await page.evaluate(() => window.__stark.relay.room);
@@ -162,6 +167,7 @@ await step('4 stability image + set-mode stability', async () => {
 await step('4 stability reaches summary', async () => {
   const runs = ds().stability?.runs ?? 30;
   const watch = until(host, 'display-state', (d) => d.stability?.phase === 'summary', runs * 150 + 3000);
+  watch.catch(() => {});   // awaited below; don't let an early timeout crash the run
   fpsStats.stability = await sampleFps(async () => ds().stability?.phase === 'playing', runs * 150 + 3000);
   await watch;
   return fpsNote(fpsStats.stability);
@@ -236,6 +242,7 @@ await step(`8 select ${STEER_IMAGE}, Steer ready`, async () => {
 await step('8 slider drags (15/s) → top1Changed + steerMoment', async () => {
   const set = [];
   const watch = until(guest, 'steer-result', (r) => r.result?.top1Changed === true, 5000 + flip.n * 600);
+  watch.catch(() => {});
   const drag = (async () => {
     for (const ch of flip.channels) {
       const entry = { channel: ch, scale: 1 };
@@ -293,6 +300,7 @@ const total = Date.now() - T0;
 row('total time < 90 s', total < 90000, total);
 
 host.close(); guest.close();
+closing = true;
 await browser.close();
 console.log(failed ? red(`\nREHEARSE FAILED: ${failed} step(s)`) : green('\nREHEARSE PASSED'));
 process.exitCode = failed ? 1 : 0;
