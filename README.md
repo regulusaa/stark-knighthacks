@@ -91,3 +91,7 @@ To regenerate assets, use `python -m pipeline.run` in an environment with the pi
 Models and libraries include Keras Applications / ResNet50, torchxrayvision / DenseNet121, Three.js, Socket.io, Express, NLTK WordNet, and Playwright for browser verification. Refer to their upstream projects for their respective licenses.
 
 Recorded image attribution is in [`credits.txt`](credits.txt). The pneumonia X-ray is credited there to Malvinder S Parmar / BMC Infectious Diseases via Wikimedia Commons (CC BY 2.0). Attribution for the supplied normal X-ray is still pending in that file; this README does not claim a license for it.
+
+- Caulrion.com for planning
+- Wikimedia commons for medical images
+- Pinterest.com and Unsplash.com
