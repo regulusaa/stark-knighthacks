@@ -4,6 +4,7 @@ import { createAnswerList } from '/ui/answer-list.js';
 import { createGallery } from '/ui/gallery.js';
 import { createHostControls } from '/ui/host-controls.js';
 import { connect } from '/ui/transport.js';
+import { stabilityPlaying } from '/ui/presentation.js';
 import { createSteerPanel } from '/ui/steer/panel.js';
 
 const query = new URLSearchParams(location.search);
@@ -147,10 +148,11 @@ function render() {
   const otherLabel = display?.driver?.id !== transport?.status.clientId ? display?.driver?.label : null;
   document.getElementById('driver-label').textContent = role === ROLES.HOST ? 'Host control' : driving ? 'You are driving' : pendingControl ? 'Requesting control' : otherLabel ? `${otherLabel} is driving` : 'Ready for a driver';
   label.textContent = role === ROLES.HOST ? 'Host' : driving ? 'Driving' : pendingControl ? 'Requesting' : otherLabel ? `${otherLabel} driving` : 'Viewing';
+  document.querySelector('.trackpad-note').textContent = display?.mode === 'trunk' ? 'Inside the network: 49 layers' : 'Movement goes to the display while you drive.';
   document.getElementById('image-name').textContent = display?.image?.name || 'Waiting for image';
   document.getElementById('top-answer').textContent = scoreText(display?.top1);
   const truth = document.getElementById('truth-status');
-  truth.hidden = !display?.top1 || !display?.trueClass;
+  truth.hidden = display?.scoreKind === 'independent' || !display?.top1 || !display?.trueClass;
   if (!truth.hidden) {
     const correct = display.top1.classId === display.trueClass.classId;
     truth.dataset.correct = String(correct);
@@ -224,7 +226,9 @@ function onDisplayState(value) {
   if (value.driver?.id === transport?.status.clientId) hostTakePending = false;
   gallery?.setCurrent(value.image?.id);
   hostControls?.setDisplay(value);
+  answerList.setContext(value);
   const answersChanged = answerList.setAnswers(value.answers);
+  if (stabilityPlaying(value)) { queuedFocus = null; optimisticFocus = null; }
   if (imageChanged) {
     queuedFocus = null;
     optimisticFocus = null;
@@ -255,7 +259,7 @@ function onDriverChanged({ driver, reason }) {
   }
   if (driving && role === ROLES.GUEST) {
     haptic(12);
-    if (queuedFocus) {
+    if (queuedFocus && !stabilityPlaying(display)) {
       const { event, payload } = queuedFocus;
       queuedFocus = null;
       transport.emit(event, payload);
@@ -371,6 +375,7 @@ function resetView() {
 }
 
 function requestFocus(event, payload, answer) {
+  if (stabilityPlaying(display)) { showNotice('Answers come back when the test ends'); return; }
   if (!display || transport?.status.phase !== 'connected') return;
   const otherDriver = role === ROLES.GUEST && display.driver && display.driver.id !== transport?.status.clientId;
   if (otherDriver) {
@@ -433,8 +438,9 @@ const gallery = role === ROLES.HOST ? createGallery({
 }) : null;
 const hostControls = role === ROLES.HOST ? createHostControls({
   root: document.getElementById('side-panel'),
-  onPlay: payload => { transport.emit(EVENTS.PLAY_PULSE, payload); haptic(); },
-  onMode: payload => { transport.emit(EVENTS.SET_MODE, payload); haptic(); },
+  onPlay: payload => { haptic(); return transport.emit(EVENTS.PLAY_PULSE, payload); },
+  onMode: payload => { haptic(); return transport.emit(EVENTS.SET_MODE, payload); },
+  onImage: imageId => { haptic(); return transport.emit(EVENTS.SELECT_IMAGE, { imageId }); },
   onTimeout: () => showNotice('The display did not confirm that control. Try again.'),
 }) : null;
 
@@ -443,7 +449,7 @@ if (gallery) {
   fetch(manifestUrl).then(response => {
     if (!response.ok) throw new Error('Gallery manifest unavailable');
     return response.json();
-  }).then(manifest => gallery.setManifest(manifest)).catch(() => showNotice('Gallery unavailable. Try again later.'));
+  }).then(manifest => { gallery.setManifest(manifest); hostControls.setManifest(manifest); }).catch(() => showNotice('Gallery unavailable. Try again later.'));
 }
 
 takeCenter.addEventListener('click', takeControl);

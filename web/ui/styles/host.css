@@ -55,3 +55,15 @@
   .controller[data-role="host"] .panel-heading h2 { font-size: 18px; }
   .controller[data-role="host"] .trackpad-note { display: none; }
 }
+
+.adversarial-pair { flex: 0 0 auto; border-color: #ed692560; }
+.pair-control { margin-top: 8px; }
+.pair-control button { min-height: 56px; font-size: 17px; }
+.mode-options { display: flex; gap: 8px; margin-top: 8px; }
+.mode-options button { flex: 1; min-height: 48px; padding: 8px 12px; border: 1px solid #ffffff37; border-radius: 9px; background: #0e0a14; color: var(--color-text); font: inherit; font-size: 14px; text-align: left; }
+.mode-options button span { float: right; margin-left: 8px; color: var(--color-text-secondary); }
+.mode-options button.active { border-color: var(--inferno-5); background: #3a1a2c; }
+.mode-options button.pending { border-color: var(--inferno-4); background: #bc375433; }
+.answer-context { margin: 8px 0; color: var(--inferno-5); font-size: 16px; font-variant-numeric: tabular-nums; }
+.answer-explanation { margin: 8px 0; color: var(--color-text-secondary); font-size: 14px; line-height: 1.4; }
+.answers-panel[data-readonly="true"] .answer-row { opacity: .65; }

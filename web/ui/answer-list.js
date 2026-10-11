@@ -1,3 +1,4 @@
+import { heatmapText, stabilityPlaying } from './presentation.js';
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 function modelScore(score) {
@@ -25,6 +26,23 @@ export function createAnswerList({ root, onSelect, onClear, onLongLabel }) {
   let answersSignature = '';
   let focusSignature = '';
   let focusedId = null;
+  let independent = false;
+  let readOnly = false;
+  function setContext(state) {
+    const nextIndependent = state?.scoreKind === 'independent';
+    if (independent !== nextIndependent) answersSignature = '';
+    independent = nextIndependent;
+    readOnly = stabilityPlaying(state);
+    root.dataset.readonly = String(readOnly);
+    root.querySelector('#answers-title').textContent = independent ? 'Findings · independent scores' : 'Answers';
+    const context = root.querySelector('#answer-context');
+    context.hidden = !readOnly;
+    context.textContent = readOnly ? `Stability test running · run ${state.stability.run} / ${state.stability.runs}` : '';
+    root.querySelector('#answer-explanation').hidden = !readOnly;
+    root.querySelector('#medical-caveat').hidden = !independent;
+    root.querySelector('#clear-focus').disabled = readOnly;
+    for (const row of rows.values()) row.disabled = readOnly;
+  }
 
   root.querySelector('#clear-focus').addEventListener('click', onClear);
 
@@ -43,6 +61,7 @@ export function createAnswerList({ root, onSelect, onClear, onLongLabel }) {
   function buildRow(answer, topScore) {
     const row = document.createElement('button');
     row.type = 'button';
+    row.disabled = readOnly;
     row.className = 'answer-row';
     row.dataset.classId = String(answer.classId);
     row.title = answer.label;
@@ -61,7 +80,7 @@ export function createAnswerList({ root, onSelect, onClear, onLongLabel }) {
     meter.className = 'answer-meter';
     const fill = document.createElement('span');
     fill.className = 'answer-meter-fill';
-    fill.style.width = `${Math.max(0, Math.min(100, topScore > 0 ? answer.score / topScore * 100 : 0))}%`;
+    fill.style.width = `${Math.max(0, Math.min(100, independent ? answer.score * 100 : topScore > 0 ? answer.score / topScore * 100 : 0))}%`;
     meter.append(fill);
     body.append(meter);
     const badges = document.createElement('span');
@@ -102,15 +121,15 @@ export function createAnswerList({ root, onSelect, onClear, onLongLabel }) {
     row.addEventListener('contextmenu', event => { event.preventDefault(); onLongLabel(answer.label); });
     row.addEventListener('click', event => {
       if (longPressed) { event.preventDefault(); longPressed = false; return; }
-      onSelect(answer);
+      if (!readOnly) onSelect(answer);
     });
     return row;
   }
 
   function setAnswers(source) {
     const next = normalizedAnswers(source);
-    const signature = JSON.stringify(next.map(({ classId, label, score, rank, hasHeatmap, isTop1, isTrueClass }) =>
-      [classId, label, score, rank, hasHeatmap, isTop1, isTrueClass]));
+    const signature = JSON.stringify(next.map(({ classId, label, score, rank, hasHeatmap, heatmapSource, isTop1, isTrueClass }) =>
+      [classId, label, score, rank, hasHeatmap, heatmapSource, isTop1, isTrueClass]));
     if (signature === answersSignature) return false;
     answers = next;
     answersSignature = signature;
@@ -129,9 +148,10 @@ export function createAnswerList({ root, onSelect, onClear, onLongLabel }) {
   }
 
   function setFocus(value, { scroll = true } = {}) {
-    const answer = value && answers.find(item => item.classId === value.classId);
+    const base = value && answers.find(item => item.classId === value.classId);
+    const answer = base ? { ...base, ...value } : null;
     const nextId = answer?.classId ?? null;
-    const nextSignature = answer ? JSON.stringify([answer.classId, answer.label, answer.score, answer.rank, answer.hasHeatmap]) : 'none';
+    const nextSignature = answer ? JSON.stringify([answer.classId, answer.label, answer.score, answer.rank, answer.hasHeatmap, answer.heatmapSource]) : 'none';
     if (focusSignature === nextSignature) return;
     const priorId = focusedId;
     focusedId = nextId;
@@ -148,7 +168,7 @@ export function createAnswerList({ root, onSelect, onClear, onLongLabel }) {
     focusLabel.textContent = answer.label;
     focusScore.textContent = `Model score ${modelScore(answer.score)}`;
     focusRank.textContent = `Rank ${answer.rank}`;
-    heatmapStatus.textContent = answer.hasHeatmap ? 'Grad-CAM shown on the display' : 'No heatmap precomputed';
+    heatmapStatus.textContent = heatmapText(answer);
     if (scroll && priorId !== nextId) {
       requestAnimationFrame(() => {
         const row = rows.get(nextId);
@@ -164,6 +184,7 @@ export function createAnswerList({ root, onSelect, onClear, onLongLabel }) {
   }
 
   return {
+    setContext,
     setAnswers,
     setFocus,
     resetScroll() { list.scrollTop = 0; },
