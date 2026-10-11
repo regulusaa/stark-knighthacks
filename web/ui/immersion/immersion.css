@@ -31,3 +31,5 @@
 @media(orientation:portrait){.inspection-controller .workbench[data-active-workspace="immersion"]{grid-template-areas:"immersion" "settings";grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.5fr) minmax(0,1fr)}.workbench[data-active-workspace="immersion"] .side-panel{border-left:1px solid #fff7;border-top:0}}
 @media(orientation:portrait){#immersion-workspace.has-selection .immersion-heading{display:none}#immersion-workspace.has-selection .immersion-editor{border-top:0;padding-top:0}#immersion-workspace.has-selection .immersion-source{font-size:13px}}
 .immersion-editor input[type=text],.immersion-editor textarea,.immersion-catalog input{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+/* Keep all three tabs at least 48 px wide in the narrow legacy portrait sidebar. */
+@media(max-width:500px) and (orientation:portrait){.workbench:not([data-active-workspace="immersion"]) .workspace-tabs{grid-template-columns:repeat(2,minmax(48px,1fr))}.workbench:not([data-active-workspace="immersion"]) .workspace-tabs [data-workspace="immersion"]{grid-column:1/-1}}

@@ -11,8 +11,9 @@ export function createImmersion({workbench,panel,notify}) {
   if(disposed||frame||!context?.display?.image?.id)return;
   ready=false;window.__immersionControllerReady=false;panel.dataset.ready='false';loading.hidden=false;loading.textContent='Loading your 3D workspace…';
   frame=document.createElement('iframe');frame.title='Immersion · private brain exploration';frame.src='/ui/immersion/scene.html?preview=1&pr=1';stage.prepend(frame);
-  clearTimeout(loadingTimer);loadingTimer=setTimeout(()=>{if(!ready){loading.replaceChildren(document.createTextNode('Still loading 3D. '));const retry=document.createElement('button');retry.textContent='Retry';retry.onclick=()=>{stop();start()};loading.append(retry)}},15000);
+  clearTimeout(loadingTimer);loadingTimer=setTimeout(()=>{if(frame&&!loading.hidden)retryLoading('Still loading 3D.')},15000);
  }
+ function retryLoading(text){loading.hidden=false;loading.replaceChildren(document.createTextNode(text+' '));const retry=document.createElement('button');retry.textContent='Retry';retry.onclick=()=>{stop();start()};loading.append(retry);}
  function stop(){clearTimeout(loadingTimer);ready=false;frame?.remove();frame=null;}
  function selectTab(name){active=name==='immersion';stage.hidden=!active;if(active)start();else stop();}
  function sendContext(){if(active)start();post('immersion-state',context?.display);post('immersion-active',!document.hidden&&active);}
@@ -41,7 +42,7 @@ export function createImmersion({workbench,panel,notify}) {
   const list=panel.querySelector('.immersion-node-list');list.replaceChildren(...summary.nodes.filter(n=>`${n.original} ${n.name}`.toLowerCase().includes(query)).map(n=>{const b=document.createElement('button');b.textContent=`${n.name}${n.detached?' · extracted':''}`;b.dataset.nodeKey=n.key;b.onclick=()=>post('immersion-command',{action:'select',key:n.key});return b;}));
   panel.__summary=summary;
  }
- function message(event){if(event.origin!==location.origin||event.source!==frame?.contentWindow)return;const {type,payload}=event.data??{};if(type==='immersion-ready'){ready=true;clearTimeout(loadingTimer);sendContext();}else if(type==='immersion-rendered'){loading.hidden=true;}else if(type==='immersion-summary')render(payload);else if(type==='immersion-notice')notify(payload);}
+ function message(event){if(event.origin!==location.origin||event.source!==frame?.contentWindow)return;const {type,payload}=event.data??{};if(type==='immersion-ready'){ready=true;sendContext();}else if(type==='immersion-rendered'){loading.hidden=true;clearTimeout(loadingTimer);}else if(type==='immersion-failed'){clearTimeout(loadingTimer);retryLoading(payload);}else if(type==='immersion-summary')render(payload);else if(type==='immersion-notice')notify(payload);}
  window.addEventListener('message',message);
  for(const b of panel.querySelectorAll('[data-command]'))b.onclick=()=>command(b.dataset.command);
  const edit=()=>post('immersion-command',{action:'annotate',key:selected?.key,name:panel.querySelector('.immersion-name').value,notes:panel.querySelector('.immersion-notes').value});

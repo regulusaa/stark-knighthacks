@@ -7,7 +7,7 @@ const fetchBytes = async url => {const r=await fetch(url);if(!r.ok)throw new Err
 export function mountImmersionScene(stark,{send}) {
  const {api,scene,camera,renderer,tips,labels,veins,trunk,activity,inspection,rig,tissue,panel}=stark;
  const canvas=renderer.domElement, records=new Map(),edges=new Map(),detachedGroup=new THREE.Group();scene.add(detachedGroup);
- let pickedPosition=null,summaryPending=false,lastScoreSignature='';
+ let pickedPosition=null,summaryPending=false,lastScoreSignature='',failedImage=null;
  let selected=null,imageId=null,latest=null,loading=false,active=true,engine=null,engineLoad=null,classNames=null,featureStatus='',scales=new Map(),saved={},lastSummary=0;
  const pulses=new Map(),clones=new Map(),ray=new THREE.Raycaster(),ndc=new THREE.Vector2();
  const pointers=new Map();let candidate=null,drag=null,orbitX=0,orbitY=0,zoom=0,lastFlush=0;
@@ -126,10 +126,10 @@ export function mountImmersionScene(stark,{send}) {
   layerMask.fill(0);layerGlow.fill(0);for(const r of records.values())if(r.index!=null)layerMask[r.index]=r.detached?1:0;for(const [key,start]of pulses)if(typeof key==='string'&&key.startsWith('layer:')){const index=Number(key.split(':')[1]);layerGlow[index]=Math.max(0,1-(now-start)/1000);if(!layerGlow[index])pulses.delete(key);}
   if(summaryPending&&now-lastSummary>100){summaryPending=false;summary();}
  };
- async function receive(state){latest=state;if(!state?.image?.id)return;if(loading)return;if(state.image.id===imageId){if(!engine)syncScores(state);return;}
+ async function receive(state){latest=state;if(!state?.image?.id||state.image.id===failedImage)return;failedImage=null;if(loading)return;if(state.image.id===imageId){if(!engine)syncScores(state);return;}
   loading=true;freezeInput();persist();clearRecords();engine=null;engineLoad=null;featureStatus='';api.attachHeatProvider(null);api.steerAnswer=()=>null;imageId=state.image.id;restore();
   try{const ok=await api.loadImage(imageId,{autoplay:false});if(!ok||!api.assets.tree)throw new Error('Image data unavailable');api.jumpToEnd();veins.setRevealed();buildRecords();syncScores(state);inspection.initial();send('immersion-rendered');summary();}
-  catch(e){send('immersion-notice',`Could not load this image in Immersion: ${e.message}. Switch tabs and try again.`);imageId=null;}
+  catch(e){failedImage=imageId;send('immersion-failed',`Could not load this image: ${e.message}.`);imageId=null;}
   finally{loading=false;if(latest?.image?.id&&latest.image.id!==imageId&&imageId!==null)receive(latest);}
  }
  function syncScores(state){if(!api.state)return;const signature=JSON.stringify([state.top1,state.answers,state.scene?.values]);if(signature!==lastScoreSignature){lastScoreSignature=signature;summaryPending=true;}api.patchState({image:state.image,answers:state.answers??api.state.answers,top1:state.top1??api.state.top1,trueClass:state.trueClass??api.state.trueClass,scoreKind:state.scoreKind??api.state.scoreKind});if(state.scene?.values)veins.setValues(new Map(state.scene.values),state.scene.litLeaf,100);const scores=new Map((state.answers??[]).map(a=>[a.classId,a.score])),values=new Map(state.scene?.values??[]);tips.setScores(id=>scores.get(id)??values.get(tips.get(id)?.node.id),state.top1?.classId);if(state.top1)labels.setTop1(state.top1.classId);}
