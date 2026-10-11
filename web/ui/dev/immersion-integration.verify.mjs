@@ -1,6 +1,8 @@
 import {chromium,webkit} from 'playwright';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
 const base=process.env.BASE??'http://localhost:3004',errors=[];
 const hostKey=process.env.STARK_KEY_FILE?(await readFile(process.env.STARK_KEY_FILE,'utf8')).trim():'test';
+const fixed=await fetch(base+'/api/room').then(r=>r.ok?r.json():null).catch(()=>null);
+if(fixed?.fixedRoom) throw new Error('This suite creates its own display. Run it against the local server without a fixed room; a fixed production room cannot isolate this test.');
 const b=await chromium.launch({args:['--use-angle=metal','--enable-gpu','--ignore-gpu-blocklist']});
 const watch=p=>{p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')errors.push(m.text())});};
 const frame=p=>p.frames().find(f=>f.url().includes('/immersion/scene.html'));
@@ -11,7 +13,7 @@ try{
  const host=await b.newPage({viewport:{width:1180,height:820},hasTouch:true}),guest=await b.newPage({viewport:{width:390,height:844},hasTouch:true});watch(host);watch(guest);
  await host.goto(`${base}/controller?room=${room}&role=host&key=${encodeURIComponent(hostKey)}`);await guest.goto(`${base}/controller?room=${room}`);
  for(const p of [host,guest]){await p.waitForFunction(()=>window.__inspectionControllerReady);assert.equal(await p.locator('iframe,canvas').count(),0);await p.locator('[data-workspace="immersion"]').click();await ready(p);}
- const hf=frame(host),gf=frame(guest);const shared=await d.evaluate(()=>({camera:__stark.inspection.snapshot().camera,image:__stark.api.state.image.id,top1:__stark.api.state.top1}));
+ console.log('host and guest Immersion loaded');const hf=frame(host),gf=frame(guest);const shared=await d.evaluate(()=>({camera:__stark.inspection.snapshot().camera,image:__stark.api.state.image.id,top1:__stark.api.state.top1}));
  await hf.evaluate(()=>{__immersion.command({action:'extract',key:'class:620'});__immersion.command({action:'annotate',key:'class:620',name:'Host laptop note',notes:'Own workspace'});});
  await gf.evaluate(()=>{__immersion.command({action:'extract',key:'class:281'});__immersion.command({action:'annotate',key:'class:281',name:'Guest cat note',notes:'Independent workspace'});});
  assert.equal(await gf.evaluate(()=>__immersion.records.get('class:620').detached),false);assert.equal(await hf.evaluate(()=>__immersion.records.get('class:281').detached),false);
@@ -43,6 +45,6 @@ try{
  const ids=await d.evaluate(()=>__stark.api.manifest.map(m=>m.id));for(const id of ids){await d.evaluate(id=>__stark.api.loadImage(id,{autoplay:false}),id);await gf.waitForFunction(id=>window.__immersion?.imageId===id&&__immersion.records.size>0,id);await gf.evaluate(()=>{const key=[...__immersion.records.keys()][0];__immersion.command({action:'extract',key});});await gf.waitForFunction(()=>[...__immersion.records.values()].some(r=>r.detached));assert.ok(await gf.evaluate(()=>[...__immersion.records.values()].filter(r=>r.classId!=null).every(r=>Number.isFinite(r.tip.score))));await gf.evaluate(()=>__immersion.command({action:'return-all'}));console.log(`gallery ${id}: class/finding extraction and return passed`);}
  await guest.locator('[data-workspace="usage"]').click();assert.equal(await guest.locator('iframe').count(),0);await guest.locator('[data-workspace="immersion"]').click();await ready(guest);
  assert.deepEqual(errors,[]);console.log('real host/guest integration: 0 console errors');
-}catch(e){throw new Error(e.message.replaceAll(hostKey,'[redacted]'));}finally{await b.close();}
+}catch(e){console.error((e.stack??e.message).replaceAll(hostKey,'[redacted]'));throw new Error('Immersion integration failed; see redacted diagnostic above.');}finally{await b.close();}
 // Safari engine smoke: renderer, editor and input sizing work on an iPhone viewport.
 const w=await webkit.launch();try{const p=await w.newPage({viewport:{width:390,height:844},hasTouch:true});watch(p);await p.goto(base+'/ui/dev/immersion.html?extract=1');await ready(p);const f=frame(p);await p.locator('.immersion-name').fill('Safari annotation');assert.equal(await f.evaluate(()=>__immersion.records.get('class:620').name),'Safari annotation');assert.equal(await p.evaluate(()=>visualViewport.scale),1);assert.equal(await p.locator('.immersion-name').evaluate(e=>getComputedStyle(e).fontSize),'16px');assert.deepEqual(errors,[]);console.log('WebKit phone: 3D, annotation editor, 16 px inputs and no page zoom pass; 0 console errors');}finally{await w.close();}

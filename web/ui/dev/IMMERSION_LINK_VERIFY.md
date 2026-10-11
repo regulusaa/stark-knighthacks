@@ -31,7 +31,7 @@ Reset returns the original answer and scores on every image. A real pointer drag
 - `node web/ui/dev/inspection.verify.mjs http://localhost:3004`: existing component selection, double-tap separation, host modes, orbit/pinch/recovery and viewer permissions preserved.
 - `node web/ui/dev/immersion-linked.shots.mjs`: real-room `npm run shot` at 390×844, 1180×820 and 2560×1440 in .shots; inspected. Additional original/flipped Steer and linked feature-control screenshots inspected.
 
-Physical iPhone/iPad confirmation of this update remains pending.
+Vultr deployment health and HTTPS checks passed; controller.js, immersion/workspace.js and steer/panel.js return HTTP 200 with the updated code. The complete public integration suite did not pass: Vultr forces all displays into RENEW, so the suite could not isolate its display from the active demo. The suite now refuses fixed-room servers before opening a browser. Full linked-control verification ran on the local real server. Physical iPhone/iPad confirmation of this update remains pending.
 
 ## REQUEST-FOR-CLAUDE — send now
 
