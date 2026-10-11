@@ -8,7 +8,8 @@ import { retireLater } from './scene.js';
 export const TIPS = {
   radiusBase: 0.08,
   radiusScale: 0.12,          // radius = base + scale · sqrt(score)
-  colorFloor: 0.25,           // colour = inferno(floor + (1 - floor) · sqrt(score)): faint tips stay visible
+  colorFloor: 0.25,           // colour = inferno(floor + (ceil - floor) · sqrt(score)): faint tips stay visible …
+  colorCeil: 0.86,            // … and confident ones are gold, like their tracts (brainMesh.js VEINS.colorCeil)
   otherRadius: 0.07,
   otherColor: 0x5d5763,
   haloColor: 0xfff1d0,
@@ -20,11 +21,13 @@ export const TIPS = {
   hoverScale: 1.2,
   dimLevel: 0.25,             // tip brightness before the reveal
   hiddenOpacity: 0.5,         // twins seen through tissue
+  twinOrder: 12,              // after the tissue (brainTissue.js), against its depth
+  haloOrder: 13,              // after the tissue: a halo writes no depth, so tissue behind it must not paint over it
   springOmega: 23,            // Steer: scores spring to their new values (critically damped, ~250 ms)
 };
 
 const tipRadius = (score) => TIPS.radiusBase + TIPS.radiusScale * Math.sqrt(Math.max(0, Math.min(1, score)));
-const tipColor = (score, out) => out.copy(inferno(TIPS.colorFloor + (1 - TIPS.colorFloor) * Math.sqrt(Math.max(0, Math.min(1, score)))));
+const tipColor = (score, out) => out.copy(inferno(TIPS.colorFloor + (TIPS.colorCeil - TIPS.colorFloor) * Math.sqrt(Math.max(0, Math.min(1, score)))));
 
 const sphereGeo = new THREE.SphereGeometry(1, 24, 16);
 const pickGeo = new THREE.SphereGeometry(TIPS.pickRadius, 12, 8);
@@ -41,7 +44,7 @@ export function createTips() {
   ring.visible = false;
   ring.renderOrder = 5;
   const ringHidden = new THREE.Mesh(ringGeo, throughTissue(TIPS.ringColor));
-  ringHidden.renderOrder = 5;
+  ringHidden.renderOrder = TIPS.twinOrder;
   ring.add(ringHidden);
   group.add(ring);
 
@@ -95,14 +98,14 @@ export function createTips() {
         const isOther = Boolean(n.isOther);
         const score = Math.max(0, n.value ?? 0);
         const radius = isOther ? TIPS.otherRadius : TIPS.radiusBase + TIPS.radiusScale * Math.sqrt(score);
-        const color = isOther ? new THREE.Color(TIPS.otherColor) : inferno(TIPS.colorFloor + (1 - TIPS.colorFloor) * Math.sqrt(score));
+        const color = isOther ? new THREE.Color(TIPS.otherColor) : inferno(TIPS.colorFloor + (TIPS.colorCeil - TIPS.colorFloor) * Math.sqrt(score));
         const mesh = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({ color: color.clone() }));
         mesh.position.set(v.pos[0], v.pos[1], v.pos[2]);
         mesh.scale.setScalar(radius);
         mesh.renderOrder = 3;
         group.add(mesh);
         const twin = new THREE.Mesh(sphereGeo, throughTissue(color));
-        twin.renderOrder = 3;
+        twin.renderOrder = TIPS.twinOrder;
         mesh.add(twin);                  // follows the tip's position and hover scale
         const t = { classId: n.classId, node: n, mesh, twin, halo: null, pick: null, radius, color, isOther,
           hasHeatmap: !isOther && heat.get(n.classId) === true, score, target: score, vel: 0, pos: mesh.position,
@@ -113,7 +116,7 @@ export function createTips() {
           }));
           t.halo.position.copy(mesh.position);
           t.halo.scale.setScalar(radius);
-          t.halo.renderOrder = 4;
+          t.halo.renderOrder = TIPS.haloOrder;
           group.add(t.halo);
         }
         if (!isOther) {

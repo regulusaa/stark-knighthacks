@@ -1,10 +1,12 @@
 // Mouse picking for Brain tips: hover enlarges, a click (not a drag) focuses, a click on empty space clears.
-// Tips hidden behind tissue are skipped (`isHidden`), so you can't click through the brain.
+// Tips hidden behind tissue are skipped (`isHidden`), so you can't click through the brain. A click that misses
+// every tip may still land on a fibre tract (`pickTrack`, seen through the translucent tissue): it selects that
+// tract's leaf. Decorative fibres are never pickable.
 import * as THREE from 'three';
 
 const CLICK_PX = 5;
 
-export function attachPicking(canvas, camera, tips, { onTip, onEmpty, isHidden = () => false }) {
+export function attachPicking(canvas, camera, tips, { onTip, onEmpty, isHidden = () => false, pickTrack = () => null }) {
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const hits = [];
@@ -32,8 +34,11 @@ export function attachPicking(canvas, camera, tips, { onTip, onEmpty, isHidden =
     down = null;
     if (!d || Math.hypot(e.clientX - d.x, e.clientY - d.y) > CLICK_PX) return;
     const id = pick(e);
-    if (id === null) onEmpty();
-    else onTip(id);
+    if (id !== null) { onTip(id); return; }
+    const r = canvas.getBoundingClientRect();
+    const track = pickTrack(e.clientX - r.left, e.clientY - r.top, r.width, r.height);
+    if (track !== null) onTip(track);
+    else onEmpty();
   });
   canvas.addEventListener('pointerleave', () => { tips.hover(null); canvas.style.cursor = ''; });
 }

@@ -130,18 +130,12 @@ export async function connectRelay(api, { onStatus = () => {}, steer = null } = 
     if (skipToEnd) api.jumpToEnd(); else api.replay();
   });
   // Steer: the session drops stale seqs, coalesces to one apply per frame, and answers with steer-result
-  on(EVENTS.STEER_UPDATE, (p) => steer?.update(p));
+  // (v3) ignored unless Steer is available right now (contract 5: not in stability/trunk mode)
+  on(EVENTS.STEER_UPDATE, (p) => { if (api.state?.capabilities.steer) steer?.update(p); });
   on(EVENTS.STEER_RESET, () => steer?.reset());
   steer?.on('result', (state) => send(EVENTS.STEER_RESULT, state));
-  on(EVENTS.SET_MODE, ({ mode, layerMode }) => {
-    // a mode whose capability is false is ignored (the relay can't know; the HUD hides it anyway)
-    const caps = api.state?.capabilities ?? {};
-    const modeOk = mode === undefined || mode === 'normal' || (mode === 'stability' && caps.stability)
-      || (mode === 'trunk' && caps.trunkInterior);
-    const layerOk = layerMode === undefined || caps.layerModes;
-    if (!modeOk && !layerOk) return;
-    api.setMode({ mode: modeOk ? mode : undefined, layerMode: layerOk ? layerMode : undefined });
-  });
+  // (v3) {mode?, layerMode?, noiseView?, bloom?}: api.setMode drops whatever its capability doesn't allow
+  on(EVENTS.SET_MODE, ({ mode, layerMode, noiseView, bloom }) => api.setMode({ mode, layerMode, noiseView, bloom }));
 
   return { socket, net, sent, get room() { return net.room; } };
 }

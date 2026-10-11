@@ -84,7 +84,7 @@ export function createLabels({ isHidden = () => false } = {}) {
         const below = t.pos.clone();
         below.y -= t.radius + LABELS.lift * 0.4;
         sprite.position.copy(above);
-        sprite.renderOrder = 10;
+        sprite.renderOrder = 30;   // over everything, the translucent tissue included
         sprite.visible = false;
         group.add(sprite);
         labels.push({ classId: t.classId, sprite, aspect, tip: t, above, below, flipped: false, text, isTop1, isTrue,

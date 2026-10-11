@@ -132,6 +132,14 @@ async function main() {
     await expectError(host, ERROR_CODES.BAD_PAYLOAD, () => host.emit(EVENTS.SELECT_IMAGE, { imageId: 'nope' }), EVENTS.SELECT_IMAGE);
     await expectError(host, ERROR_CODES.BAD_PAYLOAD, () => host.emit(EVENTS.FOCUS_TIP, { classId: 1 }), EVENTS.FOCUS_TIP);
     await expectError(host, ERROR_CODES.BAD_PAYLOAD, () => host.emit(EVENTS.FOCUS_TIP, { classId: '207' }), EVENTS.FOCUS_TIP);
+    // (v3) set-mode: noiseView needs its capability (the fixture has none), off and bloom always pass
+    await expectError(host, ERROR_CODES.BAD_PAYLOAD, () => host.emit(EVENTS.SET_MODE, { noiseView: true }), EVENTS.SET_MODE);
+    await expectError(host, ERROR_CODES.BAD_PAYLOAD, () => host.emit(EVENTS.SET_MODE, { bloom: 'yes' }), EVENTS.SET_MODE);
+    await expectError(host, ERROR_CODES.BAD_PAYLOAD, () => host.emit(EVENTS.SET_MODE, {}), EVENTS.SET_MODE);
+    display.mark();
+    host.emit(EVENTS.SET_MODE, { bloom: false, noiseView: false, junk: 1 });
+    const sm = await display.waitFor(EVENTS.SET_MODE);
+    ok(sm.bloom === false && sm.noiseView === false && !('junk' in sm) && !('mode' in sm), 'set-mode {bloom, noiseView} relayed (v3)');
     display.mark();
     host.emit(EVENTS.FOCUS_TIP, { classId: fixture.answers[1].classId });
     ok((await display.waitFor(EVENTS.FOCUS_TIP)).classId === fixture.answers[1].classId, 'host focus-tip relayed');

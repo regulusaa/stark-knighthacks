@@ -1,0 +1,106 @@
+{
+  "room": "7KQ2M",
+  "image": {
+    "id": "adv_retriever",
+    "name": "Golden retriever (adversarial)",
+    "category": "adversarial",
+    "adversarial": {
+      "epsilon255": 2,
+      "maxPixelChange": 2,
+      "cleanTop1": {
+        "classId": 207,
+        "label": "golden retriever",
+        "score": 0.97,
+        "rank": 1,
+        "hasHeatmap": true,
+        "heatmapSource": "precomputed",
+        "isTop1": true,
+        "isTrueClass": true
+      },
+      "pairedImageId": "clean_retriever"
+    }
+  },
+  "scoreKind": "softmax",
+  "top1": {
+    "classId": 208,
+    "label": "Labrador retriever",
+    "score": 0.21,
+    "rank": 1,
+    "hasHeatmap": true,
+    "heatmapSource": "precomputed",
+    "isTop1": true,
+    "isTrueClass": false
+  },
+  "trueClass": {
+    "classId": 207,
+    "label": "golden retriever",
+    "score": 0.11,
+    "rank": 2,
+    "hasHeatmap": true,
+    "heatmapSource": "precomputed",
+    "isTop1": false,
+    "isTrueClass": true
+  },
+  "mode": "normal",
+  "layerMode": "full",
+  "playback": {
+    "state": "done",
+    "speed": 1.0
+  },
+  "focus": null,
+  "driver": {
+    "id": "c_3f9a",
+    "label": "Guest 2",
+    "isHost": false
+  },
+  "controllerCount": 3,
+  "capabilities": {
+    "stability": false,
+    "trunkInterior": false,
+    "layerModes": true,
+    "bloom": true,
+    "steer": true,
+    "noiseView": true
+  },
+  "answers": [
+    {
+      "classId": 208,
+      "label": "Labrador retriever",
+      "score": 0.21,
+      "rank": 1,
+      "hasHeatmap": true,
+      "heatmapSource": "precomputed",
+      "isTop1": true,
+      "isTrueClass": false
+    },
+    {
+      "classId": 207,
+      "label": "golden retriever",
+      "score": 0.11,
+      "rank": 2,
+      "hasHeatmap": true,
+      "heatmapSource": "precomputed",
+      "isTop1": false,
+      "isTrueClass": true
+    },
+    {
+      "classId": 222,
+      "label": "kuvasz",
+      "score": 0.06,
+      "rank": 3,
+      "hasHeatmap": true,
+      "heatmapSource": "precomputed",
+      "isTop1": false,
+      "isTrueClass": false
+    }
+  ],
+  "noiseView": true,
+  "bloom": true,
+  "stability": null,
+  "steerMoment": null,
+  "steer": {
+    "active": false,
+    "changedCount": 0,
+    "top1Changed": false
+  }
+}

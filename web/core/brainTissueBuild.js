@@ -25,7 +25,7 @@ export const FOLDS = {
   cerebellumTint: [1.0, 0.78, 0.82],
   stemTint: [0.96, 0.84, 0.9],
   callosumTint: [0.16, 0.12, 0.16],   // seen only down the fissure: keep it in shadow
-  stem: { rings: 90, sides: 40 },
+  stem: { rings: 150, sides: 40 },
 };
 
 // ---------------------------------------------------------------------------------------------------- noise

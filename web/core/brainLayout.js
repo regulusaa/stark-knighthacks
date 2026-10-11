@@ -13,11 +13,18 @@
 //  3. Depth maps to radius: the root at the core (the thalamus, where the brainstem enters), shallow categories near
 //     it, leaves on the cortex. An internal node points at the score-weighted mean direction of its leaves, so the
 //     inner veins lean toward where the model's confidence went and the chosen path runs cleanly out to its tip
-//     (the tips themselves keep their fixed, score-independent places).
-//  4. Edges: the stem climbs the brainstem from the trunk top to the core. Inner edges are Catmull-Rom control points
-//     bowed slightly outward. A leaf's edge rises to the cortex and then drapes over it to the tip, like the nerves
-//     on Ray's reference, so most of every path (and all of the chosen one's last stretch) is out in the open.
-import { CORE, STEM_AXIS, surfacePoint, occluded } from './brainShape.js';
+//     (the tips themselves keep their fixed, score-independent places). That mean direction shifts level by level as
+//     the leaf set narrows, so inner nodes are then relaxed toward the line from their parent to their heaviest
+//     child, at their own depth: the confident path sweeps out instead of zigzagging.
+//  4. Edges are fibre tracts through the brain's volume. The stem climbs the brainstem from the trunk top and bends
+//     into the core over the brainstem's upper half.
+//     Every other edge is a cubic Bézier between its nodes whose handles follow per-node tangents (a node heads from
+//     its parent toward the score-weighted centre of its children, bent a little outward; the root's leans up the
+//     brainstem; a tip's is its cortex normal), so a whole path is smooth through every branch point, the stem's
+//     own last stretch included: tracts flow out of the stem, fan out like the corona radiata and arrive square to
+//     the cortex under their tips. Samples that would leave the cortex early are pulled
+//     back inside it; only a leaf's last stretch crosses it, to reach the tip.
+import { CORE, STEM_AXIS, surfacePoint, occluded, capSdf, gradient } from './brainShape.js';
 
 export const BRAIN = {
   core: CORE,
@@ -26,15 +33,24 @@ export const BRAIN = {
   innerFrac: 0.86,        // internal nodes: × envelope distance × depth / maxDepth
   frontHalfDeg: 32,       // no tips within this azimuth of straight ahead (−x): the frontal pole faces the panel
   minY: -0.3,             // no tips on directions pointing further down than this
+  fanElevationsDeg: [24, 44],  // a fan's two staggered arcs (medical): elevation above the horizontal, from the core
+  fanAzimuthDeg: [128, 12],    // … swept over this azimuth range (180 = straight ahead): the part facing the camera
   farFlankZ: -0.5,        // no tips on directions pointing further toward −z (the hidden right flank)
   midline: 0.42,          // no tips closer than this to the midline (they would sit in the fissure)
   minNormalY: -0.35,      // no tips on cortex facing further down than this (the underside is hidden)
-  viewFrom: [6.51, 14.95, 10.44],   // the default camera (cameraRig.js RIG.defaultPosition; the test checks they match)
-  bow: 0.09,              // outward bow of each inner edge, × edge length
+  viewFrom: [6.86, 14.93, 12.5],     // the default camera (cameraRig.js RIG.defaultPosition; the test checks they match)
   leafWeightFloor: 0.03,  // every leaf pulls its ancestors' direction by (this + its score)
-  drapeGap: 0.03,         // a draped vein rides this far above the cortex (plus its own radius)
-  veinRadiusBase: 0.02,
-  veinRadiusScale: 0.12,  // vein radius = base + scale · sqrt(value)
+  relax: 0.8,             // inner nodes move this far toward the midpoint of their parent and heaviest child …
+  relaxSweeps: 6,         // … this many times (top-down)
+  handle: 0.38,           // Bézier handle length, × the edge's chord
+  outwardBend: 0.3,       // an inner node's tangent: toward its children's centre, blended this far toward its radial
+  rootLean: 0.7,          // the root's tangent: up the brainstem, blended this far toward its children's centre
+  bow: 0.06,              // deterministic sideways bow of each tract, × chord (siblings must not look machine-made)
+  samples: 18,            // points per tract (brainMesh threads a Catmull-Rom through them)
+  insideMargin: 0.06,     // tracts stay this far (plus their radius) under the smooth cortex cap …
+  leafTail: 0.25,         // … except a leaf's last quarter, which crosses the cortex to its tip
+  veinRadiusBase: 0.035,
+  veinRadiusScale: 0.16,  // vein radius = base + scale · sqrt(value)
 };
 
 /** Vein radius for a branch value (shared with brainMesh.js). */
@@ -46,17 +62,9 @@ const HILBERT_N = 1024;
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 const scale = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
-const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const len = (a) => Math.hypot(a[0], a[1], a[2]);
 const norm = (a) => { const l = len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
-const lerp = (a, b, t) => add(a, scale(sub(b, a), t));
-function slerp(a, b, t) {
-  const c = Math.max(-1, Math.min(1, dot(a, b)));
-  const th = Math.acos(c);
-  if (th < 1e-4) return a.slice();
-  const s = Math.sin(th);
-  return add(scale(a, Math.sin((1 - t) * th) / s), scale(b, Math.sin(t * th) / s));
-}
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 
 /** Azimuth (radians, 0..2π) of a direction in the x-z plane, measured from +x toward +z. */
 const azimuthOf = (x, z) => (Math.atan2(z, x) + 2 * Math.PI) % (2 * Math.PI);
@@ -128,6 +136,39 @@ export function tipSites(n, cfg = BRAIN) {
   return pts;
 }
 
+/**
+ * Exactly n tip sites for a fan, in order along a sweep over the visible upper hemisphere: from the front of the crown
+ * (left on screen) back toward the occiput. Consecutive sites alternate between two arcs (cfg.fanElevationsDeg), so
+ * neighbours in score order never crowd each other; each arc is spaced evenly by arc length.
+ */
+export function fanSites(n, cfg = BRAIN) {
+  if (n <= 0) return [];
+  const arc = (deg) => {
+    const el = (deg * Math.PI) / 180;
+    const valid = [];
+    const [a0, a1] = cfg.fanAzimuthDeg.map((d) => (d * Math.PI) / 180);
+    for (let i = 0; i <= 720; i++) {
+      const az = a0 + (i / 720) * (a1 - a0);         // front (−x) over the +z flank toward the back (+x)
+      const s = tipSite([Math.cos(az) * Math.cos(el), Math.sin(el), Math.sin(az) * Math.cos(el)], cfg);
+      if (s) valid.push({ dir: [Math.cos(az) * Math.cos(el), Math.sin(el), Math.sin(az) * Math.cos(el)], ...s });
+    }
+    const at = [0];
+    for (let i = 1; i < valid.length; i++) at.push(at[i - 1] + len(sub(valid[i].pos, valid[i - 1].pos)));
+    return { valid, at };
+  };
+  const rows = cfg.fanElevationsDeg.map(arc);
+  if (rows.some((r) => r.valid.length < n)) return tipSites(n, cfg);   // never fewer tips than findings
+  const out = [];
+  for (let k = 0; k < n; k++) {
+    const { valid, at } = rows[k % rows.length];
+    const want = n === 1 ? at[at.length - 1] / 2 : (k / (n - 1)) * at[at.length - 1];
+    let j = 0;
+    while (j < valid.length - 1 && at[j] < want) j++;
+    out.push(valid[j]);
+  }
+  return out;
+}
+
 /** Small deterministic hash of a string → 0..1, for per-edge variation that never changes between runs. */
 function hash01(s) {
   let h = 2166136261;
@@ -161,8 +202,11 @@ export function layoutBrain(tree, cfg = BRAIN) {
     [...n.children].sort((a, b) => minClass.get(a) - minClass.get(b) || (a < b ? -1 : 1)).forEach((c) => order(byId.get(c)));
   };
   order(root);
+  // a fan (medical: independent per-finding scores) is laid out by score, highest first, along one arc (fanSites)
+  const fan = tree.kind === 'fan';
+  if (fan) leaves.sort((a, b) => (b.value ?? 0) - (a.value ?? 0) || a.classId - b.classId);
   const maxDepth = Math.max(1, ...tree.nodes.map((n) => n.depth));
-  const sites = tipSites(leaves.length, cfg);
+  const sites = fan ? fanSites(leaves.length, cfg) : tipSites(leaves.length, cfg);
   const C = cfg.core;
 
   const out = new Map();
@@ -192,13 +236,44 @@ export function layoutBrain(tree, cfg = BRAIN) {
     const radius = n.id === root.id ? 0 : env * cfg.innerFrac * (n.depth / maxDepth);
     out.set(n.id, { id: n.id, dir, pos: add(C, scale(dir, radius)), radius, envelope: env, depth: n.depth, isLeaf: false, node: n });
   }
+  // relax inner nodes toward the line from their parent to their heaviest child (keeping their depth), so a path's
+  // nodes don't zigzag as the leaf set narrows level by level: the confident path runs as one smooth sweep
+  const subtreeWeight = new Map();
+  for (const [id, ls] of leafIds) subtreeWeight.set(id, ls.reduce((a, l) => a + cfg.leafWeightFloor + Math.max(0, byId.get(l).value ?? 0), 0));
+  const parentOf = new Map();
+  for (const n of tree.nodes) for (const c of n.children ?? []) parentOf.set(c, n.id);
+  const inner = tree.nodes.filter((n) => !n.isLeaf && n.id !== root.id).sort((a, b) => a.depth - b.depth);
+  for (let sweep = 0; sweep < cfg.relaxSweeps; sweep++) {
+    for (const n of inner) {
+      const o = out.get(n.id);
+      const heavy = n.children.reduce((a, c) => (subtreeWeight.get(c) > subtreeWeight.get(a) ? c : a));
+      const mid = scale(add(out.get(parentOf.get(n.id)).pos, out.get(heavy).pos), 0.5);
+      o.dir = norm(sub(add(o.pos, scale(sub(mid, o.pos), cfg.relax)), C));
+      o.pos = add(C, scale(o.dir, o.radius));
+    }
+  }
 
   // edges, with cumulative distance from the trunk top for travelling light
   const edges = [];
   const startDist = new Map();
   const rootPos = out.get(root.id).pos;
-  // the stem climbs the brainstem: trunk top, up the centreline (bottom to top), into the core
-  const stemPts = [cfg.trunkTop, ...STEM_AXIS.slice(0, -1).reverse().filter((p) => p[1] > cfg.trunkTop[1] + 0.3), rootPos];
+  // per-node tangents (direction of travel away from the stem): from the parent toward the weighted centre of the
+  // children, so paths bend through nodes rather than at them
+  const weight = (id) => cfg.leafWeightFloor + Math.max(0, byId.get(id).value ?? 0);
+  const towardChildren = (n, from) => {
+    let c = [0, 0, 0], wsum = 0;
+    for (const cid of n.children) { const w = weight(cid); c = add(c, scale(out.get(cid).pos, w)); wsum += w; }
+    return norm(sub(scale(c, 1 / wsum), from));
+  };
+  const axisUp = norm(sub(STEM_AXIS[0], STEM_AXIS[1]));
+  const tangent = new Map([[root.id, norm(add(scale(axisUp, 1 - cfg.rootLean), scale(towardChildren(root, rootPos), cfg.rootLean)))]]);
+
+  // the stem climbs the brainstem: trunk top, up the centreline, then bends from the lowest axis point above the
+  // trunk top into the core along the root's tangent (a long, gentle bend), so the tracts carry on out of it
+  const axis = STEM_AXIS.slice(1, -1).reverse().filter((p) => p[1] > cfg.trunkTop[1] + 0.3);
+  const bendFrom = axis[0] ?? cfg.trunkTop;
+  const stemPts = [cfg.trunkTop,
+    ...tract(bendFrom, norm(sub(bendFrom, cfg.trunkTop)), rootPos, tangent.get(root.id), { id: 'stem', value: root.value ?? 1 }, { ...cfg, bow: 0, samples: 16 }, false)];
   const stemLen = arcLength(stemPts);
   edges.push({
     id: 'stem', from: null, to: root.id, isStem: true, points: stemPts,
@@ -210,18 +285,9 @@ export function layoutBrain(tree, cfg = BRAIN) {
       const c = byId.get(cid);
       const P = out.get(n.id);
       const Q = out.get(c.id);
-      let points;
-      if (c.isLeaf) points = drape(P, Q, c.value ?? 0, cfg);
-      else {
-        const L = len(sub(Q.pos, P.pos));
-        const mid = lerp(P.pos, Q.pos, 0.5);
-        const outward = norm(sub(mid, C));
-        // a little sideways twist per edge (deterministic) so siblings don't look machine-straight
-        const side = norm([outward[2], 0, -outward[0]]);
-        const twist = (hash01(c.id) - 0.5) * 0.5;
-        const bow = add(scale(outward, cfg.bow * L), scale(side, twist * cfg.bow * L));
-        points = [P.pos, add(lerp(P.pos, Q.pos, 1 / 3), scale(bow, 0.9)), add(lerp(P.pos, Q.pos, 2 / 3), scale(bow, 0.6)), Q.pos];
-      }
+      tangent.set(c.id, c.isLeaf ? Q.normal
+        : norm(add(scale(towardChildren(c, P.pos), 1 - cfg.outwardBend), scale(Q.dir, cfg.outwardBend))));
+      const points = tract(P.pos, tangent.get(n.id), Q.pos, tangent.get(c.id), c, cfg);
       const arc = arcLength(points);
       edges.push({
         id: `${n.id}>${c.id}`, from: n.id, to: c.id, isStem: false, points,
@@ -242,30 +308,35 @@ export function layoutBrain(tree, cfg = BRAIN) {
 }
 
 /**
- * A leaf's vein: from its parent (inside the brain) up to the cortex, then over the cortex to the tip.
- * The surface stretch follows the envelope at a fixed height above it, so it rides over the folds.
+ * One fibre tract from P (leaving along tangent tP) to Q (arriving along tQ): a cubic Bézier plus a sideways bow,
+ * sampled to cfg.samples points and kept under the cortex (but for a leaf's last stretch).
  */
-function drape(P, Q, value, cfg) {
-  const C = cfg.core;
-  const a = P.dir, b = Q.dir;
-  const angle = Math.acos(Math.max(-1, Math.min(1, dot(a, b))));
-  const ride = veinRadius(value) + cfg.drapeGap;
-  const onSurface = (d) => {
-    const s = surfacePoint(d, C);
-    return s ? add(s.pos, scale(s.normal, ride)) : add(C, scale(d, Q.envelope + ride));
-  };
-  if (angle < 0.12) {
-    // parent straight below the tip: rise directly
-    return [P.pos, lerp(P.pos, Q.pos, 0.5), onSurface(slerp(a, b, 0.9)), Q.pos];
+function tract(P, tP, Q, tQ, node, cfg, keepInside = true) {
+  const L = len(sub(Q, P));
+  const h = cfg.handle * L;
+  const chord = norm(sub(Q, P));
+  let side = cross(chord, tP);
+  if (len(side) < 1e-3) side = cross(chord, [0, 1, 0]);
+  side = norm(side);
+  const bow = scale(side, (hash01(node.id) - 0.5) * 2 * cfg.bow * L);
+  const c1 = add(P, scale(tP, h));
+  const c2 = sub(Q, scale(tQ, h));
+  const r = veinRadius(node.value ?? 0);
+  const pts = [];
+  for (let i = 0; i < cfg.samples; i++) {
+    const t = i / (cfg.samples - 1);
+    const u = 1 - t;
+    let p = add(add(scale(P, u * u * u), scale(c1, 3 * u * u * t)), add(scale(c2, 3 * u * t * t), scale(Q, t * t * t)));
+    p = add(p, scale(bow, Math.sin(Math.PI * t) ** 2));   // a bump with zero slope at both ends: no kink at the nodes
+    if (keepInside && i > 0 && i < cfg.samples - 1 && !(node.isLeaf && t > 1 - cfg.leafTail)) {
+      // pulled back under the cortex cap (the cap has no fissure: a tract may cross the midline between hemispheres)
+      for (let k = 0; k < 4; k++) {
+        const over = capSdf(p[0], p[1], p[2]) + r + cfg.insideMargin;
+        if (over <= 0) break;
+        p = sub(p, scale(gradient(capSdf, p), over));
+      }
+    }
+    pts.push(p);
   }
-  // emerge a quarter of the way across, then ride the surface; more control points for longer drapes
-  const steps = Math.max(2, Math.min(6, Math.round(angle / 0.18)));
-  const pts = [P.pos];
-  const emergeDir = slerp(a, b, 0.2);
-  const e = surfacePoint(emergeDir, C);
-  const under = e ? sub(e.pos, scale(e.normal, 0.25)) : add(C, scale(emergeDir, Q.envelope * 0.9));
-  pts.push(lerp(P.pos, under, 0.6), under);
-  for (let k = 1; k <= steps; k++) pts.push(onSurface(slerp(a, b, 0.2 + (0.8 * k) / (steps + 1))));
-  pts.push(Q.pos);
   return pts;
 }

@@ -1,8 +1,18 @@
-// The Brain's tissue (decoration, identical for every image): folded hemispheres, cerebellum, brainstem.
+// The Brain's tissue (decoration, identical for every image): folded hemispheres, cerebellum, brainstem and cord.
 // The geometry is built once, in a Web Worker (brainTissueBuild.js); this module turns it into one mesh with one
 // soft-lit plum material, and adds a glow under the cortex along the top-1 path (and the focused path).
+// The tissue is translucent so the fibre tracts inside show: see-through where it faces the camera, nearly opaque at
+// the silhouette (so the folded shape still reads), fading out at the bottom of the spinal cord.
+// Depth ordering is fixed rather than sorted, so it holds from every orbit angle:
+//   opaque pass       tracts, tips, decorative fibres, the photo (depth written)
+//   order < 10        the trunk's glow (additive, inside the cord)
+//   order 10          a depth-only pass of the tissue: only its nearest surface is blended next, so the folds never
+//                     sort against each other
+//   order 11          the tissue's colour, blended over everything behind it
+//   order 12+         twins of the chosen path and tips where tissue is in front, halos, the photo's frame, labels
 import * as THREE from 'three';
 import { INFERNO_GLSL, infernoTexture } from './inferno.js';
+import { ANATOMY, STEM_BOTTOM_Y } from './brainShape.js';
 
 export const TISSUE = {
   color: 0x74345f,           // dark plum crowns (sRGB); sulci are darkened by the baked cavity colours
@@ -14,6 +24,10 @@ export const TISSUE = {
   clearcoatRoughness: 0.5,
   glowRadius: 0.55,          // under-cortex path glow falloff (world units)
   glowStrength: 0.9,
+  alphaFace: 0.4,            // opacity where the surface faces the camera …
+  alphaEdge: 0.92,           // … and at the silhouette
+  alphaPower: 1.5,
+  order: 10,                 // renderOrder of the depth pass (the colour pass is order + 1)
 };
 
 /** Tissue geometry from the worker (or built here if workers are unavailable). */
@@ -49,6 +63,7 @@ export async function createTissue() {
     color: TISSUE.color, vertexColors: true, roughness: TISSUE.roughness, metalness: 0,
     sheen: TISSUE.sheen, sheenColor: TISSUE.sheenColor, sheenRoughness: TISSUE.sheenRoughness,
     clearcoat: TISSUE.clearcoat, clearcoatRoughness: TISSUE.clearcoatRoughness,
+    transparent: true, depthWrite: false, depthFunc: THREE.LessEqualDepth,
   });
   const glow = {
     uInferno: { value: infernoTexture },
@@ -60,6 +75,9 @@ export async function createTissue() {
     uTime: { value: 0 },
     uGlowRadius: { value: TISSUE.glowRadius },
     uGlowStrength: { value: TISSUE.glowStrength },
+    uAlpha: { value: new THREE.Vector3(TISSUE.alphaFace, TISSUE.alphaEdge, TISSUE.alphaPower) },
+    uFadeY: { value: new THREE.Vector2(STEM_BOTTOM_Y, STEM_BOTTOM_Y + ANATOMY.stemFade) },
+    uDimK: { value: 1 },   // the trunk interior dims the Brain
   };
   // The glow is evaluated per vertex (the mesh is dense enough for a 0.55-wide falloff) and interpolated:
   // per fragment, the path-distance loops cost the M1 a third of its frame time at 1440p.
@@ -75,6 +93,7 @@ uniform float uGlow;
 uniform float uGlowRadius;
 varying float vGlow;
 varying float vFocusGlow;
+varying float vTissueY;
 float segDist(vec3 p, vec3 a, vec3 b) {
   vec3 ab = b - a;
   float t = clamp(dot(p - a, ab) / max(dot(ab, ab), 1e-6), 0.0, 1.0);
@@ -89,6 +108,7 @@ float pathDist(vec3 p, vec3 pts[${MAX_PATH}], int n) {
   return d;
 }`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
+vTissueY = position.y;
 vGlow = 0.0;
 vFocusGlow = 0.0;
 if (uGlow > 0.0) {
@@ -102,16 +122,31 @@ if (uGlow > 0.0) {
 uniform float uGlow;
 uniform float uTime;
 uniform float uGlowStrength;
+uniform vec3 uAlpha;
+uniform vec2 uFadeY;
+uniform float uDimK;
 varying float vGlow;
 varying float vFocusGlow;
+varying float vTissueY;
 ${INFERNO_GLSL}`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
 // light from the selected vein scattering up through the cortex above it
 totalEmissiveRadiance += (inferno(0.82) * vGlow * (0.85 + 0.15 * sin(uTime * 2.2)) + inferno(0.7) * vFocusGlow * 0.8)
-  * uGlow * uGlowStrength;`);
+  * uGlow * uGlowStrength;`)
+      .replace('#include <opaque_fragment>', `// translucent: see-through facing the camera, nearly opaque at the silhouette; where the path glows the
+// tissue keeps its glow; the cord fades out at its bottom
+float tFacing = abs(dot(normalize(normal), normalize(vViewPosition)));
+float tAlpha = mix(uAlpha.x, uAlpha.y, pow(1.0 - tFacing, uAlpha.z));
+tAlpha = max(tAlpha, min(1.0, (vGlow * 0.85 + vFocusGlow * 0.6) * uGlow));
+diffuseColor.a = tAlpha * smoothstep(uFadeY.x, uFadeY.y, vTissueY) * uDimK;
+#include <opaque_fragment>`);
   };
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.renderOrder = 0;
+  mesh.renderOrder = TISSUE.order + 1;
+  // depth only, just before the colour pass (transparent, so it runs after every opaque object)
+  const depthPass = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ colorWrite: false, transparent: true, fog: false }));
+  depthPass.renderOrder = TISSUE.order;
+  mesh.add(depthPass);
   console.info(`[stark] brain tissue: ${g.vertices} vertices, built in ${g.ms.toFixed(0)} ms`);
 
   const setPts = (arr, pts) => {
@@ -128,6 +163,8 @@ totalEmissiveRadiance += (inferno(0.82) * vGlow * (0.85 + 0.15 * sin(uTime * 2.2
     setFocusPath(pts) { glow.uFocusCount.value = setPts(glow.uFocusPath.value, pts); },
     /** 0..1: the glow follows the strand reveal. */
     setGlow(k) { glow.uGlow.value = k; },
+    /** 0..1: the whole tissue's opacity (the trunk interior dims the Brain). */
+    setDim(k) { glow.uDimK.value = k; },
     update(time) { glow.uTime.value = time; },
   };
 }

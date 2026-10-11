@@ -1,6 +1,6 @@
-# Stark contract v2
+# Stark contract v3
 
-**Status: v2.** v2 is Ray's CONTRACT CHANGE v2, which moves Steer onto the display. Claude Code applied it in CC-6 Part A as a one-time exception to the ownership rule; the v2 changes are marked **(v2)**. It replaces master plan section 9.1 (the live-inference service) and `/pipeline/live`, neither of which will exist. This file is authoritative. `contract.js` mirrors it, and `fixtures/` holds one valid example of every shape. If they ever disagree, this file wins. Fix the other two instead.
+**Status: v3.** v3 is Ray's CONTRACT CHANGE v3 (additions only: modes, noise view, glow, stability playback, the adversarial pair and the Steer moment), applied by Claude Code in CC-8 Part 0 as a one-time exception; its additions are marked **(v3)**. Where v3 named something v1 already had, v1's name is kept: the trunk interior mode stays `"trunk"` (v3 called it `trunkInterior`), and the score kind stays at the top level as `scoreKind` (v3 placed it at `image.scoreKind`). v2 is Ray's CONTRACT CHANGE v2, which moves Steer onto the display. Claude Code applied it in CC-6 Part A as a one-time exception to the ownership rule; the v2 changes are marked **(v2)**. It replaces master plan section 9.1 (the live-inference service) and `/pipeline/live`, neither of which will exist. This file is authoritative. `contract.js` mirrors it, and `fixtures/` holds one valid example of every shape. If they ever disagree, this file wins. Fix the other two instead.
 
 Owner: Ray. Agents read this file but never edit it. A proposed change goes to Ray, and Ray sends it to both agents in the same message.
 
@@ -282,11 +282,12 @@ The single item shape used by the answer list, `focus-state`, `top1`, `trueClass
 ```jsonc
 {
   "room": "7KQ2M",                          // server-authoritative
-  "image": { "id": "clean_retriever", "name": "Golden retriever", "category": "clean" },
+  "image": { "id": "clean_retriever", "name": "Golden retriever", "category": "clean",
+             "adversarial": null },         // (v3) AdversarialInfo on an adversarial image, else null (3.6)
   "scoreKind": "softmax",                   // PROPOSED ADDITION: softmax | independent (medical)
   "top1": { /* Answer */ },
   "trueClass": { /* Answer */ },            // null if the image has none
-  "mode": "normal",                         // normal | stability | trunk
+  "mode": "normal",                         // normal | stability | trunk (v3 calls trunk "trunkInterior"; the v1 name stays)
   "layerMode": "full",                      // full | reduced
   "playback": { "state": "done", "speed": 1.0 },  // state: idle | playing | done; speed multiplies 1/MS_PER_LAYER
   "focus": { /* Answer */ },                // null when nothing is focused
@@ -296,11 +297,16 @@ The single item shape used by the answer list, `focus-state`, `top1`, `trueClass
     "stability": true,                      // this image has mc.json
     "trunkInterior": true,                  // this image has an atlas and the renderer loaded it
     "layerModes": true,                     // full/reduced switch available
-    "bloom": true,                          // glow is on (the display may turn it off for fps)
+    "bloom": true,                          // glow is on; (v3) false when the display auto-disabled it for fps
+    "noiseView": false,                     // (v3) this image is adversarial and has a noise file
     "steer": true                           // (v2) true only when head.bin and this image's conv5.bin are loaded AND the
                                             // identity check passed (all-ones scales reproduce tree.json's scores)
   },
   "steer": { "active": true, "changedCount": 3, "top1Changed": false },  // (v2) null when Steer is unavailable
+  "noiseView": false,                       // (v3) the panel shows the amplified noise instead of the photo
+  "bloom": true,                            // (v3) glow is on
+  "stability": null,                        // (v3) StabilityState while mode is "stability", else null (3.6)
+  "steerMoment": null,                      // (v3) SteerMoment for 4 s after steering changes the top answer (3.6)
   "answers": [ /* Answer[] */ ]             // top ANSWER_LIST (10) by rank, plus the true class appended if outside them
 }
 ```
@@ -321,7 +327,8 @@ An `Answer`, or `null`. The display emits it after each `focus-tip` / `clear-foc
   "source": "slider",                 // slider | code | null (nothing applied)
   "scales": [ { "channel": 87, "scale": 0 }, { "channel": 1187, "scale": 2 } ],  // only scale ≠ 1, sorted by channel
   "code": "channel[87] = 0\nchannel[1187] = 2",   // canonical program for the current scales (steer-dsl format()); null if none
-  "sets": {                           // 5 channels each, from the UNSTEERED image, so slider rows never reorder
+  "sets": {                           // 5 channels each, from the UNSTEERED image, so slider rows never reorder;
+                                      // (CC-10) top1 leads with steer.json's flip set when its n ≤ 5, then top contributions
     "top1": { "classId": 207, "label": "golden retriever", "channels": [ { "channel": 1187, "contribution": 0.91 } ] },
     "top2": { "classId": 208, "label": "Labrador retriever", "channels": [ { "channel": 640, "contribution": 0.52 } ] }
   },
@@ -361,6 +368,40 @@ The display emits `steer-result` at most `STEER_SEND_HZ` (15) times per second. 
 
 ---
 
+### 3.6 (v3) Modes, the adversarial pair, stability playback and the Steer moment (fixtures: `display-state.stability-playing.json`, `display-state.stability-summary.json`, `display-state.adversarial.json`, `display-state.medical.json`, `display-state.steer-moment.json`)
+
+**Capabilities.** `stability` is true only when the current image has `mc.json`. `trunkInterior` is true only when the image has atlas files AND the trunk interior renderer (CC-9) has shipped. `noiseView` is true only for an adversarial image with a noise file. `bloom` is false when the display has turned glow off for performance; the host can turn it back on. Medical images: `steer` and `stability` are always false.
+
+**Modes.** Entering `stability` clears steering and sets `capabilities.steer` false until the mode returns to `normal`. (Amended in CC-9 at Ray's request: `trunk` keeps steering and Steer stays available there, because the interior's top slab is the layer Steer edits and follows it live.) `play-pulse` while in `stability` replays the stability sequence from run 1. There are no new events.
+
+```jsonc
+// AdversarialInfo: display-state.image.adversarial (from the pair's fgsm.json)
+{
+  "epsilon255": 2,                 // the attack budget, 0–255 units
+  "maxPixelChange": 2,             // the largest change to any pixel, 0–255 units
+  "cleanTop1": { /* Answer */ },   // the source image's top-1 (rank and heatmap fields as on the source image)
+  "pairedImageId": "clean_retriever"
+}
+
+// StabilityState: display-state.stability (null outside stability mode)
+{
+  "active": true,
+  "phase": "playing",              // playing | summary
+  "run": 7,                        // 1-based run being shown (runs in the summary)
+  "runs": 30,
+  "current": { /* Answer */ },     // this run's top-1 (in the summary: the clean top-1). If it is not drawn in the
+                                   // Brain the "other" strand is lit and this still names the real class
+  "matchesClean": false,           // current.classId === cleanTop1.classId
+  "distinctWinners": 2,            // so far (in the summary: over every run)
+  "winners": [ { "classId": 282, "label": "tiger cat", "count": 4 } ],  // so far, by count desc
+  "cleanTop1": { /* Answer */ }
+}
+
+// SteerMoment: display-state.steerMoment. Set by the display when steering changes the top answer (either
+// direction, including back on reset); cleared after 4 s. The HUD shows its "answer changed" banner from it.
+{ "from": { /* Answer */ }, "to": { /* Answer */ }, "at": 1760112000000 }   // at: ms since the epoch
+```
+
 ## 4. Rooms, roles and the driver lock
 
 - **Room codes** are issued by the server: 5 characters from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (A–Z without I and O, digits 2–9). Input is case-insensitive, and the server uppercases it.
@@ -393,8 +434,8 @@ Permission key: **display** = the display socket only; **host** = the host contr
 | `focus-state` | display → server → controllers | `Answer \| null` | display | 20/s |
 | `reset-view` | controller → server → display | `{}` | driver-or-host | 5/s |
 | `select-image` | host → server → display | `{imageId}`, which must be in the manifest | host | 5/s |
-| `play-pulse` | host → server → display | `{speed?, skipToEnd?}`: speed 0.25–4 (default 1), skipToEnd jumps to the finished state | host | 5/s |
-| `set-mode` | host → server → display | `{mode?, layerMode?}`, at least one, each valid only if its capability is true | host | 5/s |
+| `play-pulse` | host → server → display | `{speed?, skipToEnd?}`: speed 0.25–4 (default 1), skipToEnd jumps to the finished state. (v3) In `stability` mode it replays the stability sequence from run 1 | host | 5/s |
+| `set-mode` | host → server → display | `{mode?, layerMode?, noiseView?, bloom?}` (v3 adds the last two), at least one; omitted fields are unchanged. `mode`/`layerMode`/`noiseView: true` are valid only if their capability is true; `noiseView: false` and `bloom` are always valid | host | 5/s |
 | `display-state` | display → server → controllers | `DisplayState` (server fills `room`, `driver`, `controllerCount`) | display | 20/s |
 | `steer-update` | controller → server → display | (v2) `{seq, set:[{channel, scale}], probe?}` or `{seq, code, probe?:null}`. See below. | driver-or-host | 20/s |
 | `steer-reset` | controller → server → display | `{}` | driver-or-host | 2/s |
@@ -462,7 +503,7 @@ Each page sets `window.__starkReady = true` once it is usable. The display sets 
 
 ## 10. Fixtures
 
-`fixtures/` has one small valid example per file type and per runtime state. v2 adds `steer-update.slider.json`, `steer-update.code.json`, `steer-result.{active,flipped,outside-brain,parse-error}.json` (`steer-state.json` is the same as `steer-result.active.json`), `display-state.steer.json` and `answer.live.json`. Labels and WordNet paths are real. **Scores are synthetic and are not model output.** Fixtures with arrays shorter than production sizes (topK, runs) are still valid against the rules above.
+`fixtures/` has one small valid example per file type and per runtime state. v3 adds `display-state.stability-playing.json`, `display-state.stability-summary.json`, `display-state.adversarial.json`, `display-state.medical.json` and `display-state.steer-moment.json`. v2 adds `steer-update.slider.json`, `steer-update.code.json`, `steer-result.{active,flipped,outside-brain,parse-error}.json` (`steer-state.json` is the same as `steer-result.active.json`), `display-state.steer.json` and `answer.live.json`. Labels and WordNet paths are real. **Scores are synthetic and are not model output.** Fixtures with arrays shorter than production sizes (topK, runs) are still valid against the rules above.
 
 ## 11. The Steer language (v2): `/contract/steer-dsl.js`
 

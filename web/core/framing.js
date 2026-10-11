@@ -1,10 +1,11 @@
 // Camera framing for any viewport (pure maths, no Three.js; node can test it).
 // The authored default view (cameraRig.js RIG) is composed for 16:9 and is kept exactly there. Narrower screens keep
 // the same viewing direction (so the Brain's tips, chosen to be visible from it, stay visible) and solve the camera
-// distance and target so the whole Brain and the whole source image fit:
-//   landscape  the image stays front-left of the brain; both are fitted inside the safe area
-//   portrait   the brain fills the width under the HUD; the image moves below it, in front of the brainstem,
-//              scaled to a fixed share of the screen height, and the pair is centred vertically
+// distance and target so the whole Brain (spinal cord included, full length) and the whole source image fit:
+//   landscape  the image stays front-left of the brain, alongside the cord; all are fitted inside the safe area
+//   portrait   the brain fills the width under the HUD with the cord hanging below it; the image moves beside the
+//              cord on the frontal side, under the brain, sized to the room there (up to a share of the height),
+//              and the whole composition is centred vertically
 // Safe area in NDC (x right, y up): the top band is the HUD's; a little room is kept at the other edges.
 
 export const FRAMING = {
@@ -13,8 +14,8 @@ export const FRAMING = {
   portrait: {
     fov: 50,                // degrees (vertical): a tall screen needs a wider lens to keep the brain big
     safe: { x0: -0.9, x1: 0.9, y0: -0.9, y1: 0.68 },  // tips ride a little outside the tissue
-    imageShare: 0.42,       // NDC height (of 2) given to the source image, caption included
-    gap: 0.06,              // NDC between the brain and the image
+    imageShare: 0.42,       // the most NDC height (of 2) given to the source image, caption included
+    gap: 0.06,              // NDC between the brain and the image, and between the image and the cord
     inFront: 0.6,           // world units the image sits in front of the nearest brain point
   },
 };
@@ -81,14 +82,16 @@ export function fitView(points, { back, fov, aspect, safe, start = null }) {
 
 /**
  * The view (and image panel placement) for a viewport.
- * @param brainPoints  world points on the Brain (tissue vertices, subsampled)
+ * @param brainPoints  world points on the Brain (tissue vertices, subsampled), cerebrum and cerebellum
+ * @param stemPoints   world points on the brainstem and spinal cord below the cerebellum
  * @param panel        {size, extentBelow, position}: the authored image panel (its caption hangs extentBelow under it)
  * @param authored     {position, target, fov}: the 16:9 default view
  * @returns {fov, target, radius, back, panel: {position, scale}, kind}
  */
-export function frameFor(aspect, { brainPoints, panel, authored }) {
+export function frameFor(aspect, { brainPoints, stemPoints = [], panel, authored }) {
   const back = norm(sub(authored.position, authored.target));
   const { right, up } = basis(back);
+  const tissue = stemPoints.length ? [...brainPoints, ...stemPoints] : brainPoints;
   const panelCorners = (center, scale) => {
     const hs = (panel.size / 2) * scale;
     const below = (panel.size / 2 + panel.extentBelow) * scale;
@@ -97,7 +100,7 @@ export function frameFor(aspect, { brainPoints, panel, authored }) {
   };
 
   if (aspect >= 1) {
-    const all = [...brainPoints, ...panelCorners(panel.position, 1)];
+    const all = [...tissue, ...panelCorners(panel.position, 1)];
     const radius0 = Math.hypot(...sub(authored.position, authored.target));
     if (aspect >= FRAMING.wideAspect) {
       const n = ndcBounds(all, { target: authored.target, radius: radius0, back, fov: authored.fov, aspect });
@@ -109,28 +112,61 @@ export function frameFor(aspect, { brainPoints, panel, authored }) {
     return { kind: 'landscape', fov: authored.fov, ...v, back, panel: { position: panel.position.slice(), scale: 1 } };
   }
 
-  // portrait: brain across the width, image below it
+  // portrait: brain across the width, the cord below it, the image beside the cord
   const P = FRAMING.portrait;
   const fov = P.fov;
   const tanV = Math.tan((fov * Math.PI) / 360);
   const tanH = tanV * aspect;
   const s = P.safe;
-  // 1. the brain alone, width-limited, to learn its NDC height
-  let v = fitView(brainPoints, { back, fov, aspect, safe: { ...s, y0: -10, y1: s.y1 } });
-  let n = ndcBounds(brainPoints, { ...v, back, fov, aspect });
-  const brainH = Math.min(n.y1 - n.y0, s.y1 - s.y0 - P.imageShare - P.gap);
-  // 2. centre brain + gap + image vertically in the safe area, then fit the brain into its band
-  const total = brainH + P.gap + P.imageShare;
-  const top = (s.y1 + s.y0) / 2 + total / 2;
-  v = fitView(brainPoints, { back, fov, aspect, safe: { x0: s.x0, x1: s.x1, y0: top - brainH, y1: top }, start: v });
-  n = ndcBounds(brainPoints, { ...v, back, fov, aspect });
-  // 3. the image: centred under the brain, just in front of it, sized to imageShare of the height (caption included)
+  const photoAspect = (panel.size + panel.extentBelow) / panel.size;   // NDC height per NDC width is this × aspect
+  const cord = stemPoints.length ? stemPoints : brainPoints;
+  let x0 = s.x0, x1 = s.x1;
+  let v = null;
+  let photo = null;
+  for (let iter = 0; iter < 10; iter++) {
+    // 1. the tissue fills the box's width; where does that leave the brain, the cord and the room beside it?
+    v = fitView(tissue, { back, fov, aspect, safe: { x0, x1, y0: -10, y1: 10 }, start: v });
+    const at = { ...v, back, fov, aspect };
+    const nT = ndcBounds(tissue, at);
+    const nC = ndcBounds(cord, at);
+    // 2. the image, right-aligned against the cord (front side), under the brain over its own span
+    const xR = nC.x0 - P.gap;
+    const w = Math.max(0.05, Math.min(xR - s.x0, P.imageShare / (photoAspect * aspect)));
+    let under = Infinity;
+    const { right: r, up: u } = basis(back);
+    const eye = add(v.target, mul(back, v.radius));
+    for (const p of brainPoints) {
+      const q = sub(p, eye);
+      const depth = -dot(q, back);
+      const x = dot(q, r) / (depth * tanH);
+      if (x >= xR - w && x <= xR) under = Math.min(under, dot(q, u) / (depth * tanV));
+    }
+    if (!Number.isFinite(under)) under = ndcBounds(brainPoints, at).y0;
+    const yTop = under - P.gap;
+    const h = w * photoAspect * aspect;
+    photo = { x0: xR - w, x1: xR, y1: yTop, y0: yTop - h, near: nT.near };
+    // 3. everything must fit the safe height: if not, narrow the box and go again; if so, centre it vertically
+    const top = nT.y1;
+    const bottom = Math.min(nT.y0, photo.y0);
+    const tall = top - bottom;
+    const room = s.y1 - s.y0;
+    if (tall > room + 1e-3) {
+      const k = room / tall;
+      const c = (x0 + x1) / 2, half = ((x1 - x0) / 2) * k;
+      x0 = c - half; x1 = c + half;
+      continue;
+    }
+    const shift = (s.y1 + s.y0) / 2 - (top + bottom) / 2;
+    v = fitView(tissue, { back, fov, aspect, safe: { x0, x1, y0: nT.y0 + shift, y1: nT.y1 + shift }, start: v });
+    photo = { ...photo, y0: photo.y0 + shift, y1: photo.y1 + shift, near: ndcBounds(tissue, { ...v, back, fov, aspect }).near };
+    break;
+  }
+  // the image: just in front of the Brain, at the NDC box found above
   const eye = add(v.target, mul(back, v.radius));
-  const depth = n.near - P.inFront;
-  const scale = (P.imageShare * tanV * depth) / (panel.size + panel.extentBelow);
-  const yTopNdc = n.y0 - P.gap;
-  const yCenterNdc = yTopNdc - ((panel.size / 2) * scale) / (tanV * depth);
-  const xNdc = (s.x0 + s.x1) / 2;
-  const position = add(add(add(eye, mul(back, -depth)), mul(right, xNdc * tanH * depth)), mul(up, yCenterNdc * tanV * depth));
+  const depth = photo.near - P.inFront;
+  const scale = ((photo.x1 - photo.x0) * tanH * depth) / panel.size;
+  const xc = (photo.x0 + photo.x1) / 2;
+  const yc = photo.y1 - ((panel.size / 2) * scale) / (tanV * depth);
+  const position = add(add(add(eye, mul(back, -depth)), mul(right, xc * tanH * depth)), mul(up, yc * tanV * depth));
   return { kind: 'portrait', fov, target: v.target, radius: v.radius, back, panel: { position, scale } };
 }

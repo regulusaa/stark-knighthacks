@@ -1,6 +1,7 @@
 // Loads pipeline outputs (contract v1 section 2). Checks only the shapes the display relies on.
 // A missing or broken file never throws to the caller: it yields a placeholder and a console warning.
 import * as THREE from 'three';
+import { cachedObjectUrl } from './preload.js';
 
 const loader = new THREE.TextureLoader();
 
@@ -43,15 +44,18 @@ export function placeholderTexture() {
   return placeholder;
 }
 
-function loadTexture(url, colorSpace) {
+export function loadTexture(url, colorSpace) {
+  const blob = cachedObjectUrl(url);   // preloaded (CC-10): no network
   return new Promise((resolve) => {
-    loader.load(url, (tex) => {
+    loader.load(blob ?? url, (tex) => {
+      if (blob) URL.revokeObjectURL(blob);
       tex.colorSpace = colorSpace;
       tex.generateMipmaps = false;
       tex.minFilter = THREE.LinearFilter;
       tex.magFilter = THREE.LinearFilter;
       resolve(tex);
     }, undefined, () => {
+      if (blob) URL.revokeObjectURL(blob);
       console.warn(`[stark] missing texture ${url}`);
       resolve(null);
     });

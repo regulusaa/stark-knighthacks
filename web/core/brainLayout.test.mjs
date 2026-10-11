@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { layoutBrain, BRAIN, FRONT_AZIMUTH } from './brainLayout.js';
-import { capSdf, occluded } from './brainShape.js';
+import { capSdf, occluded, STEM_AXIS } from './brainShape.js';
 import { RIG } from './cameraRig.js';
 
 assert.deepEqual(BRAIN.viewFrom, RIG.defaultPosition.toArray(), 'BRAIN.viewFrom must be the default camera position');
@@ -11,6 +11,9 @@ assert.deepEqual(BRAIN.viewFrom, RIG.defaultPosition.toArray(), 'BRAIN.viewFrom 
 const ASSETS = join(import.meta.dirname, '..', 'public', 'assets');
 const MIN_TIP_DISTANCE = 0.5;
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+const dirOf = (a, b) => { const d = dist(a, b) || 1; return [(b[0] - a[0]) / d, (b[1] - a[1]) / d, (b[2] - a[2]) / d]; };
+const angleDeg = (u, v) => Math.acos(Math.max(-1, Math.min(1, u[0] * v[0] + u[1] * v[1] + u[2] * v[2]))) * 180 / Math.PI;
+const STEM_UP = dirOf(STEM_AXIS[1], STEM_AXIS[0]);
 
 let failures = 0;
 let images = 0;
@@ -50,6 +53,26 @@ for (const id of readdirSync(ASSETS).sort()) {
       const from = a.nodes.get(e.from);
       const to = a.nodes.get(e.to);
       assert.ok(to.radius / to.envelope > from.radius / from.envelope, `depth fraction does not grow along ${e.id}`);
+    }
+    // fibre tracts: through the volume (under the cortex cap but for a leaf's last stretch), smooth through every
+    // branch point, the core (where they leave the stem) included; the stem climbs the brainstem
+    const stem = a.edges.find((e) => e.isStem);
+    assert.ok(angleDeg(STEM_UP, dirOf(stem.points[0], stem.points[2])) < 30, 'the stem climbs the brainstem');
+    const into = new Map(a.edges.map((e) => [e.to, e]));
+    for (const e of a.edges) {
+      if (e.isStem) continue;
+      const n = e.points.length;
+      const free = into.get(e.to) && a.nodes.get(e.to).isLeaf ? Math.floor(n * (1 - BRAIN.leafTail)) : n - 1;
+      for (let i = 1; i < free; i++) {
+        const d = capSdf(...e.points[i]);
+        assert.ok(d < 0, `${e.id} leaves the cortex at sample ${i} (${d.toFixed(3)})`);
+      }
+      const start = dirOf(e.points[0], e.points[1]);
+      // smooth through its parent node: out of the stem for a first-level tract
+      const parent = into.get(e.from);
+      const m = parent.points.length;
+      const arrive = dirOf(parent.points[m - 2], parent.points[m - 1]);
+      assert.ok(angleDeg(arrive, start) < 25, `${e.id} kinks ${angleDeg(arrive, start).toFixed(0)}° at ${e.from}`);
     }
     const top1 = tips.find((t) => t.node.onTop1Path);
     assert.ok(top1, 'top-1 tip placed');

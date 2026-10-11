@@ -1,12 +1,19 @@
 // The trunk (master plan 6.3): a glowing column for the forward pass, with a pulse that climbs it layer by
 // layer over 49 × MS_PER_LAYER / speed. CC-4b listens for the pulse reaching the top.
+// It is the core of the spinal cord: it runs inside the translucent cord from the cord's faded bottom up to where the
+// Brain's stem path starts (BRAIN.trunkTop), and fades out at the bottom with it.
 import * as THREE from 'three';
 import { DEFAULTS } from '/contract/contract.js';
 import { INFERNO_GLSL, infernoTexture } from './inferno.js';
+import { ANATOMY, STEM_BOTTOM_Y } from './brainShape.js';
+
+const TOP = 6;   // BRAIN.trunkTop[1]
 
 export const TRUNK = {
-  height: 6,
-  radius: 0.35,
+  base: STEM_BOTTOM_Y,
+  height: TOP - STEM_BOTTOM_Y,
+  radius: 0.16,
+  fade: ANATOMY.stemFade,
   layers: 49,
   baseLevel: 0.12,   // inferno(0.12): dim resting glow
   litLevel: 0.2,     // layers the pulse has passed stay a little brighter
@@ -36,6 +43,7 @@ uniform float uPulseY;      // band centre; below 0 = not started
 uniform float uBandHalf;
 uniform float uBase;
 uniform float uLit;
+uniform float uFade;
 varying float vY;
 varying vec3 vNormal;
 varying vec3 vView;
@@ -52,6 +60,7 @@ void main() {
   band *= band;
   // hollow glowing tube: faint through the middle, brighter at the silhouette
   vec3 col = inferno(level) * (0.22 + 1.4 * rim) + inferno(1.0) * band * (0.75 + 0.5 * rim);
+  col *= smoothstep(0.0, uFade, vY);                   // fades out with the bottom of the cord
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>
   #include <fog_fragment>
@@ -66,6 +75,7 @@ export function createTrunk() {
     uBandHalf: { value: TRUNK.bandHeight / 2 },
     uBase: { value: TRUNK.baseLevel },
     uLit: { value: TRUNK.baseLevel },
+    uFade: { value: TRUNK.fade },
   }]);
   uniforms.uInferno.value = infernoTexture; // merge() clones textures; keep the one shared instance
   const material = new THREE.ShaderMaterial({
@@ -75,6 +85,8 @@ export function createTrunk() {
   const geometry = new THREE.CylinderGeometry(TRUNK.radius, TRUNK.radius, TRUNK.height, 48, 98, true);
   geometry.translate(0, TRUNK.height / 2, 0);
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.y = TRUNK.base;
+  mesh.renderOrder = 1;   // before the tissue (brainTissue.js TISSUE.order), which it shows through
 
   const listeners = new Set();
   const state = { phase: 'idle', progress: 0, speed: 1, frozen: false };
@@ -96,8 +108,8 @@ export function createTrunk() {
   return {
     mesh,
     state,
-    bounds: new THREE.Box3(new THREE.Vector3(-TRUNK.radius, 0, -TRUNK.radius),
-      new THREE.Vector3(TRUNK.radius, TRUNK.height, TRUNK.radius)),
+    bounds: new THREE.Box3(new THREE.Vector3(-TRUNK.radius, TRUNK.base, -TRUNK.radius),
+      new THREE.Vector3(TRUNK.radius, TOP, TRUNK.radius)),
     get durationMs() { return durationS() * 1000; },
     onComplete(cb) { listeners.add(cb); return () => listeners.delete(cb); },
     play() { state.phase = 'playing'; state.progress = 0; state.frozen = false; apply(); },
