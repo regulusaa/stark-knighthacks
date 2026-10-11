@@ -48,6 +48,8 @@ let selectedPanel = 'answers';
 let steerPanel = null;
 let sceneController = null, sceneSeq = 0, queuedScene = null;
 let immersion = null;
+let pendingHostImage = null;
+let hostImageTimer = 0;
 const drivenKey = 'stark:has-driven';
 let hasDriven = false;
 try { hasDriven = sessionStorage.getItem(drivenKey) === '1'; } catch {}
@@ -207,6 +209,7 @@ function releaseWakeLock() {
 }
 
 function onStatus(status) {
+  if (status.phase !== 'connected') clearHostImagePending();
   if (status.phase === 'connecting') { display = null; armConnectionWatchdog(); setState('connecting'); }
   else if (status.phase === 'connected') {
     stopConnectionWatchdog();
@@ -246,6 +249,7 @@ function onStatus(status) {
 function onDisplayState(value) {
   const imageChanged = Boolean(display && display.image?.id !== value.image?.id);
   display = value;
+  if (value.image?.id === pendingHostImage) clearHostImagePending();
   if (value.driver?.id === transport?.status.clientId) hostTakePending = false;
   gallery?.setCurrent(value.image?.id);
   hostControls?.setDisplay(value);
@@ -518,22 +522,37 @@ function renderSteer() {
 }
 for (const button of document.querySelectorAll('[data-panel]')) button.addEventListener('click', () => { selectedPanel = button.dataset.panel; renderSteer(); if(selectedPanel==='steer') document.getElementById('steer-panel').scrollIntoView({block:'start'}); });
 
+function clearHostImagePending() {
+  clearTimeout(hostImageTimer); hostImageTimer = 0; pendingHostImage = null;
+  hostControls?.setImagePending(null); demoRail?.setImagePending(null);
+}
+
+function selectHostImage(imageId) {
+  if (transport?.emit(EVENTS.SELECT_IMAGE, { imageId }) === false) return false;
+  clearTimeout(hostImageTimer);
+  pendingHostImage = imageId;
+  hostControls?.setImagePending(imageId); demoRail?.setImagePending(imageId);
+  hostImageTimer = setTimeout(() => { clearHostImagePending(); showNotice('The image did not load. Try again.'); }, 8000);
+  haptic();
+  return true;
+}
+
 const gallery = role === ROLES.HOST ? createGallery({
   root: document.getElementById('gallery-grid'),
   mock: query.get('mock') === '1',
-  onSelect: imageId => { transport.emit(EVENTS.SELECT_IMAGE, { imageId }); haptic(); },
+  onSelect: selectHostImage,
   onTimeout: () => showNotice('The image did not load. Try again.'),
 }) : null;
 const hostControls = role === ROLES.HOST ? createHostControls({
   root: document.getElementById('side-panel'),
   onPlay: payload => { haptic(); return transport.emit(EVENTS.PLAY_PULSE, payload); },
   onMode: payload => { haptic(); return transport.emit(EVENTS.SET_MODE, payload); },
-  onImage: imageId => { haptic(); return transport.emit(EVENTS.SELECT_IMAGE, { imageId }); },
+  onImage: selectHostImage,
   onTimeout: () => showNotice('The display did not confirm that control. Try again.'),
 }) : null;
 const demoRail = role === ROLES.HOST ? createDemoRail({
   root: document.getElementById('demo-rail'),
-  emit: (event, payload) => transport?.emit(event, payload) ?? false,
+  emit: (event, payload) => event === EVENTS.SELECT_IMAGE ? selectHostImage(payload.imageId) : transport?.emit(event, payload) ?? false,
   notify: showNotice,
   onSteer: () => {
     workspaceTabs.select('modify'); selectedPanel = 'steer'; renderSteer();

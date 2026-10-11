@@ -25,16 +25,16 @@ await page.goto(`${base}/controller?room=7KQ2M&mock=1&scene=waiting-for-display`
 assert.equal(await page.locator('#app').getAttribute('data-state'),'waiting-for-display');assert.equal(await page.locator('#state-title').innerText(),'Waiting for the screen…');assert.equal(await page.locator('#retry-button').isVisible(),false);
 console.log('ok connected waiting screen is calm, animated and has no error');
 await page.setViewportSize({width:1180,height:820});await open('host');
-const setups=[['retriever','clean_retriever','normal'],['handover','clean_retriever','normal'],['stability','ambig_cat','stability'],['adversarial','adv_retriever','normal'],['xray','med_xray_pneumonia','normal'],['steer','ambig_cat','normal'],['close','clean_retriever','normal']];
+const setups=[['retriever','clean_retriever','normal'],['handover','clean_retriever','normal'],['stability','clean_retriever','stability'],['adversarial','adv_retriever','normal'],['xray','med_xray_pneumonia','normal'],['steer','ambig_cat','normal'],['close','clean_retriever','normal']];
 for(const [beat,imageId,mode]of setups){
   const start=(await log()).length;await page.locator(`[data-demo-beat="${beat}"]`).click();await active(beat);await page.waitForTimeout(400);
   const emits=(await log()).slice(start).map(e=>[e.event,e.payload]);
-  assert.deepEqual(emits,[['select-image',{imageId}],['set-mode',{mode}],...(beat==='close'?[['reset-view',{}]]:[])]);
+  assert.deepEqual(emits,[...(beat==='stability'?[]:[['select-image',{imageId}]]),['set-mode',{mode}],...(beat==='close'?[['reset-view',{}]]:[])]);
   const rail=await page.locator('#demo-rail').boundingBox();assert.ok(rail.y>=0&&rail.y+rail.height<820);
   const current=await page.locator(`[data-demo-beat="${beat}"]`).boundingBox();const strip=await page.locator('.demo-beats').boundingBox();assert.ok(current.x>=strip.x-2&&current.x+current.width<=strip.x+strip.width+2);
   await overflow();
 }
-console.log('ok all seven beats emit image then mode, current/next rail stays visible; Close resets view');
+console.log('ok Stability keeps the selected image; other beats emit image then mode; rail stays visible; Close resets view');
 await page.locator('.demo-cue-toggle').click();assert.equal(await page.locator('.demo-cue').isVisible(),false);await page.locator('.demo-cue-toggle').click();assert.equal(await page.locator('.demo-cue').isVisible(),true);
 const reset=page.locator('.demo-reset');const b=await reset.boundingBox();
 let start=(await log()).length;await page.mouse.move(b.x+b.width/2,b.y+b.height/2);await page.mouse.down();await page.waitForTimeout(450);
