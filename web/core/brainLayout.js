@@ -33,6 +33,8 @@ export const BRAIN = {
   innerFrac: 0.86,        // internal nodes: × envelope distance × depth / maxDepth
   frontHalfDeg: 32,       // no tips within this azimuth of straight ahead (−x): the frontal pole faces the panel
   minY: -0.3,             // no tips on directions pointing further down than this
+  fanElevationsDeg: [24, 44],  // a fan's two staggered arcs (medical): elevation above the horizontal, from the core
+  fanAzimuthDeg: [128, 12],    // … swept over this azimuth range (180 = straight ahead): the part facing the camera
   farFlankZ: -0.5,        // no tips on directions pointing further toward −z (the hidden right flank)
   midline: 0.42,          // no tips closer than this to the midline (they would sit in the fissure)
   minNormalY: -0.35,      // no tips on cortex facing further down than this (the underside is hidden)
@@ -134,6 +136,39 @@ export function tipSites(n, cfg = BRAIN) {
   return pts;
 }
 
+/**
+ * Exactly n tip sites for a fan, in order along a sweep over the visible upper hemisphere: from the front of the crown
+ * (left on screen) back toward the occiput. Consecutive sites alternate between two arcs (cfg.fanElevationsDeg), so
+ * neighbours in score order never crowd each other; each arc is spaced evenly by arc length.
+ */
+export function fanSites(n, cfg = BRAIN) {
+  if (n <= 0) return [];
+  const arc = (deg) => {
+    const el = (deg * Math.PI) / 180;
+    const valid = [];
+    const [a0, a1] = cfg.fanAzimuthDeg.map((d) => (d * Math.PI) / 180);
+    for (let i = 0; i <= 720; i++) {
+      const az = a0 + (i / 720) * (a1 - a0);         // front (−x) over the +z flank toward the back (+x)
+      const s = tipSite([Math.cos(az) * Math.cos(el), Math.sin(el), Math.sin(az) * Math.cos(el)], cfg);
+      if (s) valid.push({ dir: [Math.cos(az) * Math.cos(el), Math.sin(el), Math.sin(az) * Math.cos(el)], ...s });
+    }
+    const at = [0];
+    for (let i = 1; i < valid.length; i++) at.push(at[i - 1] + len(sub(valid[i].pos, valid[i - 1].pos)));
+    return { valid, at };
+  };
+  const rows = cfg.fanElevationsDeg.map(arc);
+  if (rows.some((r) => r.valid.length < n)) return tipSites(n, cfg);   // never fewer tips than findings
+  const out = [];
+  for (let k = 0; k < n; k++) {
+    const { valid, at } = rows[k % rows.length];
+    const want = n === 1 ? at[at.length - 1] / 2 : (k / (n - 1)) * at[at.length - 1];
+    let j = 0;
+    while (j < valid.length - 1 && at[j] < want) j++;
+    out.push(valid[j]);
+  }
+  return out;
+}
+
 /** Small deterministic hash of a string → 0..1, for per-edge variation that never changes between runs. */
 function hash01(s) {
   let h = 2166136261;
@@ -167,8 +202,11 @@ export function layoutBrain(tree, cfg = BRAIN) {
     [...n.children].sort((a, b) => minClass.get(a) - minClass.get(b) || (a < b ? -1 : 1)).forEach((c) => order(byId.get(c)));
   };
   order(root);
+  // a fan (medical: independent per-finding scores) is laid out by score, highest first, along one arc (fanSites)
+  const fan = tree.kind === 'fan';
+  if (fan) leaves.sort((a, b) => (b.value ?? 0) - (a.value ?? 0) || a.classId - b.classId);
   const maxDepth = Math.max(1, ...tree.nodes.map((n) => n.depth));
-  const sites = tipSites(leaves.length, cfg);
+  const sites = fan ? fanSites(leaves.length, cfg) : tipSites(leaves.length, cfg);
   const C = cfg.core;
 
   const out = new Map();
