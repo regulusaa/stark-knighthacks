@@ -160,7 +160,7 @@ await select('med_xray_normal');
 check(!(await S(() => window.__stark.tips.ring.visible)), 'normal X-ray: no ring');
 
 // --- Steer demo -----------------------------------------------------------------------------------------------
-const DEMO = { image: 'ambig_wolf', from: 'timber wolf', to: 'Arctic fox', sliders: [31, 240, 449, 1220] };
+const DEMO = { image: 'ambig_wolf', from: 'timber wolf', to: 'white wolf', sliders: [449, 31, 240, 252] };   // steer.json's flip set (BUGS #1)
 await select(DEMO.image);
 await display.waitForFunction(() => window.__stark.api.state.capabilities.steer === true, null, { timeout: 20000 });
 await guest.waitForSelector('#explore-tabs:not([hidden]) [data-panel="steer"]', { timeout: 20000 });

@@ -28,8 +28,10 @@ const watch = (page, name) => {
 };
 const phone = ({ defaultBrowserType, ...d }) => d; // device presets on Chromium
 
-const DEMO = { image: 'ambig_wolf', from: 269, fromLabel: 'timber wolf', to: 279, toLabel: 'Arctic fox', sliders: [31, 240, 449, 1220] };
+// the sliders drag steer.json's flip set (the phone's top-1 rows lead with it, BUGS #1); the program zeroes the top-5 by contribution
+const DEMO = { image: 'ambig_wolf', from: 269, fromLabel: 'timber wolf', to: 270, toLabel: 'white wolf', sliders: [31, 240, 449, 252] };
 const PROGRAM = 'channel[top(5, "timber wolf")] = 0';
+const PROGRAM_TO = { id: 279, label: 'Arctic fox' };
 
 const browser = await chromium.launch({ args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 const display = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
@@ -94,7 +96,8 @@ async function clearToast(run) {
 /** Drag one slider from its current value to 0 with real pointer events; samples the display while still pressed. */
 async function dragToZero(page, channel, { samples = false } = {}) {
   const input = page.locator(`#steer-panel .steer-row[data-channel="${channel}"] input`).first();
-  await input.scrollIntoViewIfNeeded();
+  await input.evaluate((e) => e.scrollIntoView({ block: 'center' }));   // not under the sticky score card
+  await sleep(150);
   const box = await input.boundingBox();
   const value = Number(await input.inputValue());
   const xAt = (v) => box.x + 10 + (box.width - 20) * (v / 3); // thumb centre, 0–3 range
@@ -122,6 +125,7 @@ async function dragToZero(page, channel, { samples = false } = {}) {
   await page.mouse.up();
   if (samples) seen.frames = await display.evaluate(() => { window.__frOn = false; return window.__fr.slice(1); });
   await display.waitForFunction((c) => window.__stark.steer.session.scales.get(c) === 0, channel, { timeout: 5000 }).catch(async (err) => {
+    if (process.env.E2E_DEBUG_SHOT) { await page.screenshot({ path: process.env.E2E_DEBUG_SHOT }); console.log('box', JSON.stringify(box), 'value now', await input.inputValue(), 'hit', await page.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return e ? e.tagName + '.' + e.className + ' ' + (e.closest('.steer-row')?.dataset.channel ?? '') : null; }, [box.x + 10, box.y + box.height / 2])); }
     console.log('display received:', JSON.stringify(await display.evaluate(() => window.__rx.slice(-6))), 'state seq', await display.evaluate(() => window.__stark.steer.session.state?.seq), 'driver', await display.evaluate(() => window.__stark.api.state.driver?.label));
     throw err;
   });
@@ -161,7 +165,7 @@ for (let run = 1; run <= RUNS; run++) {
   await guest.waitForFunction((l) => document.querySelector('.steer-top-label')?.textContent === l, DEMO.toLabel, { timeout: 5000 });
   if (run === 1) { await sleep(400); await shot(display, 'after-flip'); await shot(guest, 'phone-after-flip'); }
   const eq = (await guest.textContent('.steer-equivalent pre'))?.trim();
-  check(eq === 'channel[31, 240, 449, 1220] = 0', `the code box shows the equivalent program: ${JSON.stringify(eq)}`);
+  check(eq === 'channel[31, 240, 252, 449] = 0', `the code box shows the equivalent program: ${JSON.stringify(eq)}`);
 
   // 3. code mode: Reset, a broken program (run 1), then the real one
   await guest.click('[data-input-mode="code"]');
@@ -180,9 +184,9 @@ for (let run = 1; run <= RUNS; run++) {
   }
   await guest.fill('#steer-code-input', PROGRAM);
   await guest.click('#steer-panel .steer-run');
-  await display.waitForFunction((k) => window.__stark.api.state.top1?.classId === k && window.__stark.steer.session.state?.source === 'code', DEMO.to, { timeout: 5000 });
+  await display.waitForFunction((k) => window.__stark.api.state.top1?.classId === k && window.__stark.steer.session.state?.source === 'code', PROGRAM_TO.id, { timeout: 5000 });
   d = await ds();
-  check(d.top1 === DEMO.to && d.code === 'channel[31, 240, 449, 894, 1220] = 0', `code ${PROGRAM} → ${d.top1Label} ${d.score.toFixed(3)} (${d.code})`);
+  check(d.top1 === PROGRAM_TO.id && d.code === 'channel[31, 240, 449, 894, 1220] = 0', `code ${PROGRAM} → ${d.top1Label} ${d.score.toFixed(3)} (${d.code})`);
 
   // 4. a second phone joins mid-steer
   const lateCtx = await browser.newContext(phone(devices['iPhone 15 Pro']));
@@ -191,9 +195,9 @@ for (let run = 1; run <= RUNS; run++) {
   const t0 = Date.now();
   await late.goto(`${BASE}/controller?room=${room}`);
   await openSteer(late);
-  await late.waitForFunction((l) => document.querySelector('.steer-top-label')?.textContent === l, DEMO.toLabel, { timeout: 10000 });
+  await late.waitForFunction((l) => document.querySelector('.steer-top-label')?.textContent === l, PROGRAM_TO.label, { timeout: 10000 });
   const lateCode = (await late.textContent('.steer-equivalent pre'))?.trim();
-  check(lateCode === d.code, `second phone joins mid-steer and shows ${DEMO.toLabel} + the program at once (${Date.now() - t0} ms from navigation)`);
+  check(lateCode === d.code, `second phone joins mid-steer and shows ${PROGRAM_TO.label} + the program at once (${Date.now() - t0} ms from navigation)`);
   if (run === 1) await shot(late, 'phone-late-join');
 
   // 5. the host switches image: steering clears

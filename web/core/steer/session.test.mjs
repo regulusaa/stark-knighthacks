@@ -28,7 +28,8 @@ s.on('capability', (c) => caps.push(c.steer));
 check(await s.setImage(...await assetsFor('ambig_wolf')), 'ambig_wolf: Steer ready');
 const st0 = s.state;
 check(st0.seq === 0 && !st0.active && st0.source === null && st0.code === null && st0.error === null, 'baseline state: seq 0, inactive, no code');
-check(st0.sets.top1.classId === 269 && st0.sets.top1.channels.map((c) => c.channel).join() === '31,240,449,1220,894', 'sets.top1: timber wolf 31, 240, 449, 1220, 894');
+check(st0.sets.top1.classId === 269 && st0.sets.top1.channels.map((c) => c.channel).join() === '449,31,240,252,1220', 'sets.top1: timber wolf leads with the flip set 449, 31, 240, 252, then 1220 (BUGS #1)');
+check(st0.sets.top2.channels.map((c) => c.channel).join() === '1220,240,31,894,788', 'sets.top2: white wolf by contribution');
 check(st0.result.top1.classId === 269 && st0.result.answers[0].heatmapSource === 'precomputed', 'unsteered top-1 timber wolf, precomputed heatmap');
 check(st0.result.answers.every((a) => a.hasHeatmap === (a.heatmapSource !== null)), 'hasHeatmap equals heatmapSource !== null');
 

@@ -327,7 +327,8 @@ An `Answer`, or `null`. The display emits it after each `focus-tip` / `clear-foc
   "source": "slider",                 // slider | code | null (nothing applied)
   "scales": [ { "channel": 87, "scale": 0 }, { "channel": 1187, "scale": 2 } ],  // only scale ≠ 1, sorted by channel
   "code": "channel[87] = 0\nchannel[1187] = 2",   // canonical program for the current scales (steer-dsl format()); null if none
-  "sets": {                           // 5 channels each, from the UNSTEERED image, so slider rows never reorder
+  "sets": {                           // 5 channels each, from the UNSTEERED image, so slider rows never reorder;
+                                      // (CC-10) top1 leads with steer.json's flip set when its n ≤ 5, then top contributions
     "top1": { "classId": 207, "label": "golden retriever", "channels": [ { "channel": 1187, "contribution": 0.91 } ] },
     "top2": { "classId": 208, "label": "Labrador retriever", "channels": [ { "channel": 640, "contribution": 0.52 } ] }
   },
