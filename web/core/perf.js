@@ -29,7 +29,7 @@ export function createPerf({ renderer, stats, api, params }) {
 
   if (params.get('perf') === '1') {
     const el = document.createElement('div');
-    el.style.cssText = 'position:fixed;left:12px;top:10px;font:13px/1.35 ui-monospace,monospace;color:#c9b8e0;background:#0009;padding:6px 9px;border-radius:6px;z-index:50;white-space:pre;pointer-events:none';
+    el.style.cssText = 'position:fixed;right:16px;top:12px;text-align:right;font:13px/1.35 ui-monospace,monospace;color:#c9b8e0;background:#0009;padding:6px 9px;border-radius:6px;z-index:50;white-space:pre;pointer-events:none';
     document.body.appendChild(el);
     setInterval(() => {
       const s = summary();
