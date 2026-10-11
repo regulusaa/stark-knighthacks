@@ -16,8 +16,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 export const GLOW = {
   layer: 1,
   threshold: 0.7,         // linear luminance a glowing pixel must exceed: the lit strand, top tips, the pulse
-  strength: 0.2,
-  radius: 0.22,
+  strength: 0.5,
+  radius: 0.3,
   bloomScale: 0.5,        // the bloom layer renders at this fraction of the canvas resolution
   lowFps: 45,
   lowSeconds: 3,
@@ -39,7 +39,7 @@ void main() {
 /** Put an object (not its children) on the glow layer as well as its usual one. */
 export const glowing = (obj) => { obj.layers.enable(GLOW.layer); return obj; };
 
-export function createGlow({ renderer, scene, camera, stats, api }) {
+export function createGlow({ renderer, scene, camera, stats, api, preview = false }) {
   let on = DISPLAY.bloom;
   let auto = true;           // false once it turned itself off for fps (until the host turns it back on)
   let lowFor = 0;
@@ -92,7 +92,7 @@ export function createGlow({ renderer, scene, camera, stats, api }) {
     /** Render a frame (with or without glow). */
     render(dt) {
       // fps watchdog (stats.fps is measured over 0.5 s windows)
-      if (on) {
+      if (on && !preview) {
         lowFor = stats.fps > 0 && stats.fps < GLOW.lowFps ? lowFor + dt : 0;
         if (lowFor >= GLOW.lowSeconds) {
           auto = false;

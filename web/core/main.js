@@ -105,7 +105,7 @@ const tissue = await tissueReady;
 brainRoot.add(tissue.parts.brain); stemAssembly.add(tissue.parts.stem);
 const inspection = createInspection({ brain: brainAssembly, stem: stemAssembly, tissue, fibers, rig, camera, preview });
 api.attachInspection(inspection);
-const activity = createSignalActivity({ scene, camera, inspection, veins });
+const activity = createSignalActivity({ scene, camera, inspection, veins, labels });
 let previewContext = { driving: false, clientId: null }, localSeq = -1, latestRemote = null, remoteToken = 0;
 let previewInitialized = false, lastVisualData = '', lastPreviewHeat = '';
 let previewLoad = null, previewLoadId = null;
@@ -165,7 +165,7 @@ const stability = createStability({ api, veins, tips, labels, tissue, trunk, rem
 const adversarial = await createAdversarial({ api, panel });
 const medical = createMedical({ api, tips, parent: brainRoot });
 // glow on the strands, the tips and the pulse only (after the Brain's own image-loaded handler has rebuilt them)
-const glow = createGlow({ renderer, scene, camera, stats, api });
+const glow = createGlow({ renderer, scene, camera, stats, api, preview });
 // the trunk interior (mode "trunk"): the Brain dims while the trunk is open
 function dimBrain(k) {
   tissue.setDim(k);
@@ -236,9 +236,10 @@ function frame() {
   tissue.update(animTime);
   tips.update(camera);
   renderer.getSize(viewSize);
+  labels.nearDistance = params.get('labelsAll') === '1' ? 100 : inspection.detail ? 0 : 7;
   labels.update(camera, viewSize.x, viewSize.y, dt * 1000);
   const activityCount = activity.update(animTime, viewSize.x, viewSize.y);
-  input.update(activityCount);
+  input.update(activityCount, activity.caption);
   // Keep the source image secondary and fixed in a corner while the assembly stays centered.
   const depth = 5, halfH = depth * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const cropPx = preview ? Math.min(76, viewSize.x * .2) : Math.min(220, viewSize.x * .17);
@@ -349,9 +350,9 @@ if (preview) {
       }
       if (latestRemote !== payload || !api.state) return;
       Object.assign(api.state.capabilities, payload.capabilities);
-      api.setMode({ mode: payload.mode, layerMode: payload.layerMode, noiseView: payload.noiseView, bloom: false });
+      api.setMode({ mode: payload.mode, layerMode: payload.layerMode, noiseView: payload.noiseView, bloom: payload.bloom });
       const previousFocus = api.state.focus?.classId;
-      api.patchState({ ...payload, bloom: false });
+      api.patchState({ ...payload });
       stability.applyRemote(payload.stability);
       const ack = payload.scene?.ack;
       if (localSeq >= 0 && ack?.clientId === previewContext.clientId && ack.seq >= localSeq) localSeq = -1;

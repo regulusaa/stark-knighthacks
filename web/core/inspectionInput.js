@@ -48,14 +48,14 @@ export function mountInspectionInput({ canvas, camera, inspection, tissue, onAct
   return {
     cancel,
     setEnabled(v){enabled=Boolean(v);if(!enabled)cancel();},
-    update(activityCount=0){
+    update(activityCount=0, caption){
       const r=canvas.getBoundingClientRect();
       for(const h of handles){
         pos.copy(inspection.handlePosition(h.dataset.part)).project(camera);
         h.hidden=!enabled||(inspection.selected!=='all'&&inspection.selected!==h.dataset.part)||pos.z>1||Math.abs(pos.x)>.96||Math.abs(pos.y)>.96;
         h.style.left=`${r.left+(pos.x*.5+.5)*r.width}px`;h.style.top=`${r.top+(-pos.y*.5+.5)*r.height}px`;
       }
-      note.hidden=!activityCount;
+      note.hidden=!activityCount; if(caption)note.textContent=caption;
       if(!preview){toolbar.querySelectorAll('[data-selection]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.selection===inspection.selected)));toolbar.querySelector('[data-arrange]').textContent=inspection.arrangement==='joined'?'Split up':'Join together';}
     },
   };
