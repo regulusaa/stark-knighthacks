@@ -23,6 +23,15 @@ try {
         });
         assert.equal(overlaps, false, `${scene}: QR column reserved at ${size[0]}`);
       }
+      if (scene === 'stability-summary') {
+        const gaps = await page.locator('.hud-winners .hud-data-row').evaluateAll(rows => rows.map(row => {
+          const label = row.querySelector('.hud-label').getBoundingClientRect();
+          const count = row.querySelector('.hud-data-score').getBoundingClientRect();
+          return count.left - label.right;
+        }));
+        assert.ok(gaps.every(gap => Math.abs(gap - 16) < 1), 'run counts stay beside their labels');
+        assert.ok(await page.locator('.hud-winners').evaluate(e => e.getBoundingClientRect().width <= 460));
+      }
     }
   }
   await open('stability-playing');
@@ -30,11 +39,30 @@ try {
   assert.equal(await page.locator('.hud-progress span').evaluate(e => e.style.width), '40%');
   assert.equal(await page.locator('.hud-result').isVisible(), false);
   await open('stability-summary');
-  assert.match(await page.locator('.hud-context-title').innerText(), /won 21 of 30 runs/);
+  assert.match(await page.locator('.hud-context-title').innerText(), /Most frequent: golden retriever · 21 of 30 runs/);
   assert.equal(await page.locator('.hud-winners .hud-data-row').count(), 3);
   await page.evaluate(() => { const s = structuredClone(window.__hudLab.current); s.stability.winners = [{ classId: 208, label: 'Labrador retriever', count: 30 }]; s.stability.distinctWinners = 1; window.__hudLab.inject(s); });
-  assert.match(await page.locator('.hud-context-title').innerText(), /won 0 of 30 runs/);
+  assert.match(await page.locator('.hud-context-title').innerText(), /Most frequent: Labrador retriever · 30 of 30 runs/);
+  assert.match(await page.locator('[data-field="contextAnswer"]').innerText(), /Original answer: golden retriever · 0 of 30 runs/);
   assert.equal(await page.locator('.hud-winners .hud-data-row').count(), 0);
+  await open('stability-summary-split');
+  assert.equal(await page.locator('.hud-context-title').innerText(), 'Most frequent: tiger cat · 18 of 30 runs');
+  assert.match(await page.locator('[data-field="contextAnswer"]').innerText(), /Original answer: tabby · 12 of 30 runs/);
+  assert.match(await page.locator('.hud-winners .hud-data-row').first().innerText(), /tiger cat/);
+  await page.evaluate(() => { const s = structuredClone(window.__hudLab.current); s.stability.winners.forEach(w => w.count = 15); window.__hudLab.inject(s); });
+  assert.match(await page.locator('.hud-context-title').innerText(), /Joint most frequent: tabby \/ tiger cat · 15 of 30 runs each/);
+  for (const [width, height] of [[320,568],[390,844],[1180,820],[1920,1080],[2560,1440]]) {
+    await page.setViewportSize({width, height});
+    await open('stability-summary-split', 'compact');
+    await page.evaluate(() => { const s = structuredClone(window.__hudLab.current); s.stability.winners[0].label = 'A very long gallery answer label that must wrap safely beside its run count'; window.__hudLab.inject(s); });
+    const rows = await page.locator('.hud-winners .hud-data-row').evaluateAll(es => es.map(e => {
+      const label = e.querySelector('.hud-label').getBoundingClientRect(), count = e.querySelector('.hud-data-score').getBoundingClientRect();
+      return {gap: count.left - label.right, right: count.right, width: e.getBoundingClientRect().width};
+    }));
+    assert.ok(rows.every(r => Math.abs(r.gap - 16) < 1 && r.right <= width - 32 && r.width <= 460), `compact counts and long labels at ${width}`);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  }
+  await page.setViewportSize({width:1920,height:1080});
   await open('adversarial-noise');
   assert.match(await page.locator('[data-field="original"]').innerText(), /Original answer: golden retriever \(62.0%\)/);
   assert.equal(await page.locator('[data-field="noise"]').innerText(), 'The change, amplified 50×');
