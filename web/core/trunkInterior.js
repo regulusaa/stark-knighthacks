@@ -344,7 +344,7 @@ export function createTrunkInterior({ api, scene, rig, camera, trunk, steer, dim
     else if (from === 'trunk') exit();
   });
   api.onLayerMode((m) => { mixTarget = m === 'reduced' ? 1 : 0; });
-  steer.session.on('applied', () => { if (open > 0) steerSlab(); });
+  steer.session.on('applied', () => { if (open > 0 || target > 0) steerSlab(); });
 
   return {
     group,

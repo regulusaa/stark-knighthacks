@@ -255,8 +255,8 @@ export function createApi({ manifest, panel, trunk, rig }) {
      */
     setSteerCapability(on, { live = null } = {}) {
       if (!state || !assets?.tree) return;
-      // (v3) no steering outside normal mode, and never on medical images (they have no steer data anyway)
-      state.capabilities.steer = Boolean(on) && state.mode === 'normal';
+      // (v3) no steering in stability mode, and never on medical images (they have no steer data anyway)
+      state.capabilities.steer = Boolean(on) && state.mode !== 'stability';
       state.steer = on ? { active: false, changedCount: 0, top1Changed: false } : null;
       state.answers = buildAnswers(assets.tree, assets.gradcam, { live: on ? live : null });
       state.top1 = state.answers.find((a) => a.isTop1) ?? null;

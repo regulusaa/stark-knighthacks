@@ -198,6 +198,23 @@ await sleep(4200);
 check((await state()).steerMoment === null, 'steerMoment cleared after 4 s');
 await fps('Steer (flipped)');
 
+// --- trunk interior (CC-9, a Q&A bonus): Codex's mode and layer buttons --------------------------------------
+await host.waitForSelector('[data-mode="trunk"]:not([hidden])', { timeout: 10000 });
+await host.click('[data-mode="trunk"]');
+await display.waitForFunction(() => window.__stark.interior.open === 1, null, { timeout: 8000 });
+check((await state()).mode === 'trunk' && await S(() => window.__stark.interior.built?.cells.geometry.instanceCount) === 54145, 'trunk interior from the host: the column is open (54,145 cells)');
+await fps('trunk interior, full');
+await host.waitForSelector('[data-layer-mode="reduced"]:not([hidden])', { timeout: 5000 });
+await host.click('[data-layer-mode="reduced"]');
+await display.waitForFunction(() => window.__stark.api.state.layerMode === 'reduced', null, { timeout: 5000 });
+await sleep(1200);
+check(true, 'reduced layers from the host');
+await fps('trunk interior, reduced');
+await host.click('[data-layer-mode="full"]');
+await host.click('[data-mode="normal"]');
+await display.waitForFunction(() => window.__stark.interior.open === 0 && window.__stark.api.state.mode === 'normal', null, { timeout: 8000 });
+check(await S(() => window.__stark.tips.group.visible && !window.__stark.interior.group.visible), 'back to normal: column folded away, Brain back');
+
 // --- wrap up --------------------------------------------------------------------------------------------------
 check(loads === 1, 'the display was never reloaded');
 check(errors.length === 0, `no console errors (${errors.length}${errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''})`);
