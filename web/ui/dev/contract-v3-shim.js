@@ -23,6 +23,9 @@ export async function createV3Fixtures(room = '7KQ2M') {
   const findings = medical.findings.filter(a => a.rank <= 10).sort((a, b) => a.rank - b.rank).map(a => ({ ...a, isTop1: a.rank === 1, isTrueClass: a.classId === medical.sourceLabel.classId, heatmapSource: a.hasHeatmap ? 'precomputed' : null }));
   const med = { ...clone(idle), image: { id: medical.imageId, name: 'Chest X-ray (pneumonia)', category: 'medical', adversarial: null }, scoreKind: 'independent', top1: findings[0], answers: findings, trueClass: findings.find(a => a.isTrueClass), capabilities: { stability: false, trunkInterior: false, layerModes: false, bloom: true, noiseView: false, steer: false } };
   const current = answer({ classId: 208, label: 'Labrador retriever', score: .48 });
+  const catTop = answer({ classId: 281, label: 'tabby', score: .62 }, 1, 281);
+  const catSecond = answer({ classId: 282, label: 'tiger cat', score: .11 }, 2, 281);
+  const cat = { ...clone(idle), image: { id: 'ambig_cat', name: 'Cat or tiger cat?', category: 'ambiguous', adversarial: null }, top1: catTop, trueClass: catTop, answers: [catTop, catSecond] };
   const stability = { active: true, phase: 'playing', run: 12, runs: 30, current, matchesClean: false, distinctWinners: 3,
     winners: [{ classId: 207, label: clean.label, count: 21 }, { classId: 208, label: current.label, count: 7 }, { classId: 257, label: 'Great Pyrenees', count: 2 }], cleanTop1: clean };
   const playing = { ...clone(idle), mode: MODES.STABILITY, stability, capabilities: { ...idle.capabilities, steer: false } };
@@ -30,7 +33,7 @@ export async function createV3Fixtures(room = '7KQ2M') {
   const steering = { ...clone(idle), steer: { active: true, changedCount: 3, top1Changed: false } };
   const moment = { ...clone(steering), top1: current, steer: { active: true, changedCount: 3, top1Changed: true }, steerMoment: { from: clean, to: current, at: Date.now() } };
   const outsideState = { ...clone(steering), top1: outside.result.top1, steer: { active: true, changedCount: 5, top1Changed: true } };
-  const states = { idle, 'stability-playing': playing, 'stability-summary': summary, adversarial, 'adversarial-noise': { ...clone(adversarial), noiseView: true }, medical: med, steering, 'steer-moment': moment, outsideBrain: outsideState,
+  const states = { idle, cat, 'stability-playing': playing, 'stability-summary': summary, adversarial, 'adversarial-noise': { ...clone(adversarial), noiseView: true }, medical: med, steering, 'steer-moment': moment, outsideBrain: outsideState,
     'glow-auto-off': { ...clone(idle), bloom: false, capabilities: { ...idle.capabilities, bloom: false } },
     focused: { ...clone(idle), focus: { ...base.answers[1], heatmapSource: 'live' } }, trunk: { ...clone(idle), mode: MODES.TRUNK } };
   return { states, outside, drawnClasses: tree.nodes.filter(n => n.classId != null).map(n => n.classId) };
@@ -45,7 +48,8 @@ export async function createV3Mock({ room, role, scene = 'idle' }) {
   const timers = new Set();
   const log = [];
   let state = clone(fixtures.states[scene] || fixtures.states.idle);
-  state.capabilities.steer = state.mode !== MODES.STABILITY && state.image.id === 'clean_retriever';
+  const steerable = () => state.mode !== MODES.STABILITY && ['clean_retriever', 'ambig_cat'].includes(state.image.id);
+  state.capabilities.steer = steerable();
   let closed = false;
   let runToken = 0;
   const status = { phase: 'connecting', clientId: role === ROLES.HOST ? 'h_mock' : 'c_local', label: role === ROLES.HOST ? 'Ray' : 'Guest 1', reason: null,
@@ -67,11 +71,12 @@ export async function createV3Mock({ room, role, scene = 'idle' }) {
   function replay() {
     const token = ++runToken;
     state.stability = { ...clone(fixtures.states['stability-playing'].stability), run: 1, phase: 'playing' };
+    if (state.image.id === 'ambig_cat') state.stability = { ...state.stability, current: clone(fixtures.states.cat.top1), cleanTop1: clone(fixtures.states.cat.top1), distinctWinners: 2, winners: [{ classId: 281, label: 'tabby', count: 18 }, { classId: 282, label: 'tiger cat', count: 12 }] };
     state.playback.state = 'playing'; publish();
     function step() {
       if (token !== runToken || state.mode !== MODES.STABILITY) return;
       state.stability.run++;
-      state.stability.current = state.stability.run % 3 ? clone(state.stability.cleanTop1) : clone(fixtures.states['stability-playing'].stability.current);
+      state.stability.current = state.stability.run % 3 ? clone(state.stability.cleanTop1) : clone(state.image.id === 'ambig_cat' ? fixtures.states.cat.answers[1] : fixtures.states['stability-playing'].stability.current);
       state.stability.matchesClean = state.stability.current.classId === state.stability.cleanTop1.classId;
       if (state.stability.run >= state.stability.runs) { state.stability.phase = 'summary'; state.playback.state = 'done'; publish(); }
       else { publish(); later(140, step); }
@@ -94,18 +99,18 @@ export async function createV3Mock({ room, role, scene = 'idle' }) {
         const oldMode = state.mode;
         for (const field of ['mode', 'layerMode', 'noiseView', 'bloom']) if (Object.hasOwn(payload, field)) state[field] = payload[field];
         if (payload.bloom === true) state.capabilities.bloom = true;
-        state.capabilities.steer = state.mode !== MODES.STABILITY && state.image.id === 'clean_retriever';
+        state.capabilities.steer = steerable();
         if (state.mode === MODES.STABILITY && state.mode !== oldMode) {
           state.steer = null; state.steerMoment = null;
           engine.emit(EVENTS.STEER_RESET, {});
-          const baseline = fixtures.states[state.image.category === 'adversarial' ? 'adversarial' : state.scoreKind === 'independent' ? 'medical' : 'idle'];
+          const baseline = fixtures.states[state.image.id === 'ambig_cat' ? 'cat' : state.image.category === 'adversarial' ? 'adversarial' : state.scoreKind === 'independent' ? 'medical' : 'idle'];
           state.top1 = clone(baseline.top1); state.answers = clone(baseline.answers);
         }
         if (oldMode === MODES.STABILITY && state.capabilities.steer) engine.emit(EVENTS.STEER_RESET, {});
         if (payload.mode === MODES.STABILITY) replay(); else if (payload.mode) { runToken++; state.stability = null; }
         publish();
       });
-      else if (event === EVENTS.SELECT_IMAGE && role === ROLES.HOST) later(350, () => { runToken++; const name = payload.imageId === 'adv_retriever' ? 'adversarial' : payload.imageId.startsWith('med_') ? 'medical' : 'idle'; const driver = state.driver; state = clone(fixtures.states[name]); state.driver = driver; state.room = room; state.capabilities.steer = name === 'idle'; engine.emit(EVENTS.STEER_RESET, {}); publish(); deliver(EVENTS.FOCUS_STATE, null); });
+      else if (event === EVENTS.SELECT_IMAGE && role === ROLES.HOST) later(350, () => { runToken++; const name = payload.imageId === 'adv_retriever' ? 'adversarial' : payload.imageId === 'ambig_cat' ? 'cat' : payload.imageId.startsWith('med_') ? 'medical' : 'idle'; const driver = state.driver; state = clone(fixtures.states[name]); state.driver = driver; state.room = room; state.capabilities.steer = steerable(); engine.changeImage(payload.imageId); publish(); deliver(EVENTS.FOCUS_STATE, null); });
       else if (event === EVENTS.PLAY_PULSE && role === ROLES.HOST) later(30, () => { if (state.mode === MODES.STABILITY) replay(); else { state.playback = { state: payload.skipToEnd ? 'done' : 'playing', speed: payload.speed ?? 1 }; publish(); } });
       else if ([EVENTS.FOCUS_TIP, EVENTS.CLEAR_FOCUS].includes(event)) {
         if (state.stability?.phase === 'playing') return false;

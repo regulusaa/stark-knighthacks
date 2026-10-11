@@ -59,7 +59,7 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
   let resetAt = -Infinity;
   let animationFrame = 0;
   const capable = () => context.display?.capabilities?.steer === true;
-  const writable = () => context.connected && capable() && context.driving;
+  const writable = () => !document.hidden && context.connected && capable() && context.driving;
   const sliderSet = () => [...scales].filter(([,scale]) => scale !== 1).sort((a,b)=>a[0]-b[0]).map(([channel,scale])=>({channel,scale}));
   const sender = createSteerSender({
     canSend: writable,
@@ -75,6 +75,7 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
     },
   });
   function permit() {
+    if (document.hidden) return false;
     if (!context.connected || !capable()) return false;
     if (context.driving) return true;
     const driver = context.display?.driver;
@@ -126,12 +127,12 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
   }
   function animateRows(previous) {
     cancelAnimationFrame(animationFrame);
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { paintRows(); return; }
+    if (document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches) { paintRows(); return; }
     const start = performance.now();
     const target = new Map(scales);
     const channels = new Set([...previous.keys(), ...target.keys()]);
     const frame = now => {
-      if (destroyed) return;
+      if (destroyed || document.hidden) return;
       const t = Math.min(1, (now-start)/160);
       const eased = 1-Math.pow(1-t,3);
       const values = new Map([...channels].map(channel => [channel,(previous.get(channel)??1)+((target.get(channel)??1)-(previous.get(channel)??1))*eased]));
@@ -171,6 +172,7 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
           sender.update(sliderSet(), item.channel);
         });
         input.addEventListener('input', () => {
+          if (document.hidden) { paintRows(); return; }
           if (denied || (!context.driving && !waiting && !permit())) { paintRows(); return; }
           if (setScale(item.channel, Number(input.value))) {
             sender.update(sliderSet(), drag ?? item.channel);
@@ -362,6 +364,11 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
       paintResults();
     } catch { /* Baseline unavailable is honest; never substitute zero. */ }
   }
+  function visibility() { if (document.hidden) cancel(); else render(); }
+  let lastWidth = innerWidth;
+  function resize() { if (innerWidth !== lastWidth) { lastWidth = innerWidth; cancel(); render(); } }
+  document.addEventListener('visibilitychange', visibility);
+  window.addEventListener('resize', resize);
   return {
     setContext(next) {
       const wasDriving = context.driving;
@@ -419,6 +426,6 @@ export function createSteerPanel({ root, emit, requestControl, notify = () => {}
     },
     setMode: modeName => modeName === 'code' ? enterCode() : (mode='sliders',render()),
     get state() { return { imageId, result, scales:sliderSet(), dragging:drag, mode }; },
-    destroy() { destroyed=true; cancel(); clearTimeout(syntaxTimer); ++syntaxRevision; ++baselineToken; root.replaceChildren(); },
+    destroy() { destroyed=true; cancel(); document.removeEventListener('visibilitychange', visibility); window.removeEventListener('resize', resize); clearTimeout(syntaxTimer); ++syntaxRevision; ++baselineToken; root.replaceChildren(); },
   };
 }

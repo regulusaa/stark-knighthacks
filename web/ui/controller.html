@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#050208">
   <title>Stark · Controller</title>
+  <link rel="icon" href="data:,">
+  <link rel="preload" href="/socket.io/socket.io.js" as="script">
+  <link rel="modulepreload" href="/contract/contract.js">
   <link rel="stylesheet" href="/ui/styles/tokens.css">
   <link rel="stylesheet" href="/ui/controller.css">
   <link rel="stylesheet" href="/ui/styles/host.css">
@@ -42,12 +45,14 @@
               <span class="lock-symbol" aria-hidden="true">◈</span>
               <p id="lock-message">Take the wheel</p>
               <button id="take-control-center" class="primary-button" type="button">Take control</button>
+              <p id="first-drive-help" class="first-drive-help" hidden>Drag to turn · pinch to zoom · tap an answer · Steer to edit the model</p>
             </div>
           </div>
           <p class="trackpad-note">Movement goes to the display while you drive.</p>
         </div>
 
         <aside id="side-panel" class="side-panel">
+          <section id="demo-rail" hidden aria-label="Demo cue sheet"></section>
           <section id="adversarial-pair" class="adversarial-pair host-block" aria-label="Retriever comparison" hidden><span class="eyebrow">SAME IMAGE · SMALL CHANGE</span><div class="segmented-control pair-control"><button type="button" data-pair-image="clean_retriever">Original</button><button type="button" data-pair-image="adv_retriever">Adversarial</button></div><p id="pair-status" class="control-status" role="status" aria-live="polite"></p></section>
           <div class="current-image"><span class="eyebrow">NOW SHOWING</span><strong id="image-name">Waiting for image</strong><span id="top-answer">Model score will appear here</span><div id="truth-status" class="truth-status" hidden><span class="true-class-ring" aria-hidden="true"></span><strong id="correctness"></strong><span id="true-class-name"></span></div></div>
           <div id="host-gallery" hidden><section class="host-block" aria-labelledby="gallery-title"><div class="host-block-heading"><span class="slot-index">01</span><h3 id="gallery-title">Gallery</h3></div><div id="gallery-grid" class="gallery-grid" role="group" aria-label="Choose an image"></div></section></div>

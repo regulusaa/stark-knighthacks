@@ -106,6 +106,10 @@
 .stark-hud .hud-findings .hud-ring { width: 18px; height: 18px; margin-right: 10px; }
 .stark-hud .hud-feature-status { bottom: max(32px, env(safe-area-inset-bottom)); left: max(32px, env(safe-area-inset-left)); width: min(850px, calc(100% - 64px)); }
 .stark-hud:not(.hud-compact) .hud-feature-status { bottom: 175px; }
+/* Reserve the QR column and legend independently, including long answer notices. */
+.stark-hud:not(.hud-compact) .hud-feature-status { max-width: min(850px, calc(100% - 396px)); }
+.stark-hud .hud-feature-status .hud-mode { max-width: 100%; overflow-wrap: anywhere; }
+.stark-hud:not(.hud-compact) .hud-status { max-width: calc(50% - 266px); }
 .stark-hud .hud-outside { margin-top: 16px; line-height: 1.4; color: #f3eef7; overflow-wrap: anywhere; }
 .stark-hud .hud-outside.hud-empty { display: none; }
 .stark-hud .hud-feature-status .hud-mode.hud-empty { display: none; }
@@ -137,6 +141,7 @@
   .stark-hud .hud-focus { top: auto; bottom: 190px; }
   .stark-hud .hud-medical { top: 120px; left: 32px; width: calc(100% - 64px); margin: 0; }
   .stark-hud .hud-feature-status, .stark-hud:not(.hud-compact) .hud-feature-status { bottom: 190px; font-size: 18px; }
+  .stark-hud:not(.hud-compact) .hud-feature-status { max-width: calc(100% - 218px); }
   .stark-hud.hud-compact .hud-feature-status { bottom: 32px; }
   .stark-hud .hud-moment { padding: 20px 16px; }
   .stark-hud .hud-moment-kicker { font-size: 32px; }

@@ -245,6 +245,7 @@ export function connect({ room, role = ROLES.GUEST, key } = {}) {
 
   function emit(event, payload = {}) {
     if (!allowedEvents.has(event)) throw new RangeError(`Unknown contract event: ${event}`);
+    if (document.hidden || closed || status.phase !== 'connected') return false;
     if (steerMock) return steerMock.emit(event, payload);
     if (!mock) {
       if (closed || status.phase !== 'connected' || !socket?.connected) return false;

@@ -15,6 +15,14 @@ try {
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight), true);
       const sizes = await page.locator('.hud-label:visible,.hud-answer:visible').evaluateAll(es => es.map(e => parseFloat(getComputedStyle(e).fontSize)));
       assert.ok(sizes.every(s => s >= 28));
+      if (['steering', 'outsideBrain'].includes(scene)) {
+        const overlaps = await page.evaluate(() => {
+          const a = document.querySelector('.hud-feature-status').getBoundingClientRect();
+          const b = document.querySelector('.hud-qr').getBoundingClientRect();
+          return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        });
+        assert.equal(overlaps, false, `${scene}: QR column reserved at ${size[0]}`);
+      }
     }
   }
   await open('stability-playing');
